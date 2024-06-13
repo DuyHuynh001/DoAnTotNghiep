@@ -16,7 +16,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
         
       ),
      body: Center(
-        child: Text('Lịch sử tìm kiếm'),
+        child: Text('Lịch sử dọc truyện'),
       ),
     );
   }
