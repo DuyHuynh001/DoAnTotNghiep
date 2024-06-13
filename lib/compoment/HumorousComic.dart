@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:manga_application_1/model/function.dart';
+import 'package:manga_application_1/view/DetailComicScreen.dart';
 
 class HumorousComic extends StatelessWidget {
   final List<Story> HumorousComicData  = [
-    Story(title: 'Doraemon ', imageUrl: 'https://static.wikia.nocookie.net/dubbing9585/images/2/20/Doraemon_2005.png'),
-    Story(title: 'One Piece ', imageUrl: 'https://upload.wikimedia.org/wikipedia/vi/9/90/One_Piece%2C_Volume_61_Cover_%28Japanese%29.jpg'),
-    Story(title: 'Doraemon', imageUrl: 'https://static.wikia.nocookie.net/dubbing9585/images/2/20/Doraemon_2005.png'),
-    Story(title: 'One Piece', imageUrl: 'https://upload.wikimedia.org/wikipedia/vi/9/90/One_Piece%2C_Volume_61_Cover_%28Japanese%29.jpg'),
-    Story(title: 'Doraemon', imageUrl: 'https://static.wikia.nocookie.net/dubbing9585/images/2/20/Doraemon_2005.png'),
-    Story(title: 'One Piece', imageUrl: 'https://upload.wikimedia.org/wikipedia/vi/9/90/One_Piece%2C_Volume_61_Cover_%28Japanese%29.jpg'),
+    Story(title: 'Thất Hình Đại Tội', imageUrl: 'https://cdnnvd.com/nettruyen/thumb/that-hinh-dai-toi.jpg',id: '21',Status:'Hoàn Thành',chapter: "11", Introduce: " bbbbbbbbbbbbbbbbbbbbbbbbb"),
+    Story(title: 'Doraemon ', imageUrl: 'https://tuoitho.mobi/upload/doc-truyen/doraemon-truyen-ngan/anh-dai-dien.jpg',id: '13',Status:'Hoàn Thành',chapter: "11", Introduce: " bbbbbbbbbbbbbbbbbbbbbbbbb"),
+    Story(title: 'One Piece', imageUrl: 'https://upload.wikimedia.org/wikipedia/vi/9/90/One_Piece%2C_Volume_61_Cover_%28Japanese%29.jpg',id: '16',Status:'Hoàn Thành',chapter: "11", Introduce: " bbbbbbbbbbbbbbbbbbbbbbbbb"),
+    Story(title: 'Cuộc Chiến Ẩm Thực', imageUrl: 'https://cdnnvd.com/nettruyen/thumb/cuoc-chien-am-thuc.jpg',id: '22',Status:'Hoàn Thành',chapter: "11", Introduce: " bbbbbbbbbbbbbbbbbbbbbbbbb"),
+    Story(title: 'Đại Vương Tha Mạng', imageUrl: 'https://cdnnvd.com/nettruyen/thumb/dai-vuong-tha-mang.jpg',id: '23',Status:'Hoàn Thành',chapter: "11", Introduce: " bbbbbbbbbbbbbbbbbbbbbbbbb"),
+    Story(title: 'Thám Tử Lừng Danh Conan', imageUrl: 'https://cdnnvd.com/nettruyen/thumb/tham-tu-conan.jpg',id: '14',Status:'Hoàn Thành',chapter: "11", Introduce: " bbbbbbbbbbbbbbbbbbbbbbbbb"),
   ];
-
   @override
   Widget build(BuildContext context) {
     return SliverPadding(
@@ -20,8 +20,13 @@ class HumorousComic extends StatelessWidget {
           (context, index) {
             final story = HumorousComicData[index];
             return GestureDetector(
-              onTap: () {
-                print('Tapped on ${story.title}');
+               onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => ComicDetailScreen(storyId: story.id),
+                  ),
+                );
               },
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,

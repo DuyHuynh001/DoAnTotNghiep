@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:manga_application_1/model/function.dart';
+import 'package:manga_application_1/view/DetailComicScreen.dart';
 
 class ActionComic extends StatelessWidget {
   final List<Story> ActionComicData  = [
-    Story(title: 'Doraemon ', imageUrl: 'https://static.wikia.nocookie.net/dubbing9585/images/2/20/Doraemon_2005.png'),
-    Story(title: 'One Piece vvvvvvvvvvvvvvvvvvv', imageUrl: 'https://upload.wikimedia.org/wikipedia/vi/9/90/One_Piece%2C_Volume_61_Cover_%28Japanese%29.jpg'),
-    Story(title: 'Doraemon', imageUrl: 'https://static.wikia.nocookie.net/dubbing9585/images/2/20/Doraemon_2005.png'),
-    Story(title: 'One Piece', imageUrl: 'https://upload.wikimedia.org/wikipedia/vi/9/90/One_Piece%2C_Volume_61_Cover_%28Japanese%29.jpg'),
-    Story(title: 'Doraemon', imageUrl: 'https://static.wikia.nocookie.net/dubbing9585/images/2/20/Doraemon_2005.png'),
-    Story(title: 'One Piece', imageUrl: 'https://upload.wikimedia.org/wikipedia/vi/9/90/One_Piece%2C_Volume_61_Cover_%28Japanese%29.jpg'),
+    Story(title: 'Naruto', imageUrl: 'https://cdnnvd.com/nettruyen/thumb/naruto.jpg',id: '1',Status:'Đang cập nhật',chapter: "10", Introduce: " vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv"),
+    Story(title: '7 Viên Ngọc Rồng', imageUrl: 'https://cdnnvd.com/nettruyen/thumb/7-vien-ngoc-rong.jpg',id: '2',Status:'Đang cập nhật',chapter: "11", Introduce: " bbbbbbbbbbbbbbbbbbbbbbbbb"),
+    Story(title: 'Fantasista', imageUrl: 'https://cdnnvd.com/nettruyen/thumb/fantasista.jpg',id: '3',Status:'Đang cập nhật',chapter: "12", Introduce: " vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv"),
+    Story(title: 'Onepunch Man', imageUrl: 'https://cdnnvd.com/nettruyen/thumb/defense-devil.jpg',id: '4',Status:'Đang cập nhật',chapter: "13", Introduce: " vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv"),
+    Story(title: 'Defense-devil', imageUrl: 'https://cdnnvd.com/nettruyen/thumb/black-clover-the-gioi-phep-thuat.jpg',id: '5',Status:'Đang cập nhật',chapter: "15", Introduce: " vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv"),
+    Story(title: 'Phong Vân', imageUrl: 'https://cdnnvd.com/nettruyen/thumb/phong-van.jpg',id: '6',Status:'Đang cập nhật',chapter: "19", Introduce: " vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv"),
   ];
 
   @override
@@ -21,7 +22,12 @@ class ActionComic extends StatelessWidget {
             final story = ActionComicData[index];
             return GestureDetector(
               onTap: () {
-                print('Tapped on ${story.title}');
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => ComicDetailScreen(storyId: story.id),
+                  ),
+                );
               },
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,

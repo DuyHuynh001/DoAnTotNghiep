@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:manga_application_1/model/function.dart';
+import 'package:manga_application_1/view/DetailComicScreen.dart';
 
 class FullComic extends StatelessWidget {
   final List<Story> FullComicData  = [
-    Story(title: 'Doraemon ', imageUrl: 'https://static.wikia.nocookie.net/dubbing9585/images/2/20/Doraemon_2005.png'),
-    Story(title: 'One Piece ', imageUrl: 'https://upload.wikimedia.org/wikipedia/vi/9/90/One_Piece%2C_Volume_61_Cover_%28Japanese%29.jpg'),
-    Story(title: 'Doraemon', imageUrl: 'https://static.wikia.nocookie.net/dubbing9585/images/2/20/Doraemon_2005.png'),
-    Story(title: 'One Piece', imageUrl: 'https://upload.wikimedia.org/wikipedia/vi/9/90/One_Piece%2C_Volume_61_Cover_%28Japanese%29.jpg'),
-    Story(title: 'Doraemon', imageUrl: 'https://static.wikia.nocookie.net/dubbing9585/images/2/20/Doraemon_2005.png'),
-    Story(title: 'One Piece', imageUrl: 'https://upload.wikimedia.org/wikipedia/vi/9/90/One_Piece%2C_Volume_61_Cover_%28Japanese%29.jpg'),
+    Story(title: '7 Viên Ngọc Rồng', imageUrl: 'https://cdnnvd.com/nettruyen/thumb/7-vien-ngoc-rong.jpg',id: '2',Status:'Hoàn Thành',chapter: "11", Introduce: " bbbbbbbbbbbbbbbbbbbbbbbbb"),
+    Story(title: 'Vương Gia Khắc Thê', imageUrl: 'https://cdnnvd.com/nettruyen/thumb/vuong-gia-khac-the.jpg',id: '12',Status:'Hoàn Thành',chapter: "10", Introduce: " vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv"),
+    Story(title: 'Doraemon ', imageUrl: 'https://tuoitho.mobi/upload/doc-truyen/doraemon-truyen-ngan/anh-dai-dien.jpg',id: '13',Status:'Hoàn Thành',chapter: "11", Introduce: " bbbbbbbbbbbbbbbbbbbbbbbbb"),
+    Story(title: 'Thám Tử Lừng Danh Conan', imageUrl: 'https://cdnnvd.com/nettruyen/thumb/tham-tu-conan.jpg',id: '14',Status:'Hoàn Thành',chapter: "11", Introduce: " bbbbbbbbbbbbbbbbbbbbbbbbb"),
+    Story(title: 'Cuộc Chơi Trên Núi Tử Thần', imageUrl: 'https://cdnnvd.com/nettruyen/thumb/cuoc-choi-tren-nui-tu-than.jpg',id: '15',Status:'Hoàn Thành',chapter: "11", Introduce: " bbbbbbbbbbbbbbbbbbbbbbbbb"),
+    Story(title: 'One Piece', imageUrl: 'https://upload.wikimedia.org/wikipedia/vi/9/90/One_Piece%2C_Volume_61_Cover_%28Japanese%29.jpg',id: '16',Status:'Hoàn Thành',chapter: "11", Introduce: " bbbbbbbbbbbbbbbbbbbbbbbbb"),
   ];
 
   @override
@@ -20,9 +21,14 @@ class FullComic extends StatelessWidget {
           (context, index) {
             final story = FullComicData[index];
             return GestureDetector(
-              onTap: () {
-                print('Tapped on ${story.title}');
-              },
+               onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => ComicDetailScreen(storyId: story.id),
+                  ),
+                );
+               },
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [

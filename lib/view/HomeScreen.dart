@@ -18,8 +18,6 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _MyHomeScreen();
 }
 
-
-
 class _MyHomeScreen extends State<HomeScreen> {
 
   @override
@@ -82,8 +80,7 @@ class _MyHomeScreen extends State<HomeScreen> {
                 },
               ),
             ],
-            floating: true,
-            snap: true,
+          
           ),
           SliverToBoxAdapter(
             child: Column(
@@ -106,7 +103,7 @@ class _MyHomeScreen extends State<HomeScreen> {
                         Image.asset('assets/img/onepice.jpg', fit: BoxFit.cover),
                       ],
                       onPageChanged: (value) {
-                        print('Page changed: $value');
+                       
                       },
                       autoPlayInterval: 7000,
                       isLoop: true,

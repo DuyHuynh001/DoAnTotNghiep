@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:manga_application_1/model/function.dart';
+import 'package:manga_application_1/view/DetailComicScreen.dart';
 
 class RecommendComic extends StatelessWidget {
   final List<Story> RecommendComicData  = [
-    Story(title: 'Doraemon ', imageUrl: 'https://static.wikia.nocookie.net/dubbing9585/images/2/20/Doraemon_2005.png'),
-    Story(title: 'One Piece vvvvvvvvvvvvvvvvvvv', imageUrl: 'https://upload.wikimedia.org/wikipedia/vi/9/90/One_Piece%2C_Volume_61_Cover_%28Japanese%29.jpg'),
-    Story(title: 'Doraemon', imageUrl: 'https://static.wikia.nocookie.net/dubbing9585/images/2/20/Doraemon_2005.png'),
-    Story(title: 'One Piece', imageUrl: 'https://upload.wikimedia.org/wikipedia/vi/9/90/One_Piece%2C_Volume_61_Cover_%28Japanese%29.jpg'),
-    Story(title: 'Doraemon', imageUrl: 'https://static.wikia.nocookie.net/dubbing9585/images/2/20/Doraemon_2005.png'),
-    Story(title: 'One Piece', imageUrl: 'https://upload.wikimedia.org/wikipedia/vi/9/90/One_Piece%2C_Volume_61_Cover_%28Japanese%29.jpg'),
+    Story(title: 'Ta Bị Kẹt Cùng Một Ngày 1000 Năm ', imageUrl: 'https://cdnnvd.com/nettruyen/thumb/ta-bi-ket-cung-mot-ngay-1000-nam.jpg',id: '24',Status:'Hoàn Thành',chapter: "11", Introduce: " bbbbbbbbbbbbbbbbbbbbbbbbb"),
+    Story(title: 'Toàn Chức Pháp Sư', imageUrl: 'https://cdnnvd.com/nettruyen/thumb/toan-chuc-phap-su.jpg',id: '25',Status:'Hoàn Thành',chapter: "11", Introduce: " bbbbbbbbbbbbbbbbbbbbbbbbb"),
+    Story(title: 'Ta Trời Sinh Đã Là Nhân Vật Phản Diện', imageUrl: 'https://cdnnvd.com/nettruyen/thumb/ta-troi-sinh-da-la-nhan-vat-phan-dien.jpg',id: '26',Status:'Hoàn Thành',chapter: "11", Introduce: " bbbbbbbbbbbbbbbbbbbbbbbbb"),
+    Story(title: 'Ta Là Tà Đế', imageUrl: 'https://cdnnvd.com/nettruyen/thumb/ta-la-ta-de.jpg',id: '26',Status:'Hoàn Thành',chapter: "11", Introduce: " bbbbbbbbbbbbbbbbbbbbbbbbb"),
+    Story(title: 'Đại Quản Gia Là Ma Hoàng', imageUrl: 'https://cdnnvd.com/nettruyen/thumb/dai-quan-gia-la-ma-hoang.jpg',id: '27',Status:'Hoàn Thành',chapter: "11", Introduce: " bbbbbbbbbbbbbbbbbbbbbbbbb"),
+    Story(title: 'Võ Luyện Đỉnh Phong', imageUrl: 'https://cdnnvd.com/nettruyen/thumb/vo-luyen-dinh-phong.jpg',id: '28',Status:'Hoàn Thành',chapter: "11", Introduce: " bbbbbbbbbbbbbbbbbbbbbbbbb"),
   ];
 
   @override
@@ -20,8 +21,13 @@ class RecommendComic extends StatelessWidget {
           (context, index) {
             final story = RecommendComicData[index];
             return GestureDetector(
-              onTap: () {
-                print('Tapped on ${story.title}');
+               onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => ComicDetailScreen(storyId: story.id),
+                  ),
+                );
               },
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,

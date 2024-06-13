@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:manga_application_1/model/function.dart';
+import 'package:manga_application_1/view/DetailComicScreen.dart';
 
 class HotComic extends StatelessWidget {
   final List<Story> HotComicData  = [
-    Story(title: 'Doraemon ', imageUrl: 'https://static.wikia.nocookie.net/dubbing9585/images/2/20/Doraemon_2005.png'),
-    Story(title: 'One Piece vvvvvvvvvvvvvvvvvvv', imageUrl: 'https://upload.wikimedia.org/wikipedia/vi/9/90/One_Piece%2C_Volume_61_Cover_%28Japanese%29.jpg'),
-    Story(title: 'Doraemon', imageUrl: 'https://static.wikia.nocookie.net/dubbing9585/images/2/20/Doraemon_2005.png'),
-    Story(title: 'One Piece', imageUrl: 'https://upload.wikimedia.org/wikipedia/vi/9/90/One_Piece%2C_Volume_61_Cover_%28Japanese%29.jpg'),
-    Story(title: 'Doraemon', imageUrl: 'https://static.wikia.nocookie.net/dubbing9585/images/2/20/Doraemon_2005.png'),
-    Story(title: 'One Piece', imageUrl: 'https://upload.wikimedia.org/wikipedia/vi/9/90/One_Piece%2C_Volume_61_Cover_%28Japanese%29.jpg'),
+    Story(title: 'Doraemon ', imageUrl: 'https://tuoitho.mobi/upload/doc-truyen/doraemon-truyen-ngan/anh-dai-dien.jpg',id: '13',Status:'Hoàn Thành',chapter: "11", Introduce: " bbbbbbbbbbbbbbbbbbbbbbbbb"),
+    Story(title: 'One Piece', imageUrl: 'https://upload.wikimedia.org/wikipedia/vi/9/90/One_Piece%2C_Volume_61_Cover_%28Japanese%29.jpg',id: '16',Status:'Hoàn Thành',chapter: "11", Introduce: " bbbbbbbbbbbbbbbbbbbbbbbbb"),
+    Story(title: 'Nguyên Tôn', imageUrl: 'https://cdnnvd.com/nettruyen/thumb/nguyen-ton.jpg',id: '17',Status:'Đang Cập Nhật',chapter: "11", Introduce: " bbbbbbbbbbbbbbbbbbbbbbbbb"),
+    Story(title: 'Ma Thú Siêu Thần', imageUrl: 'https://cdnnvd.com/nettruyen/thumb/ma-thu-sieu-than.jpg',id: '18',Status:'Đang Cập Nhật',chapter: "11", Introduce: " bbbbbbbbbbbbbbbbbbbbbbbbb"),
+    Story(title: 'Đại Phụng Đả Canh Nhân', imageUrl: 'https://cdnnvd.com/nettruyen/thumb/dai-phung-da-canh-nhan.jpg',id: '19',Status:'Đang Cập Nhật',chapter: "11", Introduce: " bbbbbbbbbbbbbbbbbbbbbbbbb"),
+    Story(title: 'Người Nuôi Rồng', imageUrl: 'https://cdnnvd.com/nettruyen/thumb/nguoi-nuoi-rong.jpg',id: '20',Status:'Đang Cập Nhật',chapter: "11", Introduce: " bbbbbbbbbbbbbbbbbbbbbbbbb"),
   ];
 
   @override
@@ -20,9 +21,14 @@ class HotComic extends StatelessWidget {
           (context, index) {
             final story = HotComicData[index];
             return GestureDetector(
-              onTap: () {
-                print('Tapped on ${story.title}');
-              },
+               onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => ComicDetailScreen(storyId: story.id),
+                  ),
+                );
+                },
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
