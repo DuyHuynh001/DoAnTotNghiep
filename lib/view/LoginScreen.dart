@@ -4,15 +4,16 @@ import 'package:manga_application_1/compoment/Navigation.dart';
 import 'package:manga_application_1/view/HomeScreen.dart';
 import 'package:manga_application_1/view/RegisterScreen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
+import 'package:firebase_auth/firebase_auth.dart';
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({Key? key}) : super(key: key);
+  const LoginScreen({super.key});
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
 }
-
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 class _LoginScreenState extends State<LoginScreen> {
+  FirebaseAuthService _auth = FirebaseAuthService();
   TextEditingController _usernameController = TextEditingController();
   TextEditingController _passwordController = TextEditingController();
   bool _isSigning = false;
@@ -25,22 +26,36 @@ class _LoginScreenState extends State<LoginScreen> {
           backgroundColor: const Color.fromARGB(255, 86, 84, 84));
     ScaffoldMessenger.of(context).showSnackBar(snackBar);
   }
-
-  void _signIn() async {
-    String username = _usernameController.text;
+void _signIn() async {
+    String email = _usernameController.text;
     String password = _passwordController.text;
 
-    if (username == 'abc' && password == '123') {
+    if (email.isEmpty || password.isEmpty) {
+      showSnackBar(context, 'Vui lòng nhập tài khoản và mật khẩu.');
+      return;
+    }
+    setState(() {
+      _isSigning = true;
+    });
+    try {
+      User? user = await _auth.signInWithEmailAndPassword(email, password);
       SharedPreferences prefs = await SharedPreferences.getInstance();
       prefs.setBool('isLoggedIn', true);
 
       Navigator.pushReplacement(
-          context, MaterialPageRoute(builder: (context) => NavigationScreen()));
-    } else {
-      showSnackBar(context, 'Tài khoản hoặc mật khẩu không đúng');
+        context,
+        MaterialPageRoute(builder: (context) => NavigationScreen()),
+      );
+    } catch (e) {
+        showSnackBar(context, 'Tài khoản hoặc mật khẩu không đúng');
+    } finally {
+      setState(() {
+        _isSigning = false;
+      });
     }
   }
-
+  
+ 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -154,5 +169,29 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
       ),
     );
+  }
+}
+class FirebaseAuthService {
+  FirebaseAuth auth = FirebaseAuth.instance;
+  Future<User?> signUpWithEmailAndPassword(String username, String phoneNumber,
+      String email, String password, bool status) async {
+    try {
+      UserCredential userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(email: email, password: password);
+      String uid = userCredential.user?.uid ?? "";
+      return userCredential.user;
+    } catch (e) {
+      print("Error during registration: $e");
+      return null;
+    }
+  }
+  Future<User?> signInWithEmailAndPassword(
+      String email, String password) async {
+    try {
+      UserCredential credential = await auth.signInWithEmailAndPassword(
+          email: email, password: password);
+      return credential.user;
+    } catch (e) {
+      print("Some Error $e");
+    }
   }
 }

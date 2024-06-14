@@ -6,7 +6,8 @@ import 'package:manga_application_1/compoment/FullComic.dart';
 import 'package:manga_application_1/compoment/HotComic.dart';
 import 'package:manga_application_1/compoment/HumorousComic.dart';
 import 'package:manga_application_1/compoment/RecommendComic.dart';
-import 'package:manga_application_1/model/function.dart';
+import 'package:manga_application_1/model/load_data.dart';
+import 'package:manga_application_1/view/CategoryScreen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'LoginScreen.dart'; // Cập nhật đường dẫn tới LoginScreen
 import 'SearchScreen.dart'; // Cập nhật đường dẫn tới SearchScreen
@@ -177,7 +178,14 @@ class ProductCategory extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-       
+         Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => CategoryScreen(
+               
+              ),
+            ),
+          );
       },
       child: Container(
         width: MediaQuery.of(context).size.width / 4.5,

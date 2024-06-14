@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:manga_application_1/model/function.dart';
+import 'package:manga_application_1/model/load_data.dart';
 import 'package:manga_application_1/view/DetailComicScreen.dart';
 
 class HotComic extends StatelessWidget {

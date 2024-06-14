@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1023902310841",
+    "project_id": "appdoctruyentranhonline",
+    "storage_bucket": "appdoctruyentranhonline.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1023902310841:android:6e3a78a35a0e6ce9e05668",
+        "android_client_info": {
+          "package_name": "com.example.manga_application_1"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBYhFOsgizpCtLVVKGZ8Yyf27deGTGtVYw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
