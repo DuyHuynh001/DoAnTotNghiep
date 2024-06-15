@@ -1,3 +1,9 @@
+import 'dart:convert';
+import 'dart:ffi';
+import 'package:http/http.dart' as http;
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 class Story {
   final String title;
   final String imageUrl;
@@ -13,7 +19,6 @@ class Story {
     {'name': 'Webtoon', 'icon': '🍄'},
     {'name': 'Harem', 'icon': '💥'},
     {'name': 'Co Dai', 'icon': '❗'},
-    // Add more categories as needed
   ];
 class StoryService {
   // Giả sử có một list các truyện từ một nguồn dữ liệu khác
@@ -53,4 +58,148 @@ class StoryService {
   static Story getStoryById(String id) {
     return allStories.firstWhere((story) => story.id == id);
   }
+}
+class Chapters {
+  final String Id;
+  final String chapterName;
+  final String chapterTitle;
+  final String chapterApiData;
+
+  Chapters({
+    required this.Id,
+    required this.chapterName,
+    required this.chapterTitle,
+    required this.chapterApiData,
+  });
+
+  factory Chapters.fromJson(Map<String, dynamic> json) {
+    String id = 'C${json['chapter_name']}';
+    return Chapters(
+      Id: id,
+      chapterName: json['chapter_name'],
+      chapterTitle: json['chapter_title'],
+      chapterApiData: json['chapter_api_data'],
+    );
+  }
+}
+class Comics {
+  String id;
+  String name;
+  String description;
+  List<String> genre;
+  String image;
+  String source;
+  String status;
+  List<Chapters> chapters;
+
+  Comics({
+    required this.id,
+    required this.name,
+    required this.description,
+    required this.genre,
+    required this.image,
+    required this.source,
+    required this.status,
+    required this.chapters,
+  });
+
+  factory Comics.fromJson(String id,Map<String, dynamic> json) {
+    List<String> genreList = List<String>.from(json['genre']);
+
+    List<Chapters> chaptersList = [];
+    if (json['chapters'] != null) {
+      chaptersList = List<Chapters>.from(
+        json['chapters'].map((chapterJson) => Chapters.fromJson(chapterJson)),
+      );
+    }
+
+    return Comics(
+      id: id, // Lấy id từ JSON
+      name: json['name'],
+      description: json['description'],
+      genre: genreList,
+      image: json['image'],
+      source: json['source'],
+      status: json['status'],
+      chapters: chaptersList,
+    );
+  }
+  static FirebaseFirestore _db = FirebaseFirestore.instance;
+  static Future<List<Comics>> fetchComicsList() async {
+    try {
+      QuerySnapshot querySnapshot = await _db.collection('Comics').get();
+
+      return querySnapshot.docs.map((doc) {
+        Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+        return Comics.fromJson(doc.id, data);
+      }).toList();
+    } catch (e) {
+      print("Error fetching comics list: $e");
+      return [];
+    }
+  }
+  // Phương thức tải thông tin truyện từ Firestore dựa trên ID
+ static Future<Comics> fetchComicsById(String id) async {
+    try {
+      DocumentSnapshot doc = await FirebaseFirestore.instance
+          .collection('Comics')
+          .doc(id)
+          .get();
+
+      if (!doc.exists) {
+        throw Exception('Không tìm thấy truyện với id: $id');
+      }
+
+      Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      return Comics.fromJson(doc.id, data);
+    } catch (e) {
+      throw Exception('Lỗi khi tải thông tin truyện theo id: $e');
+    }
+  }
+  static Future<List<int>> fetchChapters(String comicId) async {
+    try {
+      // Lấy dữ liệu từ Firestore
+      QuerySnapshot chaptersSnapshot = await FirebaseFirestore.instance
+          .collection('Comics')
+          .doc(comicId)
+          .collection('chapters')
+          .get();
+
+      // Chuyển đổi danh sách ID từ String sang int
+      List<int> chapters = chaptersSnapshot.docs
+          .map((doc) => int.tryParse(doc.id.replaceAll(RegExp(r'[^0-9]'), '')) ?? 0)
+          .toList();
+
+      return chapters;
+    } catch (e) {
+      throw Exception('Failed to load chapters: $e');
+    }
+  }
+   static Future<List<String>> fetchDataChapters(String comicId, String chapterId) async {
+  try {
+    // Lấy dữ liệu từ Firestore
+    DocumentSnapshot chapterSnapshot = await FirebaseFirestore.instance
+        .collection('Comics')
+        .doc(comicId)
+        .collection('chapters')
+        .doc(chapterId)
+        .get();
+
+    // Kiểm tra xem tài liệu có tồn tại không
+    if (chapterSnapshot.exists) {
+      // Lấy dữ liệu từ DocumentSnapshot
+      Map<String, dynamic> data = chapterSnapshot.data() as Map<String, dynamic>;
+
+      // Giả định rằng dữ liệu của bạn có một trường 'chapter_images' là danh sách các URL hình ảnh
+      List<dynamic> images = data['chapter_images'];
+      List<String> imageUrls = images.cast<String>();
+
+      return imageUrls;
+    } else {
+      throw Exception('Chapter not found');
+    }
+  } catch (e) {
+    throw Exception('Failed to load chapter: $e');
+  }
+}
 }

@@ -13,10 +13,10 @@ class ComicDetailScreen extends StatefulWidget {
 
 class _ComicDetailScreenState extends State<ComicDetailScreen> {
    bool isButtonPressed = false;
-  late Story story;
+   Comics story= Comics(id: "", name: "", description: "", genre: [], image: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/65/No-Image-Placeholder.svg/1665px-No-Image-Placeholder.svg.png", source: "", status: "", chapters: []);
   bool isFavorited = false;
   int favoriteCount = 0;
-  late List<int> chapters = [];
+  List<int> chapters = [];
   late int oldestChapterIndex;
   late int newestChapterIndex;
   bool showOldest = true; // Biến để theo dõi trạng thái cũ nhất hay mới nhất
@@ -26,14 +26,40 @@ class _ComicDetailScreenState extends State<ComicDetailScreen> {
   void initState() {
     super.initState();
     // Simulate getting chapter data
-   
-    chapters.sort(); // Sắp xếp danh sách chương theo thứ tự tăng dần
-    story = StoryService.getStoryById(widget.storyId);
+   _loadComic();
+   _loadChapters(); // Sắp xếp danh sách chương theo thứ tự tăng dần
     favoriteCount = 10; // or whatever the initial favorite count is
-    chapters = List.generate(10, (index) => index + 1); // Danh sách chương từ 1 đến 10
+    
     oldestChapterIndex = 0; // Chương cũ nhất là 1
     newestChapterIndex = chapters.length-1; // Chương mới nhất là 10
   }
+  void _loadComic() async {
+    try {
+      Comics fetchedComic = await Comics.fetchComicsById(widget.storyId);
+      setState(() {
+        story = fetchedComic;
+      });
+    } catch (e) {
+      print('Error loading comic: $e');
+      // Xử lý lỗi, ví dụ hiển thị thông báo cho người dùng
+    }
+  }
+  void _loadChapters() async {
+    try {
+      List<int> fetchedChapters = await Comics.fetchChapters(widget.storyId);
+      setState(() {
+        chapters = fetchedChapters;
+        if (chapters.isNotEmpty) {
+          // Sắp xếp danh sách chương theo thứ tự tăng dần
+          chapters.sort();
+        }
+      });
+    } catch (e) {
+      print('Error loading chapters: $e');
+      // Xử lý lỗi, ví dụ hiển thị thông báo cho người dùng
+    }
+  }
+
   void updateChapterOrder() {
     setState(() {
       if (showOldest) {
@@ -73,17 +99,11 @@ class _ComicDetailScreenState extends State<ComicDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final List<String> genres = [
-      'Cổ đại',
-      'Huyền huyễn',
-      'Kinh dị',
-      'Ngôn tình',
-    ];
     return DefaultTabController(
       length: 2,
       child: Scaffold(
         appBar: AppBar(
-          title: Text(story.title, style: TextStyle(fontSize: 16)),
+          title: Text(story.name, style: TextStyle(fontSize: 16)),
         ),
         body: Column(
           children: [
@@ -95,7 +115,7 @@ class _ComicDetailScreenState extends State<ComicDetailScreen> {
                   ClipRRect(
                     borderRadius: BorderRadius.circular(8.0),
                     child: Image.network(
-                      story.imageUrl,
+                      story.image,
                       width: 125,
                       height: 220,
                       fit: BoxFit.cover,
@@ -107,14 +127,14 @@ class _ComicDetailScreenState extends State<ComicDetailScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          story.title,
+                          story.name,
                           style: TextStyle(fontSize: 18.0, fontWeight: FontWeight.bold),
                         ),
                         SizedBox(height: 5),
                         Wrap(
                           spacing: 5.0,
                           runSpacing: 4.0,
-                          children: genres.map((genre) => GenreChip(genre: genre)).toList(),
+                          children: story.genre.map((genre) => GenreChip(genre: genre)).toList(),
                         ),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.start,
@@ -137,7 +157,15 @@ class _ComicDetailScreenState extends State<ComicDetailScreen> {
                           children: [
                             Text('Tình trạng:', style: TextStyle(fontWeight: FontWeight.bold)),
                             SizedBox(width: 10),
-                            Text('${story.Status}'),
+                            Text('${story.status}'),
+                          ],
+                        ),
+                        SizedBox(height: 5,),
+                        Row(
+                          children: [
+                            Text('Nguồn:', style: TextStyle(fontWeight: FontWeight.bold)),
+                            SizedBox(width: 10),
+                            Text('${story.source}'),
                           ],
                         ),
                         SizedBox(height: 5,),
@@ -232,7 +260,7 @@ class _ComicDetailScreenState extends State<ComicDetailScreen> {
                           ),
                           SizedBox(height: 8.0),
                           Text(
-                            story.Introduce,
+                            story.description,
                             style: TextStyle(fontSize: 16.0),
                           ),
                           Container(
@@ -251,8 +279,9 @@ class _ComicDetailScreenState extends State<ComicDetailScreen> {
                                       context,
                                       MaterialPageRoute(
                                         builder: (context) => ChapterDetailScreen(
-                                          chapterId: '1',
-                                          title: "Chương 1",
+                                          ChapterId: "C1",
+                                          comicId: story.id,
+                                          MaxChap: chapters.length,
                                         ),
                                       ),
                                     );
@@ -280,40 +309,7 @@ class _ComicDetailScreenState extends State<ComicDetailScreen> {
                             color: const Color.fromARGB(255, 2, 2, 2),
                             margin: EdgeInsets.symmetric(vertical: 5.0),
                           ),
-                          // Container(
-                          //   padding: EdgeInsets.all(8),
-                          //   child: Column(
-
-                          //     children: [
-                          //       Row(
-                          //         children: [
-                          //         Text("Đánh giá", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),)
-                          //       ],),
-                          //       Row(
-                          //         children: [
-                          //           Expanded(
-                          //             child: ElevatedButton.icon(
-                          //               onPressed: () {
-                          //               },
-                          //               icon: Icon(Icons.auto_stories, size: 25,color: Colors.black,),
-                          //               style: ElevatedButton.styleFrom(
-                          //               shape: RoundedRectangleBorder(
-                          //                   borderRadius: BorderRadius.circular(30.0), // Độ cong của góc
-                          //                 ),
-                          //                 primary: Colors.blue[400],
-                          //                 side: const BorderSide(color: Colors.black),
-                                          
-                          //                 padding: const EdgeInsets.symmetric(vertical: 15),
-                          //               ),
-                          //               label: Text("Viết bình luận",style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 20),
-                          //               ),
-                          //             ),
-                          //           ),
-                          //         ],
-                          //       ),
-                          //     ],
-                          //   ),
-                          // )
+                         
                         ],
                       ),
                     ),
@@ -328,7 +324,7 @@ class _ComicDetailScreenState extends State<ComicDetailScreen> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                           Text("Cập nhất đến chương 10"),
+                           Text("Cập nhất đến chương "+ chapters.length.toString() ),
                            Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
                           child: Row(
@@ -386,16 +382,25 @@ class _ComicDetailScreenState extends State<ComicDetailScreen> {
                                     title: Text('Chương $chapterNumber'),
                                     subtitle: Text('20/06/2024'),
                                     onTap: () {
+                                      Navigator.push(
+                                          context,
+                                          PageRouteBuilder(
+                                            pageBuilder: (context, animation, secondaryAnimation) => ChapterDetailScreen(ChapterId: "C"+chapters[index].toString(),comicId: story.id,MaxChap: chapters.length),
+                                            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                                              const begin = Offset(1.0, 0.0);
+                                              const end = Offset.zero;
+                                              const curve = Curves.easeInOut;
+                                              var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+                                              var offsetAnimation = animation.drive(tween);
+                                              return SlideTransition(
+                                                position: offsetAnimation,
+                                                child: child,
+                                              );
+                                            },
+                                          ),
+                                        );
                                       // Điều hướng đến trang chi tiết chương
-                                     Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => ChapterDetailScreen(
-                                    chapterId: '$chapterNumber',
-                                    title: "Chương $chapterNumber",
-                                  ),
-                                ),
-                              );
+                                    
                                     },
                                   ),
                                   Divider(height: 1, color: Colors.grey),
@@ -409,36 +414,7 @@ class _ComicDetailScreenState extends State<ComicDetailScreen> {
                   )
                   
                   ,
-                  // ListView.builder(
-                  //   itemCount: 10,
-                  //   itemBuilder: (context, index) {
-                  //     final chapterNumber = index + 1;
-                  //     return Column(
-                  //       children: [
-                  //         ListTile(
-                  //           leading: Image.asset(
-                  //             'assets/img/reading.png',
-                  //             width: 40,
-                  //           ),
-                  //           title: Text('Chương $chapterNumber'),
-                  //           subtitle: Text('20/06/2024'),
-                  //           onTap: () {
-                  //             Navigator.push(
-                  //               context,
-                  //               MaterialPageRoute(
-                  //                 builder: (context) => ChapterDetailScreen(
-                  //                   chapterId: '$chapterNumber',
-                  //                   title: "Chương $chapterNumber",
-                  //                 ),
-                  //               ),
-                  //             );
-                  //           },
-                  //         ),
-                  //         Divider(height: 1, color: Colors.grey),
-                  //       ],
-                  //     );
-                  //   },
-                  // ),
+                 
                 ],
               ),
             ),

@@ -7,6 +7,7 @@ import 'package:manga_application_1/compoment/HotComic.dart';
 import 'package:manga_application_1/compoment/HumorousComic.dart';
 import 'package:manga_application_1/compoment/RecommendComic.dart';
 import 'package:manga_application_1/model/load_data.dart';
+import 'package:manga_application_1/view/AddComics.dart';
 import 'package:manga_application_1/view/CategoryScreen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'LoginScreen.dart'; // Cập nhật đường dẫn tới LoginScreen
@@ -71,13 +72,24 @@ class _MyHomeScreen extends State<HomeScreen> {
               ),
             ),
             actions: [
+              // IconButton(
+              //   icon: const Icon(Icons.logout, color: Colors.black),
+              //   onPressed: () async {
+              //     SharedPreferences prefs = await SharedPreferences.getInstance();
+              //     prefs.setBool('isLoggedIn', false);
+              //     Navigator.pushReplacement(
+              //       context, MaterialPageRoute(builder: (context) => const LoginScreen()));
+              //   },
+              // ),
               IconButton(
-                icon: const Icon(Icons.logout, color: Colors.black),
-                onPressed: () async {
-                  SharedPreferences prefs = await SharedPreferences.getInstance();
-                  prefs.setBool('isLoggedIn', false);
-                  Navigator.pushReplacement(
-                    context, MaterialPageRoute(builder: (context) => const LoginScreen()));
+                icon: const Icon(Icons.settings, color: Colors.black),
+                onPressed: ()  {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) =>AddComic(),
+                    ),
+                  );
                 },
               ),
             ],
@@ -131,36 +143,7 @@ class _MyHomeScreen extends State<HomeScreen> {
             ),
           ),
           RecommendComic(),
-          const ComicHeader(
-              text: 'Truyện Hot',
-              icon: Icons.local_fire_department_sharp,
-              color: Colors.red,
-          ),
-          HotComic(),
-          const ComicHeader(
-              text: 'Truyện Hoàn',
-              icon: Icons.library_add_check_rounded,
-              color: Color.fromARGB(255, 187, 187, 8),
-          ),
-          FullComic(),
-          const ComicHeader(
-              text: 'Truyện Hài Hước',
-              icon: Icons.add_reaction_rounded,
-              color: Colors.green
-          ),
-          HumorousComic(),
-          const ComicHeader(
-              text: 'Truyện Hành Động',
-              icon: Icons.sports_gymnastics_outlined,
-              color: Colors.black
-          ),
-          ActionComic(),
-          const ComicHeader(
-              text: 'Truyện Cổ Đại',
-              icon: Icons.access_time,
-              color: Color.fromARGB(255, 146, 52, 18)
-          ),
-          AccientComic()
+          
       
         ],
       ),
