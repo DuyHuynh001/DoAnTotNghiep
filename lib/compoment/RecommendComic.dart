@@ -10,20 +10,17 @@ class RecommendComic extends StatefulWidget {
 class _RecommendComicState extends State<RecommendComic> {
 
   List<Comics> listRecommendComic=[];
-  void _load() async {   
-    List<Comics>list = await Comics.fetchComicsList();
+  void _loadRecommendComic() async {   
+    List<Comics>list = await Comics.fetchRecomendComicsList();
       setState(() {
-      listRecommendComic =list;
+       listRecommendComic =list;
       });
-      print("all productsale : ${listRecommendComic}");
     
   }
   @override
   void initState() {
     super.initState();
-    _load();
-  
-   
+    _loadRecommendComic();
   }
   @override
   Widget build(BuildContext context) {
@@ -33,15 +30,25 @@ class _RecommendComicState extends State<RecommendComic> {
         delegate: SliverChildBuilderDelegate(
           (context, index) {
             final story = listRecommendComic[index];
-            print("Id: "+ listRecommendComic[index].id);
             return GestureDetector(
                onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(
-                    
-                    builder: (context) => ComicDetailScreen(storyId: listRecommendComic[index].id),
+                  PageRouteBuilder(
+                    pageBuilder: (context, animation, secondaryAnimation) => ComicDetailScreen(storyId: story.id),
+                    transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                      const begin = Offset(1.0, 0.0);
+                      const end = Offset.zero;
+                      const curve = Curves.easeInOut;
+                      var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+                      var offsetAnimation = animation.drive(tween);
+                      return SlideTransition(
+                        position: offsetAnimation,
+                        child: child,
+                      );
+                    },
                   ),
+                  
                 );
               },
               child: Column(
@@ -51,7 +58,7 @@ class _RecommendComicState extends State<RecommendComic> {
                     height: 175,  // Chiều cao cố định cho hình ảnh
                     decoration: BoxDecoration(
                       image: DecorationImage(
-                        image: NetworkImage(listRecommendComic[index].image),
+                        image: NetworkImage(story.image),
                         fit: BoxFit.cover,
                       ),
                       borderRadius: BorderRadius.circular(8.0),
@@ -68,7 +75,7 @@ class _RecommendComicState extends State<RecommendComic> {
               ),
             );
           },
-          childCount: listRecommendComic.length,
+          childCount: listRecommendComic.length<=6? listRecommendComic.length : 6,
         ),
         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 3,

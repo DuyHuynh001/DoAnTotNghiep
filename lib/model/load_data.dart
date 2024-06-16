@@ -1,8 +1,8 @@
 import 'dart:convert';
-import 'dart:ffi';
 import 'package:http/http.dart' as http;
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:intl/intl.dart';
 
 class Story {
   final String title;
@@ -62,22 +62,22 @@ class StoryService {
 class Chapters {
   final String Id;
   final String chapterName;
-  final String chapterTitle;
+  final DateTime dateTime;
   final String chapterApiData;
 
   Chapters({
     required this.Id,
     required this.chapterName,
-    required this.chapterTitle,
+    required this.dateTime,
     required this.chapterApiData,
   });
 
   factory Chapters.fromJson(Map<String, dynamic> json) {
-    String id = 'C${json['chapter_name']}';
+    String id = '${json['chapter_name']}';
     return Chapters(
       Id: id,
       chapterName: json['chapter_name'],
-      chapterTitle: json['chapter_title'],
+      dateTime: json['datetime'],
       chapterApiData: json['chapter_api_data'],
     );
   }
@@ -125,10 +125,51 @@ class Comics {
     );
   }
   static FirebaseFirestore _db = FirebaseFirestore.instance;
-  static Future<List<Comics>> fetchComicsList() async {
+   // lấy danh sách truyện đề cử
+  static Future<List<Comics>> fetchRecomendComicsList() async {
     try {
-      QuerySnapshot querySnapshot = await _db.collection('Comics').get();
+      QuerySnapshot querySnapshot = await _db.collection('Comics').where('recommend', isEqualTo: true).get();
 
+      return querySnapshot.docs.map((doc) {
+        Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+        return Comics.fromJson(doc.id, data);
+      }).toList();
+    } catch (e) {
+      print("Error fetching comics list: $e");
+      return [];
+    }
+  }
+   // lấy danh sách truyện hành động
+  static Future<List<Comics>> fetchActionComicsList() async {
+    try {
+      QuerySnapshot querySnapshot = await _db.collection('Comics').where('recommend', isEqualTo: true).get();
+
+      return querySnapshot.docs.map((doc) {
+        Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+        return Comics.fromJson(doc.id, data);
+      }).toList();
+    } catch (e) {
+      print("Error fetching comics list: $e");
+      return [];
+    }
+  }
+  // lấy danh sách truyện full
+  static Future<List<Comics>> fetchFullComicsList() async {
+    try {
+      QuerySnapshot querySnapshot = await _db.collection('Comics').where('status', isEqualTo: "Hoàn Thành").get();
+      return querySnapshot.docs.map((doc) {
+        Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+        return Comics.fromJson(doc.id, data);
+      }).toList();
+    } catch (e) {
+      print("Error fetching comics list: $e");
+      return [];
+    }
+  }
+  // lấy danh sách truyện hot
+   static Future<List<Comics>> fetchHotComicsList() async {
+    try {
+      QuerySnapshot querySnapshot = await _db.collection('Comics').where('hot', isEqualTo: true).get();
       return querySnapshot.docs.map((doc) {
         Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
         return Comics.fromJson(doc.id, data);
@@ -156,26 +197,37 @@ class Comics {
       throw Exception('Lỗi khi tải thông tin truyện theo id: $e');
     }
   }
-  static Future<List<int>> fetchChapters(String comicId) async {
-    try {
-      // Lấy dữ liệu từ Firestore
-      QuerySnapshot chaptersSnapshot = await FirebaseFirestore.instance
-          .collection('Comics')
-          .doc(comicId)
-          .collection('chapters')
-          .get();
+static Future<List<Map<String, dynamic>>> fetchChapters(String comicId) async {
+  try {
+    QuerySnapshot chaptersSnapshot = await FirebaseFirestore.instance
+        .collection('Comics')
+        .doc(comicId)
+        .collection('chapters')
+        .get();
+      Set<String> uniqueIds = {};
+      List<Map<String, dynamic>> chapters = [];
 
-      // Chuyển đổi danh sách ID từ String sang int
-      List<int> chapters = chaptersSnapshot.docs
-          .map((doc) => int.tryParse(doc.id.replaceAll(RegExp(r'[^0-9]'), '')) ?? 0)
-          .toList();
+      chaptersSnapshot.docs.forEach((doc) {
+        String chapterId = doc.id; // Keep the chapter ID as a string
+        String chapterTime = doc.get('time') ?? '';
 
-      return chapters;
-    } catch (e) {
-      throw Exception('Failed to load chapters: $e');
-    }
+        if (!uniqueIds.contains(chapterId)) {
+          uniqueIds.add(chapterId);
+          chapters.add({
+            'id': chapterId,
+            'time': chapterTime,
+          });
+        }
+      });
+
+    print(chapters);
+    return chapters;
+  } catch (e) {
+    throw Exception('Failed to load chapters: $e');
   }
-   static Future<List<String>> fetchDataChapters(String comicId, String chapterId) async {
+}
+
+  static Future<List<String>> fetchDataChapters(String comicId, String chapterId) async {
   try {
     // Lấy dữ liệu từ Firestore
     DocumentSnapshot chapterSnapshot = await FirebaseFirestore.instance
@@ -189,11 +241,8 @@ class Comics {
     if (chapterSnapshot.exists) {
       // Lấy dữ liệu từ DocumentSnapshot
       Map<String, dynamic> data = chapterSnapshot.data() as Map<String, dynamic>;
-
-      // Giả định rằng dữ liệu của bạn có một trường 'chapter_images' là danh sách các URL hình ảnh
       List<dynamic> images = data['chapter_images'];
       List<String> imageUrls = images.cast<String>();
-
       return imageUrls;
     } else {
       throw Exception('Chapter not found');
@@ -203,3 +252,47 @@ class Comics {
   }
 }
 }
+Future<void> saveComicAndChaptersToFirestore(String name, String status, String urlImage, String content,bool IsHot , bool IsNew, bool IsRecommend,List<String> categories, Map<String, dynamic> comicData) async {
+    try {
+      CollectionReference comicsCollection = FirebaseFirestore.instance.collection('Comics');
+
+      // Data to be added for the comic
+      Map<String, dynamic> comicDetails = {
+        'name': name,
+        'status': status,
+        'image': urlImage,
+        'description': content,
+        'source': 'otruyen', 
+        'genre': categories,
+        'recommend': IsRecommend,
+        'new':IsNew,
+        'hot':IsHot,
+      };
+
+      // Add comic details to 'comics' collection
+      DocumentReference comicDoc = await comicsCollection.add(comicDetails);
+      DateTime now = DateTime.now();
+      String formattedToday = DateFormat('dd-MM-yyyy hh:mm').format(now);
+
+      // Add chapters to a subcollection of the comic document
+      CollectionReference chaptersCollection = comicDoc.collection('chapters');
+      for (var server in comicData['chapters']) {
+        for (var chapter in server['server_data']) {
+          // Data to be added for each chapter
+          Map<String, dynamic> chapterData = {
+            'chapterApiData': chapter['chapter_api_data'] ?? '',
+            'time': formattedToday,
+          };
+
+          // Sắp xếp các chương theo thuộc tính chapter_name hoặc một thuộc tính khác nếu có
+          String chapterId = chapter['chapter_name'];
+
+          await chaptersCollection.doc(chapterId).set(chapterData);
+        }
+      }
+
+      print('Comic and chapters added to Firestore successfully!');
+    } catch (e) {
+      print('Error adding comic and chapters to Firestore: $e');
+    }
+  }

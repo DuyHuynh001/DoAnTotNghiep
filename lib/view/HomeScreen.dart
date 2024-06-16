@@ -9,6 +9,8 @@ import 'package:manga_application_1/compoment/RecommendComic.dart';
 import 'package:manga_application_1/model/load_data.dart';
 import 'package:manga_application_1/view/AddComics.dart';
 import 'package:manga_application_1/view/CategoryScreen.dart';
+import 'package:manga_application_1/view/NewComicScreen.dart';
+import 'package:manga_application_1/view/TopComicScreen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'LoginScreen.dart'; // Cập nhật đường dẫn tới LoginScreen
 import 'SearchScreen.dart'; // Cập nhật đường dẫn tới SearchScreen
@@ -123,12 +125,43 @@ class _MyHomeScreen extends State<HomeScreen> {
                     ),
                   ),
                 ),
-                const Wrap(
+                 Wrap(
                   children: [
-                    ProductCategory(image: "assets/img/bullets.png", text: "Thể Loại"),
-                    ProductCategory(image: "assets/img/brand.png", text: "Top Truyện"),
-                    ProductCategory(image: "assets/img/new.png", text: "Mới Nhất"),
-                    ProductCategory(image: "assets/img/reward.png", text: "Điểm Của Tôi"),
+                    ProductCategory(
+                      image: "assets/img/bullets.png", 
+                      text: "Thể Loại", 
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => CategoryScreen()),
+                        );
+                      }),
+                    ProductCategory(
+                      image: "assets/img/brand.png", 
+                      text: "Top Truyện",
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => TopTruyenScreen()),
+                        );
+                      },),
+                    ProductCategory(
+                      image: "assets/img/new.png",
+                      text: "Mới Nhất",onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => NewTruyenScreen()),
+                        );
+                      },),
+                    ProductCategory(
+                      image: "assets/img/reward.png", 
+                      text: "Điểm Của Tôi",
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => CategoryScreen()),
+                        );
+                      },),
                   ],
                 ),
               ],
@@ -143,8 +176,36 @@ class _MyHomeScreen extends State<HomeScreen> {
             ),
           ),
           RecommendComic(),
-          
-      
+          const ComicHeader(
+              text: 'Truyện Hot',
+              icon: Icons.local_fire_department_sharp,
+              color: Colors.red,
+          ),
+          HotComic(),
+          const ComicHeader(
+              text: 'Truyện Hoàn',
+              icon: Icons.library_add_check_rounded,
+              color: Color.fromARGB(255, 187, 187, 8),
+          ),
+          FullComic(),
+          const ComicHeader(
+              text: 'Truyện Hài Hước',
+              icon: Icons.add_reaction_rounded,
+              color: Colors.green
+          ),
+          HumorousComic(),
+          const ComicHeader(
+              text: 'Truyện Hành Động',
+              icon: Icons.sports_gymnastics_outlined,
+              color: Colors.black
+          ),
+          ActionComic(),
+          const ComicHeader(
+              text: 'Truyện Cổ Đại',
+              icon: Icons.access_time,
+              color: Color.fromARGB(255, 146, 52, 18)
+          ),
+          AccientComic()
         ],
       ),
     );
@@ -154,22 +215,12 @@ class _MyHomeScreen extends State<HomeScreen> {
 class ProductCategory extends StatelessWidget {
   final String image;
   final String text;
-
-  const ProductCategory({Key? key, required this.image, required this.text}) : super(key: key);
-
+  final VoidCallback onTap;
+  const ProductCategory({Key? key, required this.image, required this.text, required this.onTap}) : super(key: key);
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () {
-         Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => CategoryScreen(
-               
-              ),
-            ),
-          );
-      },
+      onTap: onTap,
       child: Container(
         width: MediaQuery.of(context).size.width / 4.5,
         height: 70,

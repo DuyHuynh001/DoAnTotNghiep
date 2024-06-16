@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:manga_application_1/model/load_data.dart';
 import 'package:manga_application_1/view/DetailChapter.dart';
@@ -12,60 +14,71 @@ class ComicDetailScreen extends StatefulWidget {
 }
 
 class _ComicDetailScreenState extends State<ComicDetailScreen> {
-   bool isButtonPressed = false;
-   Comics story= Comics(id: "", name: "", description: "", genre: [], image: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/65/No-Image-Placeholder.svg/1665px-No-Image-Placeholder.svg.png", source: "", status: "", chapters: []);
+  bool isButtonPressed = false;
   bool isFavorited = false;
   int favoriteCount = 0;
-  List<int> chapters = [];
+  List<Map<String, dynamic>> chapters = [];
   late int oldestChapterIndex;
   late int newestChapterIndex;
   bool showOldest = true; // Biến để theo dõi trạng thái cũ nhất hay mới nhất
-
+  Comics story= Comics(id: "", name: '', description: "", genre: [], image: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/65/No-Image-Placeholder.svg/1665px-No-Image-Placeholder.svg.png", source: "", status: "", chapters: []);
+  
   
  @override
   void initState() {
     super.initState();
-    // Simulate getting chapter data
    _loadComic();
-   _loadChapters(); // Sắp xếp danh sách chương theo thứ tự tăng dần
+   _loadChapters(); 
     favoriteCount = 10; // or whatever the initial favorite count is
-    
-    oldestChapterIndex = 0; // Chương cũ nhất là 1
-    newestChapterIndex = chapters.length-1; // Chương mới nhất là 10
+    oldestChapterIndex = 0; 
+    newestChapterIndex = chapters.length-1; 
   }
   void _loadComic() async {
-    try {
-      Comics fetchedComic = await Comics.fetchComicsById(widget.storyId);
-      setState(() {
-        story = fetchedComic;
-      });
-    } catch (e) {
-      print('Error loading comic: $e');
-      // Xử lý lỗi, ví dụ hiển thị thông báo cho người dùng
+      try {
+        Comics fetchedComic = await Comics.fetchComicsById(widget.storyId);
+        setState(() {
+          story = fetchedComic;
+        });
+      } catch (e) {
+        print('Error loading comic: $e');
+        // Xử lý lỗi, ví dụ hiển thị thông báo cho người dùng
+      }
     }
-  }
-  void _loadChapters() async {
+   void _loadChapters() async {
     try {
-      List<int> fetchedChapters = await Comics.fetchChapters(widget.storyId);
+      List<Map<String, dynamic>> fetchedChapters = await Comics.fetchChapters(widget.storyId);
       setState(() {
         chapters = fetchedChapters;
+        print(chapters.length);
         if (chapters.isNotEmpty) {
-          // Sắp xếp danh sách chương theo thứ tự tăng dần
-          chapters.sort();
+          // Sắp xếp bằng cách chuyển 'id' thành kiểu double để so sánh
+          chapters.sort((a, b) {
+            double idA = double.tryParse(a['id'].toString()) ?? double.negativeInfinity;
+            double idB = double.tryParse(b['id'].toString()) ?? double.negativeInfinity;
+            return idA.compareTo(idB);
+          });
         }
       });
     } catch (e) {
       print('Error loading chapters: $e');
-      // Xử lý lỗi, ví dụ hiển thị thông báo cho người dùng
+      // Xử lý lỗi, ví dụ, hiển thị thông báo cho người dùng
     }
   }
 
   void updateChapterOrder() {
     setState(() {
       if (showOldest) {
-        chapters.sort(); // Sắp xếp lại theo thứ tự tăng dần (cũ nhất)
+        chapters.sort((a, b) {
+            double idA = double.tryParse(a['id'].toString()) ?? double.negativeInfinity;
+            double idB = double.tryParse(b['id'].toString()) ?? double.negativeInfinity;
+            return idA.compareTo(idB);
+          });
       } else {
-        chapters.sort((a, b) => b.compareTo(a)); // Sắp xếp lại theo thứ tự giảm dần (mới nhất)
+         chapters.sort((a, b) {
+            double idA = double.tryParse(a['id'].toString()) ?? double.negativeInfinity;
+            double idB = double.tryParse(b['id'].toString()) ?? double.negativeInfinity;
+            return idB.compareTo(idA);
+          });
       }
     });
   }
@@ -77,7 +90,7 @@ class _ComicDetailScreenState extends State<ComicDetailScreen> {
         isButtonPressed =false;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Bạn đã bỏ theo dõi truyện'),
+            content: Text('Bạn đã bỏ theo dõi truyện '+ story.name),
             duration: Duration(seconds: 1),
           ),
         );
@@ -87,9 +100,9 @@ class _ComicDetailScreenState extends State<ComicDetailScreen> {
         isButtonPressed =true;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Đã theo dõi truyện'),
+            content: Text('Đã theo dõi truyện '+ story.name),
             duration: Duration(seconds: 1),
-            behavior: SnackBarBehavior.floating,
+          
             elevation: 4.0,
           ),
         );
@@ -99,6 +112,8 @@ class _ComicDetailScreenState extends State<ComicDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    String maxChap = chapters.isNotEmpty ? chapters.map((chapter) => double.tryParse(chapter['id'].toString()) ?? -double.infinity).reduce((a, b) => a > b ? a : b).toString(): '0';
+    String minChap = chapters.isNotEmpty ? chapters.map((chapter) => double.tryParse(chapter['id'].toString()) ?? -double.infinity).reduce((a, b) => a > b ? a : b).toString():'0';
     return DefaultTabController(
       length: 2,
       child: Scaffold(
@@ -278,10 +293,12 @@ class _ComicDetailScreenState extends State<ComicDetailScreen> {
                                     Navigator.push(
                                       context,
                                       MaterialPageRoute(
-                                        builder: (context) => ChapterDetailScreen(
-                                          ChapterId: "C1",
+                                        builder: (context) => 
+                                        ChapterDetailScreen(
+                                          ChapterId: minChap,
                                           comicId: story.id,
-                                          MaxChap: chapters.length,
+                                          MaxChap: double.parse(maxChap),
+                                          MinChap: double.parse(minChap) ,
                                         ),
                                       ),
                                     );
@@ -324,7 +341,7 @@ class _ComicDetailScreenState extends State<ComicDetailScreen> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                           Text("Cập nhất đến chương "+ chapters.length.toString() ),
+                           Text("Cập nhất đến chương "+ maxChap.toString()),
                            Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
                           child: Row(
@@ -367,11 +384,12 @@ class _ComicDetailScreenState extends State<ComicDetailScreen> {
                           ],
                         ),
                         Divider(height: 1, color: Colors.grey),
+                        
                         Expanded(
                           child: ListView.builder(
                             itemCount: chapters.length,
                             itemBuilder: (context, index) {
-                              final chapterNumber = chapters[index];
+                              final chapterNumber = chapters[index]['id'];
                               return Column(
                                 children: [
                                   ListTile(
@@ -380,12 +398,18 @@ class _ComicDetailScreenState extends State<ComicDetailScreen> {
                                       width: 40,
                                     ),
                                     title: Text('Chương $chapterNumber'),
-                                    subtitle: Text('20/06/2024'),
+                                    subtitle: Text(chapters[index]['time'].toString()),
                                     onTap: () {
                                       Navigator.push(
                                           context,
                                           PageRouteBuilder(
-                                            pageBuilder: (context, animation, secondaryAnimation) => ChapterDetailScreen(ChapterId: "C"+chapters[index].toString(),comicId: story.id,MaxChap: chapters.length),
+                                            pageBuilder: (context, animation, secondaryAnimation) => 
+                                           ChapterDetailScreen(
+                                              ChapterId:chapterNumber.toString(),
+                                              comicId: story.id,
+                                              MaxChap: double.parse(maxChap),
+                                              MinChap: double.parse(minChap),
+                                            ),
                                             transitionsBuilder: (context, animation, secondaryAnimation, child) {
                                               const begin = Offset(1.0, 0.0);
                                               const end = Offset.zero;
@@ -399,8 +423,6 @@ class _ComicDetailScreenState extends State<ComicDetailScreen> {
                                             },
                                           ),
                                         );
-                                      // Điều hướng đến trang chi tiết chương
-                                    
                                     },
                                   ),
                                   Divider(height: 1, color: Colors.grey),
@@ -411,15 +433,10 @@ class _ComicDetailScreenState extends State<ComicDetailScreen> {
                         ),
                       ],
                     ),
-                  )
-                  
-                  ,
-                 
+                  ),
                 ],
               ),
             ),
-            // ButtonBar hoặc Row cho các nút ở dưới cùng
-            
           ],
         ),
       ),

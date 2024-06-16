@@ -2,16 +2,26 @@ import 'package:flutter/material.dart';
 import 'package:manga_application_1/model/load_data.dart';
 import 'package:manga_application_1/view/DetailComicScreen.dart';
 
-class FullComic extends StatelessWidget {
-  final List<Story> FullComicData  = [
-    Story(title: '7 Viên Ngọc Rồng ', imageUrl: 'https://cdnnvd.com/nettruyen/thumb/7-vien-ngoc-rong.jpg',id: '2',Status:'Hoàn Thành',chapter: "11", Introduce: " bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"),
-    Story(title: 'Vương Gia Khắc Thê', imageUrl: 'https://cdnnvd.com/nettruyen/thumb/vuong-gia-khac-the.jpg',id: '12',Status:'Hoàn Thành',chapter: "10", Introduce: " vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv"),
-    Story(title: 'Doraemon ', imageUrl: 'https://tuoitho.mobi/upload/doc-truyen/doraemon-truyen-ngan/anh-dai-dien.jpg',id: '13',Status:'Hoàn Thành',chapter: "11", Introduce: " bbbbbbbbbbbbbbbbbbbbbbbbb"),
-    Story(title: 'Thám Tử Lừng Danh Conan', imageUrl: 'https://cdnnvd.com/nettruyen/thumb/tham-tu-conan.jpg',id: '14',Status:'Hoàn Thành',chapter: "11", Introduce: " bbbbbbbbbbbbbbbbbbbbbbbbb"),
-    Story(title: 'Cuộc Chơi Trên Núi Tử Thần', imageUrl: 'https://cdnnvd.com/nettruyen/thumb/cuoc-choi-tren-nui-tu-than.jpg',id: '15',Status:'Hoàn Thành',chapter: "11", Introduce: " bbbbbbbbbbbbbbbbbbbbbbbbb"),
-    Story(title: 'One Piece', imageUrl: 'https://upload.wikimedia.org/wikipedia/vi/9/90/One_Piece%2C_Volume_61_Cover_%28Japanese%29.jpg',id: '16',Status:'Hoàn Thành',chapter: "11", Introduce: " bbbbbbbbbbbbbbbbbbbbbbbbb"),
-  ];
+class FullComic extends StatefulWidget {
+ const  FullComic({super.key});
+  @override
+  State<FullComic> createState() => _FullComicState();
+}
+class _FullComicState extends State<FullComic> {
 
+  List<Comics> listFullComic=[];
+  void _loadFullComic() async {   
+    List<Comics>list = await Comics.fetchRecomendComicsList();
+      setState(() {
+      listFullComic =list;
+    });
+    
+  }
+  @override
+  void initState() {
+    super.initState();
+    _loadFullComic();
+  }
   @override
   Widget build(BuildContext context) {
     return SliverPadding(
@@ -19,16 +29,28 @@ class FullComic extends StatelessWidget {
       sliver: SliverGrid(
         delegate: SliverChildBuilderDelegate(
           (context, index) {
-            final story = FullComicData[index];
+            final story = listFullComic[index];
             return GestureDetector(
                onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(
-                    builder: (context) => ComicDetailScreen(storyId: story.id),
+                  PageRouteBuilder(
+                    pageBuilder: (context, animation, secondaryAnimation) => ComicDetailScreen(storyId: story.id),
+                    transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                      const begin = Offset(1.0, 0.0);
+                      const end = Offset.zero;
+                      const curve = Curves.easeInOut;
+                      var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+                      var offsetAnimation = animation.drive(tween);
+                      return SlideTransition(
+                        position: offsetAnimation,
+                        child: child,
+                      );
+                    },
                   ),
+                  
                 );
-               },
+              },
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -36,7 +58,7 @@ class FullComic extends StatelessWidget {
                     height: 175,  // Chiều cao cố định cho hình ảnh
                     decoration: BoxDecoration(
                       image: DecorationImage(
-                        image: NetworkImage(story.imageUrl),
+                        image: NetworkImage(story.image),
                         fit: BoxFit.cover,
                       ),
                       borderRadius: BorderRadius.circular(8.0),
@@ -44,7 +66,7 @@ class FullComic extends StatelessWidget {
                   ),
                   SizedBox(height: 8.0),
                   Text(
-                    story.title,
+                    story.name,
                     style: TextStyle(fontSize: 14.0, fontWeight: FontWeight.bold),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
@@ -53,7 +75,8 @@ class FullComic extends StatelessWidget {
               ),
             );
           },
-          childCount: 6,
+          
+          childCount: listFullComic.length <=6? listFullComic.length : 6,
         ),
         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 3,

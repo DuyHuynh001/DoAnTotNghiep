@@ -2,16 +2,26 @@ import 'package:flutter/material.dart';
 import 'package:manga_application_1/model/load_data.dart';
 import 'package:manga_application_1/view/DetailComicScreen.dart';
 
-class ActionComic extends StatelessWidget {
-  final List<Story> ActionComicData  = [
-    Story(title: 'Naruto', imageUrl: 'https://cdnnvd.com/nettruyen/thumb/naruto.jpg',id: '1',Status:'Đang cập nhật',chapter: "10", Introduce: " vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv"),
-    Story(title: '7 Viên Ngọc Rồng', imageUrl: 'https://cdnnvd.com/nettruyen/thumb/7-vien-ngoc-rong.jpg',id: '2',Status:'Đang cập nhật',chapter: "11", Introduce: " bbbbbbbbbbbbbbbbbbbbbbbbb"),
-    Story(title: 'Fantasista', imageUrl: 'https://cdnnvd.com/nettruyen/thumb/fantasista.jpg',id: '3',Status:'Đang cập nhật',chapter: "12", Introduce: " vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv"),
-    Story(title: 'Onepunch Man', imageUrl: 'https://cdnnvd.com/nettruyen/thumb/defense-devil.jpg',id: '4',Status:'Đang cập nhật',chapter: "13", Introduce: " vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv"),
-    Story(title: 'Defense-devil', imageUrl: 'https://cdnnvd.com/nettruyen/thumb/black-clover-the-gioi-phep-thuat.jpg',id: '5',Status:'Đang cập nhật',chapter: "15", Introduce: " vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv"),
-    Story(title: 'Phong Vân', imageUrl: 'https://cdnnvd.com/nettruyen/thumb/phong-van.jpg',id: '6',Status:'Đang cập nhật',chapter: "19", Introduce: " vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv"),
-  ];
+class ActionComic extends StatefulWidget {
+ const  ActionComic({super.key});
+  @override
+  State<ActionComic> createState() => _ActionComicState();
+}
+class _ActionComicState extends State<ActionComic> {
 
+  List<Comics> listActionComic=[];
+  void _loadActionComic() async {   
+    List<Comics>list = await Comics.fetchRecomendComicsList();
+      setState(() {
+      listActionComic =list;
+    });
+    
+  }
+  @override
+  void initState() {
+    super.initState();
+    _loadActionComic();
+  }
   @override
   Widget build(BuildContext context) {
     return SliverPadding(
@@ -19,14 +29,26 @@ class ActionComic extends StatelessWidget {
       sliver: SliverGrid(
         delegate: SliverChildBuilderDelegate(
           (context, index) {
-            final story = ActionComicData[index];
+            final story = listActionComic[index];
             return GestureDetector(
-              onTap: () {
+               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(
-                    builder: (context) => ComicDetailScreen(storyId: story.id),
+                  PageRouteBuilder(
+                    pageBuilder: (context, animation, secondaryAnimation) => ComicDetailScreen(storyId: story.id),
+                    transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                      const begin = Offset(1.0, 0.0);
+                      const end = Offset.zero;
+                      const curve = Curves.easeInOut;
+                      var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+                      var offsetAnimation = animation.drive(tween);
+                      return SlideTransition(
+                        position: offsetAnimation,
+                        child: child,
+                      );
+                    },
                   ),
+                  
                 );
               },
               child: Column(
@@ -36,7 +58,7 @@ class ActionComic extends StatelessWidget {
                     height: 175,  // Chiều cao cố định cho hình ảnh
                     decoration: BoxDecoration(
                       image: DecorationImage(
-                        image: NetworkImage(story.imageUrl),
+                        image: NetworkImage(story.image),
                         fit: BoxFit.cover,
                       ),
                       borderRadius: BorderRadius.circular(8.0),
@@ -44,7 +66,7 @@ class ActionComic extends StatelessWidget {
                   ),
                   SizedBox(height: 8.0),
                   Text(
-                    story.title,
+                    story.name,
                     style: TextStyle(fontSize: 14.0, fontWeight: FontWeight.bold),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
@@ -53,7 +75,7 @@ class ActionComic extends StatelessWidget {
               ),
             );
           },
-          childCount: 6,
+          childCount: listActionComic.length,
         ),
         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 3,

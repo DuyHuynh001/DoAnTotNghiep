@@ -2,16 +2,26 @@ import 'package:flutter/material.dart';
 import 'package:manga_application_1/model/load_data.dart';
 import 'package:manga_application_1/view/DetailComicScreen.dart';
 
-class HotComic extends StatelessWidget {
-  final List<Story> HotComicData  = [
-    Story(title: 'Doraemon ', imageUrl: 'https://tuoitho.mobi/upload/doc-truyen/doraemon-truyen-ngan/anh-dai-dien.jpg',id: '13',Status:'Hoàn Thành',chapter: "11", Introduce: " bbbbbbbbbbbbbbbbbbbbbbbbb"),
-    Story(title: 'One Piece', imageUrl: 'https://upload.wikimedia.org/wikipedia/vi/9/90/One_Piece%2C_Volume_61_Cover_%28Japanese%29.jpg',id: '16',Status:'Hoàn Thành',chapter: "11", Introduce: " bbbbbbbbbbbbbbbbbbbbbbbbb"),
-    Story(title: 'Nguyên Tôn', imageUrl: 'https://cdnnvd.com/nettruyen/thumb/nguyen-ton.jpg',id: '17',Status:'Đang Cập Nhật',chapter: "11", Introduce: " bbbbbbbbbbbbbbbbbbbbbbbbb"),
-    Story(title: 'Ma Thú Siêu Thần', imageUrl: 'https://cdnnvd.com/nettruyen/thumb/ma-thu-sieu-than.jpg',id: '18',Status:'Đang Cập Nhật',chapter: "11", Introduce: " bbbbbbbbbbbbbbbbbbbbbbbbb"),
-    Story(title: 'Đại Phụng Đả Canh Nhân', imageUrl: 'https://cdnnvd.com/nettruyen/thumb/dai-phung-da-canh-nhan.jpg',id: '19',Status:'Đang Cập Nhật',chapter: "11", Introduce: " bbbbbbbbbbbbbbbbbbbbbbbbb"),
-    Story(title: 'Người Nuôi Rồng', imageUrl: 'https://cdnnvd.com/nettruyen/thumb/nguoi-nuoi-rong.jpg',id: '20',Status:'Đang Cập Nhật',chapter: "11", Introduce: " bbbbbbbbbbbbbbbbbbbbbbbbb"),
-  ];
+class HotComic extends StatefulWidget {
+ const  HotComic({super.key});
+  @override
+  State<HotComic> createState() => _HotComicState();
+}
+class _HotComicState extends State<HotComic> {
 
+  List<Comics> listHotComic=[];
+  void _loadHotComic() async {   
+    List<Comics>list = await Comics.fetchHotComicsList();
+      setState(() {
+       listHotComic =list;
+      });
+    
+  }
+  @override
+  void initState() {
+    super.initState();
+    _loadHotComic();
+  }
   @override
   Widget build(BuildContext context) {
     return SliverPadding(
@@ -19,16 +29,28 @@ class HotComic extends StatelessWidget {
       sliver: SliverGrid(
         delegate: SliverChildBuilderDelegate(
           (context, index) {
-            final story = HotComicData[index];
+            final story = listHotComic[index];
             return GestureDetector(
                onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(
-                    builder: (context) => ComicDetailScreen(storyId: story.id),
+                  PageRouteBuilder(
+                    pageBuilder: (context, animation, secondaryAnimation) => ComicDetailScreen(storyId: story.id),
+                    transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                      const begin = Offset(1.0, 0.0);
+                      const end = Offset.zero;
+                      const curve = Curves.easeInOut;
+                      var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+                      var offsetAnimation = animation.drive(tween);
+                      return SlideTransition(
+                        position: offsetAnimation,
+                        child: child,
+                      );
+                    },
                   ),
+                  
                 );
-                },
+              },
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -36,7 +58,7 @@ class HotComic extends StatelessWidget {
                     height: 175,  // Chiều cao cố định cho hình ảnh
                     decoration: BoxDecoration(
                       image: DecorationImage(
-                        image: NetworkImage(story.imageUrl),
+                        image: NetworkImage(story.image),
                         fit: BoxFit.cover,
                       ),
                       borderRadius: BorderRadius.circular(8.0),
@@ -44,7 +66,7 @@ class HotComic extends StatelessWidget {
                   ),
                   SizedBox(height: 8.0),
                   Text(
-                    story.title,
+                    story.name,
                     style: TextStyle(fontSize: 14.0, fontWeight: FontWeight.bold),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
@@ -53,9 +75,9 @@ class HotComic extends StatelessWidget {
               ),
             );
           },
-          childCount: 6,
+          childCount: listHotComic.length <=6? listHotComic.length : 6,
         ),
-        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 3,
           crossAxisSpacing: 8.0,
           mainAxisSpacing: 8.0,

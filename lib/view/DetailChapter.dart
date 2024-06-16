@@ -8,9 +8,10 @@ import 'package:cached_network_image/cached_network_image.dart';
 class ChapterDetailScreen extends StatefulWidget {
   final String ChapterId;
   final String comicId;
-  final int MaxChap;
+  final double MaxChap;
+  final double MinChap;
 
-  const ChapterDetailScreen({super.key, required this.ChapterId, required this.comicId, required this.MaxChap});
+  const ChapterDetailScreen({super.key, required this.ChapterId, required this.comicId, required this.MaxChap, required this.MinChap});
 
   @override
   State<ChapterDetailScreen> createState() => _ChapterDetailScreenState();
@@ -102,17 +103,17 @@ class _ChapterDetailScreenState extends State<ChapterDetailScreen> {
   }
 
   String getPreviousChapterId(String currentChapterId) {
-    int currentId = int.parse(currentChapterId.replaceAll(RegExp(r'[^0-9]'), ''));
-    if(currentId==1)
+    int currentId = int.parse(currentChapterId);
+    if(currentId==widget.MinChap)
     {
-      return 'C${currentId}';;
+      return '${currentId}';;
     }
     else
-    return 'C${currentId - 1}';
+    return '${currentId - 1}';
   }
 
   String getNextChapterId(String currentChapterId) {
-  int currentId = int.parse(currentChapterId.replaceAll(RegExp(r'[^0-9]'), ''));
+  int currentId = int.parse(currentChapterId);
   if (currentId == widget.MaxChap) {
     showDialog(
       context: context,
@@ -136,7 +137,7 @@ class _ChapterDetailScreenState extends State<ChapterDetailScreen> {
     );
     return currentChapterId; // hoặc return một giá trị mặc định nào đó
   } else {
-    return 'C${currentId + 1}';
+    return '${currentId + 1}';
   }
 }
   
@@ -191,7 +192,7 @@ class _ChapterDetailScreenState extends State<ChapterDetailScreen> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: const Color.fromARGB(255, 255, 255, 255),
-        title: Text('Chương ${chapterId.replaceAll(RegExp(r'[^0-9]'), '')}',style: TextStyle(color: Colors.black),),
+        title: Text('Chương ${chapterId}',style: TextStyle(color: Colors.black),),
         iconTheme: IconThemeData(color: Colors.black),
       ),
       body: Stack(
