@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:manga_application_1/compoment/Navigation.dart';
@@ -41,11 +42,15 @@ void _signIn() async {
       User? user = await _auth.signInWithEmailAndPassword(email, password);
       SharedPreferences prefs = await SharedPreferences.getInstance();
       prefs.setBool('isLoggedIn', true);
-
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => NavigationScreen()),
-      );
+       
+      if( user!=null)
+      {
+        String userId = user.uid;
+        prefs.setString('UserId', userId);
+        print("Id:"+ userId);
+        Navigator.pushReplacement(context,MaterialPageRoute(builder: (context) => NavigationScreen(UserId: userId)), );
+        
+      }
     } catch (e) {
         showSnackBar(context, 'Tài khoản hoặc mật khẩu không đúng');
     } finally {
@@ -75,7 +80,7 @@ void _signIn() async {
               const Padding(
                 padding: EdgeInsets.fromLTRB(0, 0, 0, 80),
                 child: Text(
-                  "MANGA APP",
+                  "COMICZ APP",
                   style: TextStyle(
                       color: Colors.blue,
                       fontWeight: FontWeight.bold,
@@ -194,4 +199,22 @@ class FirebaseAuthService {
       print("Some Error $e");
     }
   }
+  Future<bool> getUserStatus(String userId) async {
+  try {
+    DocumentSnapshot userDoc =
+        await FirebaseFirestore.instance.collection('User').doc(userId).get();
+
+    if (userDoc.exists) {
+      // Lấy giá trị trường 'status' trong tài liệu người dùng
+      bool status = userDoc['status'] ?? false;
+      return status;
+    } else {
+      print('User document not found for ID: $userId');
+      return false;
+    }
+  } catch (e) {
+    print("Error getting user status: $e");
+    return false;
+  }
+}
 }

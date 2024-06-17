@@ -296,3 +296,74 @@ Future<void> saveComicAndChaptersToFirestore(String name, String status, String 
       print('Error adding comic and chapters to Firestore: $e');
     }
   }
+
+  
+  
+  class User {
+  final String Id;
+  final String Name;
+  final String Phone;
+  final String Image;
+  final bool Status;
+  final String Email;
+
+  User({
+    required this.Id,
+    required this.Name,
+    required this.Phone,
+    required this.Image,
+    required this.Email,
+    required this.Status
+  });
+
+  factory User.fromJson(String Id, Map<String, dynamic> json) {
+    return User(
+      Id: Id,
+      Name: json['Name'],
+      Phone: json['Phone'],
+      Email: json['Email'],
+      Status: json['Status'],
+      Image: json['Image'],
+      
+    );
+  }
+  static Future<User> fetchUserById(String id) async {
+    try {
+      DocumentSnapshot doc = await FirebaseFirestore.instance
+          .collection('User')
+          .doc(id)
+          .get();
+
+      if (!doc.exists) {
+        throw Exception('Không tìm thấy người dùng với id: $id');
+      }
+
+      Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      return User.fromJson(doc.id, data);
+    } catch (e) {
+      throw Exception('Lỗi khi tải thông tin người dùng theo id: $e');
+    }
+  }
+}
+ Future<List<DocumentSnapshot>> fetchCommentsByComicId(String ComicId) async {
+    try {
+      QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+          .collection('Comments')
+          .where('comicId', isEqualTo: ComicId)
+          // .orderBy("times", descending: true)
+          .get();
+      List<DocumentSnapshot> comments = querySnapshot.docs;
+
+      // Sắp xếp theo trường 'times' giảm dần
+      comments.sort((a, b) {
+        Timestamp timeA = a['times'];
+        Timestamp timeB = b['times'];
+        return timeB.compareTo(timeA);
+      });
+        return comments;
+      
+    } catch (e) {
+      print('Error fetching comments: $e');
+      return []; // Trả về danh sách rỗng nếu có lỗi
+    }
+}

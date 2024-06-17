@@ -16,7 +16,8 @@ import 'LoginScreen.dart'; // Cập nhật đường dẫn tới LoginScreen
 import 'SearchScreen.dart'; // Cập nhật đường dẫn tới SearchScreen
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  final String UserId;
+  const HomeScreen({super.key, required this.UserId});
 
   @override
   State<HomeScreen> createState() => _MyHomeScreen();
@@ -175,19 +176,19 @@ class _MyHomeScreen extends State<HomeScreen> {
               color: Colors.blueAccent,
             ),
           ),
-          RecommendComic(),
+          RecommendComic(UserId: widget.UserId,),
           const ComicHeader(
               text: 'Truyện Hot',
               icon: Icons.local_fire_department_sharp,
               color: Colors.red,
           ),
-          HotComic(),
+          HotComic(UserId: widget.UserId,),
           const ComicHeader(
               text: 'Truyện Hoàn',
               icon: Icons.library_add_check_rounded,
               color: Color.fromARGB(255, 187, 187, 8),
           ),
-          FullComic(),
+          FullComic(UserId: widget.UserId,),
           const ComicHeader(
               text: 'Truyện Hài Hước',
               icon: Icons.add_reaction_rounded,
@@ -199,7 +200,7 @@ class _MyHomeScreen extends State<HomeScreen> {
               icon: Icons.sports_gymnastics_outlined,
               color: Colors.black
           ),
-          ActionComic(),
+          ActionComic(UserId: widget.UserId,),
           const ComicHeader(
               text: 'Truyện Cổ Đại',
               icon: Icons.access_time,

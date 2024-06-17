@@ -3,7 +3,9 @@ import 'package:manga_application_1/model/load_data.dart';
 import 'package:manga_application_1/view/DetailComicScreen.dart';
 
 class RecommendComic extends StatefulWidget {
- const  RecommendComic({super.key});
+  final String UserId;
+
+ const  RecommendComic({super.key, required this.UserId});
   @override
   State<RecommendComic> createState() => _RecommendComicState();
 }
@@ -35,7 +37,7 @@ class _RecommendComicState extends State<RecommendComic> {
                 Navigator.push(
                   context,
                   PageRouteBuilder(
-                    pageBuilder: (context, animation, secondaryAnimation) => ComicDetailScreen(storyId: story.id),
+                    pageBuilder: (context, animation, secondaryAnimation) => ComicDetailScreen(storyId: story.id,UserId: widget.UserId,),
                     transitionsBuilder: (context, animation, secondaryAnimation, child) {
                       const begin = Offset(1.0, 0.0);
                       const end = Offset.zero;

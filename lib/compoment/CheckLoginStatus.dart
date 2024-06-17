@@ -19,9 +19,10 @@ class _SplashScreenState extends State<SplashScreen> {
   Future<void> _checkLoginStatus() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     bool isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
+    String isUserId = prefs.getString('UserId')??"";
     if (isLoggedIn) {
       Navigator.pushReplacement(
-          context, MaterialPageRoute(builder: (context) =>NavigationScreen()));
+          context, MaterialPageRoute(builder: (context) =>NavigationScreen(UserId: isUserId,)));
     } else {
       Navigator.pushReplacement(
           context, MaterialPageRoute(builder: (context) => LoginScreen()));

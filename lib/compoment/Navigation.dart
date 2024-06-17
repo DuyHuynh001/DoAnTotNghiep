@@ -4,7 +4,8 @@ import 'package:manga_application_1/view/HistoryScreen.dart';
 import 'package:manga_application_1/view/HomeScreen.dart';
 import 'package:manga_application_1/view/ProfileScreen.dart';
 class NavigationScreen extends StatefulWidget {
-  const NavigationScreen({super.key});
+  final String UserId;
+  const NavigationScreen({super.key, required this.UserId});
   @override
   State<NavigationScreen> createState() => _NavigationScreenState();
 }
@@ -16,9 +17,9 @@ class _NavigationScreenState extends State<NavigationScreen> {
     return Scaffold(
       body: IndexedStack(        //IndexedStack được sử dụng để hiển thị một trong ba trang tương ứng với chỉ mục được chọn
         children: [
-          HomeScreen(),
+          HomeScreen(UserId: widget.UserId,),
           HistoryScreen(),
-          ProfileScreen()
+          ProfileScreen(userId: widget.UserId,)
         ],
         index: _selectedScreen,
       ),

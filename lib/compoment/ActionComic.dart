@@ -3,7 +3,8 @@ import 'package:manga_application_1/model/load_data.dart';
 import 'package:manga_application_1/view/DetailComicScreen.dart';
 
 class ActionComic extends StatefulWidget {
- const  ActionComic({super.key});
+  final String UserId;
+ const  ActionComic({super.key, required this.UserId});
   @override
   State<ActionComic> createState() => _ActionComicState();
 }
@@ -35,7 +36,7 @@ class _ActionComicState extends State<ActionComic> {
                 Navigator.push(
                   context,
                   PageRouteBuilder(
-                    pageBuilder: (context, animation, secondaryAnimation) => ComicDetailScreen(storyId: story.id),
+                    pageBuilder: (context, animation, secondaryAnimation) => ComicDetailScreen(storyId: story.id, UserId: widget.UserId,),
                     transitionsBuilder: (context, animation, secondaryAnimation, child) {
                       const begin = Offset(1.0, 0.0);
                       const end = Offset.zero;

@@ -3,6 +3,7 @@ import 'package:manga_application_1/model/load_data.dart';
 import 'package:manga_application_1/view/DetailComicScreen.dart';
 
 class HumorousComic extends StatelessWidget {
+ 
   final List<Story> HumorousComicData  = [
     Story(title: 'Thất Hình Đại Tội', imageUrl: 'https://cdnnvd.com/nettruyen/thumb/that-hinh-dai-toi.jpg',id: '21',Status:'Hoàn Thành',chapter: "11", Introduce: " bbbbbbbbbbbbbbbbbbbbbbbbb"),
     Story(title: 'Doraemon ', imageUrl: 'https://tuoitho.mobi/upload/doc-truyen/doraemon-truyen-ngan/anh-dai-dien.jpg',id: '13',Status:'Hoàn Thành',chapter: "11", Introduce: " bbbbbbbbbbbbbbbbbbbbbbbbb"),
@@ -21,12 +22,12 @@ class HumorousComic extends StatelessWidget {
             final story = HumorousComicData[index];
             return GestureDetector(
                onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => ComicDetailScreen(storyId: story.id),
-                  ),
-                );
+                // Navigator.push(
+                //   context,
+                //   MaterialPageRoute(
+                //     builder: (context) => ComicDetailScreen(storyId: story.id),
+                //   ),
+                // );
               },
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,

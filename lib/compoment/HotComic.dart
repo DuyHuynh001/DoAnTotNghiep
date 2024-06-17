@@ -3,7 +3,9 @@ import 'package:manga_application_1/model/load_data.dart';
 import 'package:manga_application_1/view/DetailComicScreen.dart';
 
 class HotComic extends StatefulWidget {
- const  HotComic({super.key});
+  final UserId;
+
+  const  HotComic({super.key, required this.UserId});
   @override
   State<HotComic> createState() => _HotComicState();
 }
@@ -15,7 +17,6 @@ class _HotComicState extends State<HotComic> {
       setState(() {
        listHotComic =list;
       });
-    
   }
   @override
   void initState() {
@@ -35,7 +36,7 @@ class _HotComicState extends State<HotComic> {
                 Navigator.push(
                   context,
                   PageRouteBuilder(
-                    pageBuilder: (context, animation, secondaryAnimation) => ComicDetailScreen(storyId: story.id),
+                    pageBuilder: (context, animation, secondaryAnimation) => ComicDetailScreen(storyId: story.id, UserId: widget.UserId),
                     transitionsBuilder: (context, animation, secondaryAnimation, child) {
                       const begin = Offset(1.0, 0.0);
                       const end = Offset.zero;

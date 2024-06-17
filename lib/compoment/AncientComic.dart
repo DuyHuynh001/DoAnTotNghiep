@@ -23,12 +23,12 @@ class AccientComic extends StatelessWidget {
             return GestureDetector(
               onTap: () {
               
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => ComicDetailScreen(storyId: story.id),
-                  ),
-                );
+                // Navigator.push(
+                //   context,
+                //   MaterialPageRoute(
+                //     builder: (context) => ComicDetailScreen(storyId: story.id),
+                //   ),
+                // );
               },
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,

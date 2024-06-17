@@ -5,19 +5,18 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:cached_network_image/cached_network_image.dart';
 
-class ChapterDetailScreen extends StatefulWidget {
+class ChapterDetail extends StatefulWidget {
   final String ChapterId;
   final String comicId;
-  final double MaxChap;
-  final double MinChap;
-
-  const ChapterDetailScreen({super.key, required this.ChapterId, required this.comicId, required this.MaxChap, required this.MinChap});
+  
+  final List<Map<String, dynamic>> chapters;
+  const ChapterDetail({super.key, required this.ChapterId, required this.comicId, required this.chapters});
 
   @override
-  State<ChapterDetailScreen> createState() => _ChapterDetailScreenState();
+  State<ChapterDetail> createState() => _ChapterDetailState();
 }
 
-class _ChapterDetailScreenState extends State<ChapterDetailScreen> {
+class _ChapterDetailState extends State<ChapterDetail> {
   late String chapterId;
   List<String> imageUrls = [];
   bool isLoading = true;
@@ -25,11 +24,20 @@ class _ChapterDetailScreenState extends State<ChapterDetailScreen> {
   bool isSwitched = false; // Biến để điều khiển trạng thái của công tắc
   ScrollController _scrollController = ScrollController();
   Timer? autoPlayTimer;
-
+  late Map<String, dynamic> currentChapter;
 
   @override
   void initState() {
     super.initState();
+   widget.chapters.sort((a, b) {
+            double idA = double.tryParse(a['id'].toString()) ?? double.negativeInfinity;
+            double idB = double.tryParse(b['id'].toString()) ?? double.negativeInfinity;
+            return idA.compareTo(idB);
+          });
+    currentChapter = widget.chapters.firstWhere(
+      (chapter) => chapter['id'] == widget.ChapterId,
+      orElse: () => {}, // Xử lý trường hợp không tìm thấy chương hiện tại
+    );
     chapterId = widget.ChapterId;
     fetchDataFromFirestore(widget.comicId, chapterId);
   }
@@ -88,59 +96,27 @@ class _ChapterDetailScreenState extends State<ChapterDetailScreen> {
     }
   }
 
-  void loadPreviousChapter() {
-    setState(() {
-      chapterId = getPreviousChapterId(chapterId);
-      fetchDataFromFirestore(widget.comicId, chapterId);
-    });
-  }
+  Map<String, dynamic>? getPreviousChapter() {
+    // Tìm vị trí của chương hiện tại trong danh sách
+    int currentIndex = widget.chapters.indexWhere((chapter) => chapter['id'] == currentChapter['id']);
 
-  void loadNextChapter() {
-    setState(() {
-      chapterId = getNextChapterId(chapterId);
-      fetchDataFromFirestore(widget.comicId, chapterId);
-    });
-  }
-
-  String getPreviousChapterId(String currentChapterId) {
-    int currentId = int.parse(currentChapterId);
-    if(currentId==widget.MinChap)
-    {
-      return '${currentId}';;
+    // Kiểm tra nếu currentIndex không phải là chương đầu tiên
+    if (currentIndex > 0) {
+      return widget.chapters[currentIndex - 1];
     }
-    else
-    return '${currentId - 1}';
+    return null; // Trường hợp không tìm thấy chương trước đó
   }
 
-  String getNextChapterId(String currentChapterId) {
-  int currentId = int.parse(currentChapterId);
-  if (currentId == widget.MaxChap) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Row(children: [
-            Icon(Icons.warning),
-            Text(' Thông báo'),
-          ],),
-          content: Text('Đã hết chương'),
-          actions: <Widget>[
-            TextButton(
-              child: Text('Đóng'),
-              onPressed: () {
-                Navigator.of(context).pop(); // Đóng AlertDialog
-              },
-            ),
-          ],
-        );
-      },
-    );
-    return currentChapterId; // hoặc return một giá trị mặc định nào đó
-  } else {
-    return '${currentId + 1}';
+  Map<String, dynamic>? getNextChapter() {
+    // Tìm vị trí của chương hiện tại trong danh sách
+    int currentIndex = widget.chapters.indexWhere((chapter) => chapter['id'] == currentChapter['id']);
+
+    // Kiểm tra nếu currentIndex không phải là chương cuối cùng
+    if (currentIndex != -1 && currentIndex < widget.chapters.length - 1) {
+      return widget.chapters[currentIndex + 1];
+    }
+    return null; // Trường hợp không tìm thấy chương tiếp theo
   }
-}
-  
 
   void toggleSettings() {
     setState(() {
@@ -149,19 +125,17 @@ class _ChapterDetailScreenState extends State<ChapterDetailScreen> {
   }
 
   void toggleAutoPlay(bool value) {
-  setState(() {
-    isSwitched = value; // Đảo ngược trạng thái công tắc
-    if (isSwitched) {
-      autoPlayTimer = Timer.periodic(Duration(milliseconds: 30), (timer) {
-        autoScroll();
-      });
-    } else {
-      autoPlayTimer?.cancel();
-    }
-  
-   
-  });
-}
+    setState(() {
+      isSwitched = value; // Đảo ngược trạng thái công tắc
+      if (isSwitched) {
+        autoPlayTimer = Timer.periodic(Duration(milliseconds: 30), (timer) {
+          autoScroll();
+        });
+      } else {
+        autoPlayTimer?.cancel();
+      }
+    });
+  }
 
   void autoScroll() {
     if (_scrollController.hasClients) {
@@ -175,7 +149,7 @@ class _ChapterDetailScreenState extends State<ChapterDetailScreen> {
           curve: Curves.linear,
         );
       } else {
-        loadNextChapter();
+        // loadNextChapter();
       }
     }
   }
@@ -189,10 +163,12 @@ class _ChapterDetailScreenState extends State<ChapterDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    bool canNavigatePrevious = getPreviousChapter() != null;
+    bool canNavigateNext = getNextChapter() != null;
     return Scaffold(
       appBar: AppBar(
         backgroundColor: const Color.fromARGB(255, 255, 255, 255),
-        title: Text('Chương ${chapterId}',style: TextStyle(color: Colors.black),),
+        title: Text('Chương ${chapterId}', style: TextStyle(color: Colors.black)),
         iconTheme: IconThemeData(color: Colors.black),
       ),
       body: Stack(
@@ -226,19 +202,33 @@ class _ChapterDetailScreenState extends State<ChapterDetailScreen> {
               left: 0,
               right: 0,
               child: Container(
-                color: Colors.white60,
+                color: Colors.white54,
+                
                 padding: EdgeInsets.all(8.0),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     ElevatedButton(
-                      onPressed: loadPreviousChapter,
+                       onPressed: canNavigatePrevious
+                          ? () {
+                              setState(() {
+                                currentChapter = getPreviousChapter() ?? {}; // Cập nhật chương hiện tại thành chương trước đó (nếu có)
+                                chapterId =
+                                    currentChapter['id']; // Cập nhật ID chương hiện tại để hiển thị trong AppBar
+                                fetchDataFromFirestore(
+                                    widget.comicId, chapterId); // Lấy dữ liệu cho chương mới
+                              });
+                            }
+                          : null,
                       style: ElevatedButton.styleFrom(
                         padding: EdgeInsets.all(7),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8.0),
                         ),
+
+                        
                       ),
+                      
                       child: Row(
                         children: [
                           Icon(Icons.arrow_back_ios),
@@ -281,13 +271,12 @@ class _ChapterDetailScreenState extends State<ChapterDetailScreen> {
                                                 } else {
                                                   autoPlayTimer?.cancel();
                                                 }
-                                                  // Đóng BottomSheet khi người dùng bật hoặc tắt Switch
-                                               Navigator.of(context).pop();
+                                                Navigator.of(context).pop(); // Đóng BottomSheet khi người dùng bật hoặc tắt Switch
                                               });
                                             },
                                             child: Container(
                                               width: 60,
-                                              height: 30,
+                                              height: 30,                                               
                                               decoration: BoxDecoration(
                                                 borderRadius: BorderRadius.circular(20),
                                                 color: isSwitched ? Colors.green : Colors.grey,
@@ -327,7 +316,14 @@ class _ChapterDetailScreenState extends State<ChapterDetailScreen> {
                       },
                     ),
                     ElevatedButton(
-                      onPressed: loadNextChapter,
+                      onPressed: canNavigateNext?() {
+                        setState(() {
+                          currentChapter = getNextChapter() ?? {}; // Cập nhật chương hiện tại thành chương tiếp theo (nếu có)
+                          chapterId = currentChapter['id']; // Cập nhật ID chương hiện tại để hiển thị trong AppBar
+                          fetchDataFromFirestore(widget.comicId, chapterId); // Lấy dữ liệu cho chương mới
+                        });
+                      }:null,
+                      
                       style: ElevatedButton.styleFrom(
                         padding: EdgeInsets.all(7),
                         shape: RoundedRectangleBorder(
@@ -340,7 +336,6 @@ class _ChapterDetailScreenState extends State<ChapterDetailScreen> {
                           SizedBox(width: 5.0), // Khoảng cách giữa label và icon
                           Icon(Icons.arrow_forward_ios),
                         ],
-                                              
                       ),
                     ),
                   ],
@@ -352,3 +347,4 @@ class _ChapterDetailScreenState extends State<ChapterDetailScreen> {
     );
   }
 }
+
