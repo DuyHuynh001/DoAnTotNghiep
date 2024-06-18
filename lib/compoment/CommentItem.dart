@@ -20,7 +20,7 @@ class CommentItem extends StatefulWidget {
 }
 
 class _CommentItemState extends State<CommentItem> {
-   User userData= User(Id: "", Name: "", Phone: "", Image: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/65/No-Image-Placeholder.svg/1665px-No-Image-Placeholder.svg.png", Email: "", Status: false);
+   User userData= User(Id: "", Name: "", Image: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/65/No-Image-Placeholder.svg/1665px-No-Image-Placeholder.svg.png", Email: "", Status: false);
 
   @override
   void initState() {

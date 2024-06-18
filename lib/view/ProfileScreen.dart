@@ -23,13 +23,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> _fetchUserData() async {
-    User? user = await User.fetchUserById(widget.userId);
+    User user = await User.fetchUserById(widget.userId);
     if (user != null) {
       setState(() {
         _user = user;
       });
     } else {
-      // Handle if user data not found or error fetching
     }
   }
 

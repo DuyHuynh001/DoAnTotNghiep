@@ -302,7 +302,6 @@ Future<void> saveComicAndChaptersToFirestore(String name, String status, String 
   class User {
   final String Id;
   final String Name;
-  final String Phone;
   final String Image;
   final bool Status;
   final String Email;
@@ -310,7 +309,6 @@ Future<void> saveComicAndChaptersToFirestore(String name, String status, String 
   User({
     required this.Id,
     required this.Name,
-    required this.Phone,
     required this.Image,
     required this.Email,
     required this.Status
@@ -320,7 +318,6 @@ Future<void> saveComicAndChaptersToFirestore(String name, String status, String 
     return User(
       Id: Id,
       Name: json['Name'],
-      Phone: json['Phone'],
       Email: json['Email'],
       Status: json['Status'],
       Image: json['Image'],

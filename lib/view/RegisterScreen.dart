@@ -40,6 +40,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       return false; // Trả về false nếu có lỗi xảy ra
     }
   }
+  
   void _SignUp() async {
   String email = _emailController.text.trim();
   String password = _passwordController.text.trim();
@@ -64,6 +65,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     showSnackBar(context, 'Email đã được sử dụng');
     return;
   }
+  
   try {
     // Tạo tài khoản người dùng trên Firebase Authentication
     UserCredential userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
@@ -72,7 +74,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
     String uid = userCredential.user!.uid;
 
-    // Lưu thông tin người dùng vào Firestore
    _auth.signUpWithEmailAndPassword(name,email,password);
    _auth.saveUserData(uid,name,email);
     showSnackBar(context, 'Đăng ký thành công. Bạn có thể đăng nhập');
@@ -82,7 +83,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
     showSnackBar(context, 'Đã xảy ra lỗi khi đăng ký');
   }
 }
-
 
   @override
   Widget build(BuildContext context) {
@@ -234,6 +234,7 @@ class FirebaseAuthServiceSignUp {
   try {
     UserCredential userCredential = await FirebaseAuth.instance
         .createUserWithEmailAndPassword(email: email, password: password);
+        
     return userCredential.user;
   } catch (e) {
     print("Error during registration: $e");

@@ -3,6 +3,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:manga_application_1/compoment/Navigation.dart';
+import 'package:manga_application_1/view/ForgotPasswordScreen.dart';
 import 'package:manga_application_1/view/HomeScreen.dart';
 import 'package:manga_application_1/view/RegisterScreen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -121,8 +122,22 @@ void _signIn() async {
                   ),
                 ),
               ),
+              SizedBox(height: 10,),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(builder: (context) => ForgotPasswordScreen()),
+                    );
+                  },
+                child: Text('Quên mật khẩu?',style: TextStyle(color: Colors.black,fontWeight: FontWeight.bold, fontSize: 16),),
+               ),
+              ],
+              ),            
               Padding(
-                padding: EdgeInsets.fromLTRB(0, 50, 0, 0),
+                padding: EdgeInsets.fromLTRB(0, 10, 0, 0),
                 child: ElevatedButton(
                   style: ButtonStyle(
                     shape: MaterialStateProperty.all<RoundedRectangleBorder>(
@@ -142,9 +157,8 @@ void _signIn() async {
                   ),
                 ),
               ),
-              
               Padding(
-                padding: EdgeInsets.fromLTRB(0, 20, 0, 0),
+                padding: EdgeInsets.fromLTRB(0, 50, 0, 0),
                 child: RichText(
                   text: TextSpan(
                     text: 'Bạn chưa có tài khoản? ',
