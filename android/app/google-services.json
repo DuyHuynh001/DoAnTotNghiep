@@ -12,7 +12,20 @@
           "package_name": "com.example.manga_application_1"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "1023902310841-3ahkbktnkgl2vkiga8lak5esumkd67b1.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.manga_application_1",
+            "certificate_hash": "bd15b1070faac2cea5d060eee23e3ec9f8862622"
+          }
+        },
+        {
+          "client_id": "1023902310841-ovm7tshh6ml76fos5cuj4fes39odrp82.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyBYhFOsgizpCtLVVKGZ8Yyf27deGTGtVYw"
@@ -20,7 +33,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1023902310841-ovm7tshh6ml76fos5cuj4fes39odrp82.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "1023902310841-s2gtgih9i1bbjgkbl3egdrnumjn56dag.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.mangaApplication1"
+              }
+            }
+          ]
         }
       }
     }

@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:manga_application_1/compoment/Navigation.dart';
 import 'package:manga_application_1/view/HomeScreen.dart';
 import 'package:manga_application_1/view/RegisterScreen.dart';
@@ -14,9 +15,10 @@ class LoginScreen extends StatefulWidget {
 }
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 class _LoginScreenState extends State<LoginScreen> {
-  FirebaseAuthService _auth = FirebaseAuthService();
-  TextEditingController _usernameController = TextEditingController();
+  FirebaseAuthServiceSignIn _auth = FirebaseAuthServiceSignIn();
+  TextEditingController _emailController = TextEditingController();
   TextEditingController _passwordController = TextEditingController();
+  final GoogleSignIn _googleSignIn = GoogleSignIn();
   bool _isSigning = false;
   bool _obscureText = true;
 
@@ -28,10 +30,10 @@ class _LoginScreenState extends State<LoginScreen> {
     ScaffoldMessenger.of(context).showSnackBar(snackBar);
   }
 void _signIn() async {
-    String email = _usernameController.text;
+    String email = _emailController.text;
     String password = _passwordController.text;
 
-    if (email.isEmpty || password.isEmpty) {
+    if (email.trim().isEmpty || password.trim().isEmpty) {
       showSnackBar(context, 'Vui lòng nhập tài khoản và mật khẩu.');
       return;
     }
@@ -42,7 +44,6 @@ void _signIn() async {
       User? user = await _auth.signInWithEmailAndPassword(email, password);
       SharedPreferences prefs = await SharedPreferences.getInstance();
       prefs.setBool('isLoggedIn', true);
-       
       if( user!=null)
       {
         String userId = user.uid;
@@ -65,7 +66,7 @@ void _signIn() async {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           image: DecorationImage(
             image: AssetImage("assets/img/backgroundlogin.jpg"),
             fit: BoxFit.cover,
@@ -82,16 +83,16 @@ void _signIn() async {
                 child: Text(
                   "COMICZ APP",
                   style: TextStyle(
-                      color: Colors.blue,
+                      color: Colors.lightBlue,
                       fontWeight: FontWeight.bold,
                       fontSize: 40.0),
                 ),
               ),
               TextField(
-                controller: _usernameController,
+                controller: _emailController,
                 decoration:const InputDecoration(
-                  labelText: 'Tài khoản',
-                  prefixIcon: Icon(Icons.person, size: 30),
+                  labelText: 'Email',
+                  prefixIcon: Icon(Icons.email_rounded, size: 30),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.all(Radius.circular(20.0)),
                   ),
@@ -135,7 +136,7 @@ void _signIn() async {
                         MaterialStateProperty.all(Colors.lightBlue),
                   ),
                   onPressed: _signIn,
-                  child:const  Text( "Đăng Nhập",
+                  child:const  Text("Đăng Nhập",
                     textAlign: TextAlign.center,
                     style: TextStyle(fontSize: 20),
                   ),
@@ -168,7 +169,25 @@ void _signIn() async {
                     ],
                   ),
                 ),
-              )
+              ),
+            //   Center(
+            //   child: ElevatedButton(
+            //     onPressed: () async {
+            //       User? user = await _auth._signInWithGoogle();
+            //       print("haha");
+            //       print(user);
+            //       if (user != null) {
+            //         SharedPreferences prefs = await SharedPreferences.getInstance();
+            //         prefs.setBool('isLoggedIn', true);
+            //         await _auth._saveUserToFirestore(user);
+            //         String userId = user.uid;
+            //         prefs.setString('UserId', userId);
+            //         Navigator.pushReplacement(context,MaterialPageRoute(builder: (context) => NavigationScreen(UserId: userId)), );
+            //       }
+            //     },
+            //     child: Text("Sign in with Google"),
+            //   ),
+            // ),
             ],
           ),
         ),
@@ -176,19 +195,35 @@ void _signIn() async {
     );
   }
 }
-class FirebaseAuthService {
+class FirebaseAuthServiceSignIn {
   FirebaseAuth auth = FirebaseAuth.instance;
-  Future<User?> signUpWithEmailAndPassword(String username, String phoneNumber,
-      String email, String password, bool status) async {
-    try {
-      UserCredential userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(email: email, password: password);
-      String uid = userCredential.user?.uid ?? "";
-      return userCredential.user;
-    } catch (e) {
-      print("Error during registration: $e");
-      return null;
-    }
-  }
+   final GoogleSignIn _googleSignIn = GoogleSignIn();
+    final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
+//  Future<User?> _signInWithGoogle() async {
+//   try {
+//     final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
+//     print("Google user:");
+//     print(googleUser);
+
+//     if (googleUser == null) {
+//       print("Google sign in failed or user cancelled.");
+//       return null;
+//     }
+
+//     final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+//     final AuthCredential credential = GoogleAuthProvider.credential(
+//       accessToken: googleAuth.accessToken,
+//       idToken: googleAuth.idToken,
+//     );
+
+//     final UserCredential userCredential = await auth.signInWithCredential(credential);
+//     return userCredential.user;
+//   } catch (e) {
+//     print("Error signing in with Google: $e");
+//     return null;
+//   }
+// }
   Future<User?> signInWithEmailAndPassword(
       String email, String password) async {
     try {
@@ -199,13 +234,23 @@ class FirebaseAuthService {
       print("Some Error $e");
     }
   }
+  // Future<void> _saveUserToFirestore(User user) async {
+  //   final DocumentReference userRef = _firestore.collection('User').doc(user.uid);
+
+  //   await userRef.set({
+  //     'Name': user.displayName,
+  //     'Email': user.email,
+  //     'Image': user.photoURL,
+  //     'Phone': user.phoneNumber,
+  //     'status': false
+  //   }, SetOptions(merge: true));
+  // }
   Future<bool> getUserStatus(String userId) async {
   try {
     DocumentSnapshot userDoc =
         await FirebaseFirestore.instance.collection('User').doc(userId).get();
 
     if (userDoc.exists) {
-      // Lấy giá trị trường 'status' trong tài liệu người dùng
       bool status = userDoc['status'] ?? false;
       return status;
     } else {
@@ -218,3 +263,4 @@ class FirebaseAuthService {
   }
 }
 }
+

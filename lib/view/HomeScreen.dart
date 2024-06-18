@@ -170,7 +170,7 @@ class _MyHomeScreen extends State<HomeScreen> {
           ),
           const SliverPadding(
             padding: EdgeInsets.only(top: 15),
-            sliver: const ComicHeader(
+            sliver:  ComicHeader(
               text: 'Truyện Đề Cử',
               icon: Icons.back_hand_rounded,
               color: Colors.blueAccent,
