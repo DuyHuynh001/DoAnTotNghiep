@@ -43,7 +43,7 @@ class _ComicDetailScreenState extends State<ComicDetailScreen> {
     setState(() { story = fetchedComic; });
   }
   void _loadChapters() async {
-    List<Map<String, dynamic>> fetchedChapters = await Comics.fetchChapters(widget.storyId);
+    List<Map<String, dynamic>> fetchedChapters = await Chapters.fetchChapters(widget.storyId);
     setState(() {
       chapters = fetchedChapters;
       if (chapters.isNotEmpty) {

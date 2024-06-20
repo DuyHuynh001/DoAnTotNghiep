@@ -12,11 +12,10 @@ class _ActionComicState extends State<ActionComic> {
 
   List<Comics> listActionComic=[];
   void _loadActionComic() async {   
-    List<Comics>list = await Comics.fetchRecomendComicsList();
+    List<Comics>list = await Comics.fetchComicsByCategory("Action");
       setState(() {
       listActionComic =list;
     });
-    
   }
   @override
   void initState() {
@@ -76,7 +75,7 @@ class _ActionComicState extends State<ActionComic> {
               ),
             );
           },
-          childCount: listActionComic.length,
+          childCount: listActionComic.length <=6? listActionComic.length : 6,
         ),
         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 3,

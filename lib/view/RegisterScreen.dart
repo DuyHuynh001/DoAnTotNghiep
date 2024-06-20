@@ -248,7 +248,7 @@ void saveUserData(String uid, String username,String email) {
       'Name': username,
       'Email': email,
       'Image': "",
-      'status': false
+      'Status': false
     }, SetOptions(merge: true));
   }
 }

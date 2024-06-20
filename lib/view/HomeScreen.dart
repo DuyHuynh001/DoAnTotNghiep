@@ -4,7 +4,7 @@ import 'package:manga_application_1/compoment/ActionComic.dart';
 import 'package:manga_application_1/compoment/AncientComic.dart';
 import 'package:manga_application_1/compoment/FullComic.dart';
 import 'package:manga_application_1/compoment/HotComic.dart';
-import 'package:manga_application_1/compoment/HumorousComic.dart';
+import 'package:manga_application_1/compoment/AdventureComic.dart';
 import 'package:manga_application_1/compoment/RecommendComic.dart';
 import 'package:manga_application_1/model/load_data.dart';
 import 'package:manga_application_1/view/AddComics.dart';
@@ -134,7 +134,7 @@ class _MyHomeScreen extends State<HomeScreen> {
                       onTap: () {
                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (context) => CategoryScreen()),
+                          MaterialPageRoute(builder: (context) => CategoryScreen(UserId: widget.UserId,)),
                         );
                       }),
                     ProductCategory(
@@ -160,7 +160,7 @@ class _MyHomeScreen extends State<HomeScreen> {
                       onTap: () {
                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (context) => CategoryScreen()),
+                          MaterialPageRoute(builder: (context) => CategoryScreen(UserId: widget.UserId,)),
                         );
                       },),
                   ],
@@ -190,11 +190,11 @@ class _MyHomeScreen extends State<HomeScreen> {
           ),
           FullComic(UserId: widget.UserId,),
           const ComicHeader(
-              text: 'Truyện Hài Hước',
+              text: 'Truyện Phiêu Lưu',
               icon: Icons.add_reaction_rounded,
               color: Colors.green
           ),
-          HumorousComic(),
+          AdventureComic(UserId: widget.UserId,),
           const ComicHeader(
               text: 'Truyện Hành Động',
               icon: Icons.sports_gymnastics_outlined,
@@ -206,7 +206,7 @@ class _MyHomeScreen extends State<HomeScreen> {
               icon: Icons.access_time,
               color: Color.fromARGB(255, 146, 52, 18)
           ),
-          AccientComic()
+          AncientComic(UserId: widget.UserId,)
         ],
       ),
     );

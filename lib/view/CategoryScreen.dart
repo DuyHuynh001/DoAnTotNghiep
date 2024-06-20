@@ -1,48 +1,34 @@
-// lib/category_screen.dart
 import 'package:flutter/material.dart';
-import 'DetailCategoryScreen.dart';
+import 'package:manga_application_1/model/load_data.dart';
+import 'CategoryDetailScreen.dart';
 
-class CategoryScreen extends StatelessWidget {
-  final List<Map<String, String>> categories = [
-    {'name': 'Shoujo', 'icon': '🐸'},
-    {'name': 'Boylove', 'icon': '💗'},
-    {'name': 'Webtoon', 'icon': '🍄'},
-    {'name': 'Harem', 'icon': '💥'},
-    {'name': 'Co Dai', 'icon': '❗'},
-    {'name': 'Truyen Tranh', 'icon': '🌸'},
-    {'name': 'Kich Tinh', 'icon': '🌻'},
-    {'name': 'Historical', 'icon': '🌵'},
-    {'name': 'Doujinshi', 'icon': '🥟'},
-    {'name': 'Truyen Mau', 'icon': '🍁'},
-    {'name': 'Fantasy', 'icon': '🔥'},
-    {'name': 'Abo', 'icon': '📚'},
-    {'name': 'Boy Love', 'icon': '🐸'},
-    {'name': 'Mystery', 'icon': '💗'},
-    {'name': 'Oneshot', 'icon': '🍄'},
-    {'name': 'Ngon Tinh', 'icon': '💥'},
-    {'name': 'Manhwa', 'icon': '❗'},
-    {'name': 'Yaoi', 'icon': '💡'},
-    {'name': 'Lang Man', 'icon': '🌸'},
-    {'name': 'Hai Huoc', 'icon': '🌻'},
-    {'name': '18', 'icon': '🌵'},
-    {'name': 'Nguoi Thu', 'icon': '🥟'},
-    {'name': 'Tinh Cam', 'icon': '🍁'},
-    {'name': 'Drama', 'icon': '🔥'},
-    {'name': 'Dam My', 'icon': '📚'},
-    {'name': 'Romance', 'icon': '💗'},
-    {'name': 'Manga', 'icon': '🍄'},
-    {'name': 'Psychological', 'icon': '💥'},
-    {'name': 'Hanh Dong', 'icon': '❗'},
-    {'name': 'Chuyen Sinh', 'icon': '💡'},
-    {'name': 'Phieu Luu', 'icon': '🌻'},
-    {'name': 'Xuyen Khong', 'icon': '🌵'},
-    {'name': 'Adventure', 'icon': '🥟'},
-    {'name': 'Comedy', 'icon': '🍁'},
-    {'name': 'Manhua', 'icon': '🔥'},
-    {'name': 'Action', 'icon': '🐸'},
-    {'name': 'School Life', 'icon': '📚'},
-    {'name': 'Soft Yaoi', 'icon': '🌸'},
-  ];
+class CategoryScreen extends StatefulWidget {
+  final String UserId;
+  CategoryScreen({super.key, required this.UserId});
+
+  @override
+  _CategoryScreenState createState() => _CategoryScreenState();
+}
+
+class _CategoryScreenState extends State<CategoryScreen> {
+  late List<Category> listCategory=[];
+
+  @override
+  void initState() {
+    super.initState();
+    loadCategorydata();
+  }
+
+  void loadCategorydata() async {
+    List<Category> category = await Category.fetchAllCategories();
+    if (category != null) {
+      setState(() {
+        listCategory = category;
+      });
+    } else {
+      print("Không có danh sách thể loại");
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -52,46 +38,60 @@ class CategoryScreen extends StatelessWidget {
       ),
       body: Padding(
         padding: const EdgeInsets.all(8.0),
-        child: GridView.builder(
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 3,
-            crossAxisSpacing: 8.0,
-            mainAxisSpacing: 8.0,
-            childAspectRatio: 3 / 1.5, // Điều chỉnh tỷ lệ khung hình ở đây
-          ),
-          itemCount: categories.length,
-          itemBuilder: (context, index) {
-            return GestureDetector(
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => CategoryDetailScreen(),
+        child: ListView(
+          children: [
+            GridView.builder(
+              shrinkWrap: true, // Đảm bảo GridView sẽ co lại theo nội dung bên trong
+              physics: NeverScrollableScrollPhysics(), // Ngăn cuộn lăn ở mức GridView, để cuộn toàn bộ màn hình
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                crossAxisSpacing: 8.0,
+                mainAxisSpacing: 8.0,
+                childAspectRatio: 3 /1, // Điều chỉnh tỷ lệ khung hình ở đây
+              ),
+              itemCount: listCategory.length,
+              itemBuilder: (context, index) {
+                return GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      PageRouteBuilder(
+                        pageBuilder: (context, animation, secondaryAnimation) => 
+                        CategoryDetailScreen(Name: listCategory[index].categoryName, Title: listCategory[index].title,UserId: widget.UserId,),
+                        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                          const begin = Offset(1.0, 0.0);
+                          const end = Offset.zero;
+                          const curve = Curves.easeInOut;
+                          var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+                          var offsetAnimation = animation.drive(tween);
+                          return SlideTransition(
+                            position: offsetAnimation,
+                            child: child,
+                          );
+                        },
+                      ),
+ 
+                    );
+                  },
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.grey[300], 
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          listCategory[index].categoryName,
+                          style: TextStyle(color: Colors.black, fontSize: 16, fontWeight: FontWeight.bold),
+                        ),
+                      ],
+                    ),
                   ),
                 );
               },
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Colors.blue[300],
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      categories[index]['icon']!,
-                      style: TextStyle(fontSize: 24),
-                    ),
-                    SizedBox(height: 8),
-                    Text(
-                      categories[index]['name']!,
-                      style: TextStyle(color: Colors.white),
-                    ),
-                  ],
-                ),
-              ),
-            );
-          },
+            ),
+          ],
         ),
       ),
     );

@@ -12,7 +12,7 @@ class _FullComicState extends State<FullComic> {
 
   List<Comics> listFullComic=[];
   void _loadFullComic() async {   
-    List<Comics>list = await Comics.fetchRecomendComicsList();
+    List<Comics>list = await Comics.fetchFullComicsList();
       setState(() {
       listFullComic =list;
     });

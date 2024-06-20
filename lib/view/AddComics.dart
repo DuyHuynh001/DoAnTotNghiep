@@ -30,17 +30,18 @@ class _AddComicState extends State<AddComic> {
     setState(() {
       isLoading = true;
     });
-    
     final String name = _name.text;
     final String urlImage = _urlImage.text;
     final String description = _description.text;
     final List<String> categories = _category.text.split(','); // Tách các thể loại
     final String chaptersUrl = _chapterUrl.text;
+    
     try {
       final response = await http.get(Uri.parse(chaptersUrl));
       if (response.statusCode == 200) {
         Map<String, dynamic> data = json.decode(response.body);
-        await saveComicAndChaptersToFirestore(name, statusValue, urlImage, description, isHot, isNew, isRecommend, categories, data['data']['item']);
+        
+        await  saveComicAndChaptersToFirestore(name, statusValue, urlImage, description, isHot, isNew, isRecommend, categories, data['data']['item'] );
         setState(() {
            isLoading = false;
            isHot = false;
@@ -248,4 +249,3 @@ class _AddComicState extends State<AddComic> {
     );
   }
 }
-

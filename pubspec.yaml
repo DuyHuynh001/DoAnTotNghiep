@@ -38,8 +38,6 @@ dependencies:
   shared_preferences: ^2.2.3
   flutter_image_slideshow: ^0.1.6
   top_snackbar_flutter: ^3.1.0
-  cloud_firestore: ^4.14.0
-  firebase_core: ^2.24.2
   autocomplete_textfield: ^2.0.1
   image_picker: ^1.0.7
   google_sign_in: ^6.1.6
@@ -50,8 +48,12 @@ dependencies:
   dropdown_button2: ^2.3.9
   firebase_storage: ^11.6.0
   cached_network_image: ^3.3.1
+  flutter_tts: ^4.0.2
+  google_ml_kit: ^0.18.0
+  flutter_ocr_sdk: ^1.1.4
+  firebase_core: ^2.24.2
+  cloud_firestore: ^4.14.0
   
- 
 
 dev_dependencies:
   flutter_test:

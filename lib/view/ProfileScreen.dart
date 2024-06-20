@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:manga_application_1/model/load_data.dart';
+import 'package:manga_application_1/view/AddCategory.dart';
 import 'package:manga_application_1/view/LoginScreen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 // Adjust import path as per your project structure
@@ -49,7 +50,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
               );
             },
           ),
+          IconButton(
+            icon: const Icon(Icons.add, color: Colors.black),
+            onPressed: () async {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const AddCategory()),
+              );
+            },
+          ),
         ],
+
+        
       ),
       body: _user != null
           ? Center(

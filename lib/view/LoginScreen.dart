@@ -31,37 +31,48 @@ class _LoginScreenState extends State<LoginScreen> {
     ScaffoldMessenger.of(context).showSnackBar(snackBar);
   }
 void _signIn() async {
-    String email = _emailController.text;
-    String password = _passwordController.text;
+  String email = _emailController.text;
+  String password = _passwordController.text;
 
-    if (email.trim().isEmpty || password.trim().isEmpty) {
-      showSnackBar(context, 'Vui lòng nhập tài khoản và mật khẩu.');
-      return;
-    }
-    setState(() {
-      _isSigning = true;
-    });
-    try {
-      User? user = await _auth.signInWithEmailAndPassword(email, password);
+  if (email.trim().isEmpty || password.trim().isEmpty) {
+    showSnackBar(context, 'Vui lòng nhập tài khoản và mật khẩu.');
+    return;
+  }
+
+  setState(() {
+    _isSigning = true;
+  });
+
+  try {
+    UserCredential userCredential = await FirebaseAuth.instance.signInWithEmailAndPassword(
+      email: email,
+      password: password,
+    );
+
+    // Đăng nhập thành công
+    User? user = userCredential.user;
+    if (user != null) {
       SharedPreferences prefs = await SharedPreferences.getInstance();
       prefs.setBool('isLoggedIn', true);
-      if( user!=null)
-      {
-        String userId = user.uid;
-        prefs.setString('UserId', userId);
-        print("Id:"+ userId);
-        Navigator.pushReplacement(context,MaterialPageRoute(builder: (context) => NavigationScreen(UserId: userId)), );
-        
-      }
-    } catch (e) {
-        showSnackBar(context, 'Tài khoản hoặc mật khẩu không đúng');
-    } finally {
-      setState(() {
-        _isSigning = false;
-      });
+      String userId = user.uid;
+      prefs.setString('UserId', userId);
+      print("Id: $userId");
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => NavigationScreen(UserId: userId)),
+      );
     }
+  } catch (e) {
+    // Xử lý lỗi đăng nhập
+    print("Error signing in: $e");
+    showSnackBar(context, 'Tài khoản hoặc mật khẩu không đúng');
+  } finally {
+    setState(() {
+      _isSigning = false;
+    });
   }
-  
+}
+
  
   @override
   Widget build(BuildContext context) {

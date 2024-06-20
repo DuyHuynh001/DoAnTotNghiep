@@ -1,16 +1,26 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_tts/flutter_tts.dart';
 import 'package:http/http.dart' as http;
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:google_ml_kit/google_ml_kit.dart';
+import 'package:path_provider/path_provider.dart';
 
 class ChapterDetail extends StatefulWidget {
   final String ChapterId;
   final String comicId;
-  
   final List<Map<String, dynamic>> chapters;
-  const ChapterDetail({super.key, required this.ChapterId, required this.comicId, required this.chapters});
+
+  const ChapterDetail({
+    Key? key,
+    required this.ChapterId,
+    required this.comicId,
+    required this.chapters,
+  }) : super(key: key);
 
   @override
   State<ChapterDetail> createState() => _ChapterDetailState();
@@ -21,22 +31,26 @@ class _ChapterDetailState extends State<ChapterDetail> {
   List<String> imageUrls = [];
   bool isLoading = true;
   bool showSettings = false;
-  bool isSwitched = false; // Biến để điều khiển trạng thái của công tắc
+  bool isSwitched = false;
   ScrollController _scrollController = ScrollController();
   Timer? autoPlayTimer;
   late Map<String, dynamic> currentChapter;
+  FlutterTts flutterTts = FlutterTts();
+  bool isTTSPlaying = false;
+  final TextRecognizer textRecognizer = GoogleMlKit.vision.textRecognizer();
+  List<String> recognizedTexts = [];
 
   @override
   void initState() {
     super.initState();
-   widget.chapters.sort((a, b) {
-            double idA = double.tryParse(a['id'].toString()) ?? double.negativeInfinity;
-            double idB = double.tryParse(b['id'].toString()) ?? double.negativeInfinity;
-            return idA.compareTo(idB);
-          });
+    widget.chapters.sort((a, b) {
+      double idA = double.tryParse(a['id'].toString()) ?? double.negativeInfinity;
+      double idB = double.tryParse(b['id'].toString()) ?? double.negativeInfinity;
+      return idA.compareTo(idB);
+    });
     currentChapter = widget.chapters.firstWhere(
       (chapter) => chapter['id'] == widget.ChapterId,
-      orElse: () => {}, // Xử lý trường hợp không tìm thấy chương hiện tại
+      orElse: () => {},
     );
     chapterId = widget.ChapterId;
     fetchDataFromFirestore(widget.comicId, chapterId);
@@ -46,6 +60,7 @@ class _ChapterDetailState extends State<ChapterDetail> {
     setState(() {
       isLoading = true;
       imageUrls = [];
+      recognizedTexts = [];
     });
 
     try {
@@ -59,8 +74,8 @@ class _ChapterDetailState extends State<ChapterDetail> {
       if (chapterSnapshot.exists) {
         Map<String, dynamic> data = chapterSnapshot.data() as Map<String, dynamic>;
         String apiUrl = data['chapterApiData'];
-
         await fetchData(apiUrl);
+        startTTS();  // Bắt đầu đọc văn bản của chương mới sau khi tải xong
       } else {
         throw Exception('Chapter not found');
       }
@@ -72,50 +87,87 @@ class _ChapterDetailState extends State<ChapterDetail> {
     }
   }
 
-  Future<void> fetchData(String apiUrl) async {
-    try {
-      final response = await http.get(Uri.parse(apiUrl));
-      if (response.statusCode == 200) {
-        Map<String, dynamic> data = json.decode(response.body);
+  Future<void> extractTextFromImage(String imageUrl) async {
+  try {
+    // Tải hình ảnh từ URL
+    var response = await http.get(Uri.parse(imageUrl));
+    var imageData = response.bodyBytes;
+    // Lưu hình ảnh vào bộ nhớ tạm
+    final tempDir = await getTemporaryDirectory();
+    final tempImagePath = '${tempDir.path}/temp_image.jpg';
+    final file = await File(tempImagePath).writeAsBytes(imageData);
+    // Tạo InputImage từ đường dẫn tệp
+    final inputImage = InputImage.fromFilePath(file.path);
+    // Nhận diện văn bản
+    final RecognizedText recognizedText = await textRecognizer.processImage(inputImage);
 
-        List<dynamic> images = data['data']['item']['chapter_image'];
-        List<String> urls = images.map((image) => '${data['data']['domain_cdn']}/${data['data']['item']['chapter_path']}/${image['image_file']}').toList();
-
-        setState(() {
-          imageUrls = urls;
-          isLoading = false;
-        });
-      } else {
-        throw Exception('Failed to load images');
-      }
-    } catch (e) {
-      print('Error fetching images: $e');
-      setState(() {
-        isLoading = false;
-      });
+    setState(() {
+      recognizedTexts.add(recognizedText.text);
+    });
+    await deleteTemporaryImage(tempImagePath);
+    // Giải phóng tài nguyên của TextRecognizer
+    await textRecognizer.close();
+  } catch (e) {
+    print('Error extracting text from image: $e');
+  }
+}
+Future<void> deleteTemporaryImage(String imagePath) async {
+    final file = File(imagePath);
+    if (await file.exists()) {
+      await file.delete();
+     
+    } else {
+      print('Temporary image file does not exist: $imagePath');
     }
   }
 
-  Map<String, dynamic>? getPreviousChapter() {
-    // Tìm vị trí của chương hiện tại trong danh sách
-    int currentIndex = widget.chapters.indexWhere((chapter) => chapter['id'] == currentChapter['id']);
+  Future<void> fetchData(String apiUrl) async {
+  try {
+    final response = await http.get(Uri.parse(apiUrl));
+    if (response.statusCode == 200) {
+      Map<String, dynamic> data = json.decode(response.body);
+      List<dynamic> images = data['data']['item']['chapter_image'];
+      List<String> urls = images.map((image) =>
+          '${data['data']['domain_cdn']}/${data['data']['item']['chapter_path']}/${image['image_file']}').toList();
+      setState(() {
+        imageUrls = urls;
+        isLoading = false;
+      });
+       imageUrls.forEach((url) => print(imageUrls));
 
-    // Kiểm tra nếu currentIndex không phải là chương đầu tiên
+      // Clear recognizedTexts before extracting text
+      recognizedTexts.clear();
+      for (int i = 0; i < imageUrls.length; i++) {
+         await extractTextFromImage(imageUrls[i]);
+      }
+    } else {
+      throw Exception('Failed to load images');
+    }
+  } catch (e) {
+    print('Error fetching images: $e');
+    setState(() {
+      isLoading = false;
+    });
+  }
+}
+  Map<String, dynamic>? getPreviousChapter() {
+    int currentIndex =
+        widget.chapters.indexWhere((chapter) => chapter['id'] == currentChapter['id']);
+
     if (currentIndex > 0) {
       return widget.chapters[currentIndex - 1];
     }
-    return null; // Trường hợp không tìm thấy chương trước đó
+    return null;
   }
 
   Map<String, dynamic>? getNextChapter() {
-    // Tìm vị trí của chương hiện tại trong danh sách
-    int currentIndex = widget.chapters.indexWhere((chapter) => chapter['id'] == currentChapter['id']);
+    int currentIndex =
+        widget.chapters.indexWhere((chapter) => chapter['id'] == currentChapter['id']);
 
-    // Kiểm tra nếu currentIndex không phải là chương cuối cùng
     if (currentIndex != -1 && currentIndex < widget.chapters.length - 1) {
       return widget.chapters[currentIndex + 1];
     }
-    return null; // Trường hợp không tìm thấy chương tiếp theo
+    return null;
   }
 
   void toggleSettings() {
@@ -126,7 +178,7 @@ class _ChapterDetailState extends State<ChapterDetail> {
 
   void toggleAutoPlay(bool value) {
     setState(() {
-      isSwitched = value; // Đảo ngược trạng thái công tắc
+      isSwitched = value;
       if (isSwitched) {
         autoPlayTimer = Timer.periodic(Duration(milliseconds: 30), (timer) {
           autoScroll();
@@ -149,16 +201,51 @@ class _ChapterDetailState extends State<ChapterDetail> {
           curve: Curves.linear,
         );
       } else {
-        // loadNextChapter();
+        autoPlayTimer?.cancel();  // Dừng tự động cuộn khi đến cuối trang
+        setState(() {
+          currentChapter = getNextChapter() ?? {};
+          chapterId = currentChapter['id'];
+          fetchDataFromFirestore(widget.comicId, chapterId);
+        });
       }
     }
   }
+
+  void toggleTTS() {
+    if (isTTSPlaying) {
+      flutterTts.stop();
+    } else {
+      if (recognizedTexts.isNotEmpty) {
+        startTTS();
+      }
+    }
+    setState(() {
+      isTTSPlaying = !isTTSPlaying;
+    });
+  }
+  void startTTS() async {
+  setState(() {
+    isTTSPlaying = true;
+  });
+
+  await flutterTts.setLanguage("vi-VN");
+  await flutterTts.setPitch(1.0);
+  String fullText="";
+  fullText += recognizedTexts.join(' ');
+  print(fullText);
+  await flutterTts.speak(fullText);
+  setState(() {
+    isTTSPlaying = false;
+  });
+}
 
   @override
   void dispose() {
     autoPlayTimer?.cancel();
     _scrollController.dispose();
     super.dispose();
+    flutterTts.stop();
+    textRecognizer.close();
   }
 
   @override
@@ -168,7 +255,7 @@ class _ChapterDetailState extends State<ChapterDetail> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: const Color.fromARGB(255, 255, 255, 255),
-        title: Text('Chương ${chapterId}', style: TextStyle(color: Colors.black)),
+        title: Text('Chương $chapterId', style: TextStyle(color: Colors.black)),
         iconTheme: IconThemeData(color: Colors.black),
       ),
       body: Stack(
@@ -203,20 +290,17 @@ class _ChapterDetailState extends State<ChapterDetail> {
               right: 0,
               child: Container(
                 color: Colors.white54,
-                
                 padding: EdgeInsets.all(8.0),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     ElevatedButton(
-                       onPressed: canNavigatePrevious
+                      onPressed: canNavigatePrevious
                           ? () {
                               setState(() {
-                                currentChapter = getPreviousChapter() ?? {}; // Cập nhật chương hiện tại thành chương trước đó (nếu có)
-                                chapterId =
-                                    currentChapter['id']; // Cập nhật ID chương hiện tại để hiển thị trong AppBar
-                                fetchDataFromFirestore(
-                                    widget.comicId, chapterId); // Lấy dữ liệu cho chương mới
+                                currentChapter = getPreviousChapter() ?? {};
+                                chapterId = currentChapter['id'];
+                                fetchDataFromFirestore(widget.comicId, chapterId);
                               });
                             }
                           : null,
@@ -225,14 +309,11 @@ class _ChapterDetailState extends State<ChapterDetail> {
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8.0),
                         ),
-
-                        
                       ),
-                      
                       child: Row(
                         children: [
                           Icon(Icons.arrow_back_ios),
-                          SizedBox(width: 5.0), // Khoảng cách giữa label và icon
+                          SizedBox(width: 5.0),
                           Text('Chương trước'),
                         ],
                       ),
@@ -263,20 +344,13 @@ class _ChapterDetailState extends State<ChapterDetail> {
                                           GestureDetector(
                                             onTap: () {
                                               setState(() {
-                                                isSwitched = !isSwitched; // Đảo ngược trạng thái công tắc
-                                                if (isSwitched) {
-                                                  autoPlayTimer = Timer.periodic(Duration(milliseconds: 40), (timer) {
-                                                    autoScroll();
-                                                  });
-                                                } else {
-                                                  autoPlayTimer?.cancel();
-                                                }
-                                                Navigator.of(context).pop(); // Đóng BottomSheet khi người dùng bật hoặc tắt Switch
+                                                toggleAutoPlay(!isSwitched);
+                                                Navigator.of(context).pop();
                                               });
                                             },
                                             child: Container(
                                               width: 60,
-                                              height: 30,                                               
+                                              height: 30,
                                               decoration: BoxDecoration(
                                                 borderRadius: BorderRadius.circular(20),
                                                 color: isSwitched ? Colors.green : Colors.grey,
@@ -306,6 +380,11 @@ class _ChapterDetailState extends State<ChapterDetail> {
                                           ),
                                         ],
                                       ),
+                                      ElevatedButton(
+                                        onPressed: toggleTTS,
+                                        child: Text(isTTSPlaying ? 'Dừng đọc' : 'Nghe đọc'),
+                                      ),
+                                      //  ...recognizedTexts.map((text) => Text(text)).toList(),
                                     ],
                                   ),
                                 );
@@ -316,14 +395,15 @@ class _ChapterDetailState extends State<ChapterDetail> {
                       },
                     ),
                     ElevatedButton(
-                      onPressed: canNavigateNext?() {
-                        setState(() {
-                          currentChapter = getNextChapter() ?? {}; // Cập nhật chương hiện tại thành chương tiếp theo (nếu có)
-                          chapterId = currentChapter['id']; // Cập nhật ID chương hiện tại để hiển thị trong AppBar
-                          fetchDataFromFirestore(widget.comicId, chapterId); // Lấy dữ liệu cho chương mới
-                        });
-                      }:null,
-                      
+                      onPressed: canNavigateNext
+                          ? () {
+                              setState(() {
+                                currentChapter = getNextChapter() ?? {};
+                                chapterId = currentChapter['id'];
+                                fetchDataFromFirestore(widget.comicId, chapterId);
+                              });
+                            }
+                          : null,
                       style: ElevatedButton.styleFrom(
                         padding: EdgeInsets.all(7),
                         shape: RoundedRectangleBorder(
@@ -333,7 +413,7 @@ class _ChapterDetailState extends State<ChapterDetail> {
                       child: Row(
                         children: [
                           Text('Chương sau'),
-                          SizedBox(width: 5.0), // Khoảng cách giữa label và icon
+                          SizedBox(width: 5.0),
                           Icon(Icons.arrow_forward_ios),
                         ],
                       ),
@@ -347,4 +427,3 @@ class _ChapterDetailState extends State<ChapterDetail> {
     );
   }
 }
-

@@ -2,25 +2,25 @@ import 'package:flutter/material.dart';
 import 'package:manga_application_1/model/load_data.dart';
 import 'package:manga_application_1/view/DetailComicScreen.dart';
 
-class AncientComic extends StatefulWidget {
+class AdventureComic extends StatefulWidget {
   final String UserId;
- const  AncientComic({super.key, required this.UserId});
+ const  AdventureComic({super.key, required this.UserId});
   @override
-  State<AncientComic> createState() => _AncientComicState();
+  State<AdventureComic> createState() => _AdventureComicState();
 }
-class _AncientComicState extends State<AncientComic> {
+class _AdventureComicState extends State<AdventureComic> {
 
-  List<Comics> listAncientComic=[];
-  void _loadAncientComic() async {   
-    List<Comics>list = await Comics.fetchComicsByCategory("Cổ Đại");
+  List<Comics> listAdventureComic=[];
+  void _loadAdventureComic() async {   
+    List<Comics>list = await Comics.fetchComicsByCategory("Adventure");
       setState(() {
-      listAncientComic =list;
+      listAdventureComic =list;
     });
   }
   @override
   void initState() {
     super.initState();
-    _loadAncientComic();
+    _loadAdventureComic();
   }
   @override
   Widget build(BuildContext context) {
@@ -29,7 +29,7 @@ class _AncientComicState extends State<AncientComic> {
       sliver: SliverGrid(
         delegate: SliverChildBuilderDelegate(
           (context, index) {
-            final story = listAncientComic[index];
+            final story = listAdventureComic[index];
             return GestureDetector(
                onTap: () {
                 Navigator.push(
@@ -75,7 +75,7 @@ class _AncientComicState extends State<AncientComic> {
               ),
             );
           },
-          childCount: listAncientComic.length <=6? listAncientComic.length : 6,
+          childCount: listAdventureComic.length <=6? listAdventureComic.length : 6,
         ),
         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 3,
