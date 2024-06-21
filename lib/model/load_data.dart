@@ -90,6 +90,9 @@ class Comics {
   String source;
   String status;
   List<Chapters> chapters;
+  int favorites;
+  int view;
+
 
   Comics({
     required this.id,
@@ -100,6 +103,8 @@ class Comics {
     required this.source,
     required this.status,
     required this.chapters,
+    required this.favorites,
+    required this.view
   });
 
   factory Comics.fromJson(String id,Map<String, dynamic> json) {
@@ -120,6 +125,8 @@ class Comics {
       image: json['image'],
       source: json['source'],
       status: json['status'],
+      favorites:json['favorites'],
+      view:json['view'],
       chapters: chaptersList,
     );
   }
@@ -254,6 +261,8 @@ Future<void> saveComicAndChaptersToFirestore(String name, String status, String 
         'recommend': IsRecommend,
         'new':IsNew,
         'hot':IsHot,
+        'favorites':0,
+        'view':0
       };
       // Add comic details to 'comics' collection
       DocumentReference comicDoc = await comicsCollection.add(comicDetails);
@@ -363,6 +372,7 @@ class User {
       return []; // Trả về danh sách rỗng nếu có lỗi
     }
 }
+
 class Category {
   final String id;
   final String categoryName;

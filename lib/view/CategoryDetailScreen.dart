@@ -11,7 +11,6 @@ class CategoryDetailScreen extends StatefulWidget {
   @override
   State<CategoryDetailScreen> createState() => _CategoryDetailScreenState();
 }
-
 class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
   String selectedFilter = 'Tất cả';
   List<Comics> comicsList = [];
@@ -24,9 +23,7 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
   }
 
   void fetchData() async {
-    setState(() {
-      isLoading = true;
-    });
+    setState(() { isLoading = true;});
 
     try {
       List<Comics>? fetchedComics = await Comics.fetchComicsByCategoryAndStatus(widget.Name, selectedFilter);
@@ -34,7 +31,6 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
         comicsList = fetchedComics!;
       });
     } catch (e) {
-      
     } finally {
       setState(() {
         isLoading = false;
@@ -118,22 +114,25 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
               color: Colors.black,
               thickness: 1,
             ),
-            isLoading
-                ? Center(child: CircularProgressIndicator())
-                  : comicsList == null || comicsList!.isEmpty
-                    ? Center(child: Text('Không có truyện theo thể loại và trạng thái này'))
-                :  Expanded( child :ListView.builder(
-                      shrinkWrap: true,
-                      physics: AlwaysScrollableScrollPhysics(),
-                      itemCount: comicsList.length,
-                      itemBuilder: (context, index) {
-                        Comics comic = comicsList[index];
-                        return ComicItem(  comic: comic, UserId: widget.UserId,
-                        );
-                      },
-                    ),
-                ),
-                  
+            isLoading? const Center(
+              child: CircularProgressIndicator())
+              : comicsList == null || comicsList.isEmpty? 
+              const Center(
+                child: Text('Không có truyện theo thể loại và trạng thái này'))
+              : Expanded( 
+                  child :ListView.builder(
+                    shrinkWrap: true,
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    itemCount: comicsList.length,
+                    itemBuilder: (context, index) {
+                      Comics comic = comicsList[index];
+                      return ComicItem( 
+                        comic: comic,
+                         UserId: widget.UserId,
+                      );
+                    },
+                  ),
+                ),       
           ],
         ),
       ),

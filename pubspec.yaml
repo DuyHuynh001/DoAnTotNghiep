@@ -53,6 +53,7 @@ dependencies:
   flutter_ocr_sdk: ^1.1.4
   firebase_core: ^2.24.2
   cloud_firestore: ^4.14.0
+  google_translator: ^1.0.0
   
 
 dev_dependencies:

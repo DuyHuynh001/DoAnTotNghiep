@@ -4,7 +4,7 @@ import 'CategoryDetailScreen.dart';
 
 class CategoryScreen extends StatefulWidget {
   final String UserId;
-  CategoryScreen({super.key, required this.UserId});
+  const CategoryScreen({super.key, required this.UserId});
 
   @override
   _CategoryScreenState createState() => _CategoryScreenState();
@@ -34,7 +34,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Thể loại'),
+        title: const Text('Thể loại'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(8.0),
@@ -42,8 +42,8 @@ class _CategoryScreenState extends State<CategoryScreen> {
           children: [
             GridView.builder(
               shrinkWrap: true, // Đảm bảo GridView sẽ co lại theo nội dung bên trong
-              physics: NeverScrollableScrollPhysics(), // Ngăn cuộn lăn ở mức GridView, để cuộn toàn bộ màn hình
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              physics: const NeverScrollableScrollPhysics(), // Ngăn cuộn lăn ở mức GridView, để cuộn toàn bộ màn hình
+              gridDelegate:const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 2,
                 crossAxisSpacing: 8.0,
                 mainAxisSpacing: 8.0,
@@ -70,7 +70,6 @@ class _CategoryScreenState extends State<CategoryScreen> {
                           );
                         },
                       ),
- 
                     );
                   },
                   child: Container(

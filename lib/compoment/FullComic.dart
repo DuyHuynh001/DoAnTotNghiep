@@ -4,25 +4,25 @@ import 'package:manga_application_1/view/DetailComicScreen.dart';
 
 class FullComic extends StatefulWidget {
   final String UserId;
- const  FullComic({super.key, required this.UserId});
+  const FullComic({super.key, required this.UserId});
   @override
   State<FullComic> createState() => _FullComicState();
 }
 class _FullComicState extends State<FullComic> {
 
   List<Comics> listFullComic=[];
-  void _loadFullComic() async {   
-    List<Comics>list = await Comics.fetchFullComicsList();
-      setState(() {
-      listFullComic =list;
-    });
-    
-  }
   @override
   void initState() {
     super.initState();
     _loadFullComic();
   }
+  void _loadFullComic() async {   
+    List<Comics>list = await Comics.fetchFullComicsList();
+      setState(() {
+      listFullComic =list;
+    });
+  }
+ 
   @override
   Widget build(BuildContext context) {
     return SliverPadding(
@@ -56,7 +56,7 @@ class _FullComicState extends State<FullComic> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Container(
-                    height: 175,  // Chiều cao cố định cho hình ảnh
+                    height: 175,  
                     decoration: BoxDecoration(
                       image: DecorationImage(
                         image: NetworkImage(story.image),
@@ -75,15 +75,14 @@ class _FullComicState extends State<FullComic> {
                 ],
               ),
             );
-          },
-          
+          },  
           childCount: listFullComic.length <=6? listFullComic.length : 6,
         ),
-        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        gridDelegate:const SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 3,
           crossAxisSpacing: 8.0,
           mainAxisSpacing: 8.0,
-          childAspectRatio: 0.55,  // Điều chỉnh tỷ lệ sao cho phù hợp
+          childAspectRatio: 0.55,  
         ),
       ),
     );

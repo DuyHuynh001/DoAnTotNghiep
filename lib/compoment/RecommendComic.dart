@@ -4,26 +4,26 @@ import 'package:manga_application_1/view/DetailComicScreen.dart';
 
 class RecommendComic extends StatefulWidget {
   final String UserId;
-
- const  RecommendComic({super.key, required this.UserId});
+  const RecommendComic({super.key, required this.UserId});
   @override
   State<RecommendComic> createState() => _RecommendComicState();
 }
 class _RecommendComicState extends State<RecommendComic> {
 
   List<Comics> listRecommendComic=[];
-  void _loadRecommendComic() async {   
-    List<Comics>list = await Comics.fetchRecomendComicsList();
-      setState(() {
-       listRecommendComic =list;
-      });
-    
-  }
   @override
   void initState() {
     super.initState();
     _loadRecommendComic();
   }
+  // load danh sách comic đề cử
+  void _loadRecommendComic() async {   
+    List<Comics>list = await Comics.fetchRecomendComicsList();
+      setState(() {
+       listRecommendComic =list;
+      });
+  }
+ 
   @override
   Widget build(BuildContext context) {
     return SliverPadding(
@@ -57,7 +57,7 @@ class _RecommendComicState extends State<RecommendComic> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Container(
-                    height: 175,  // Chiều cao cố định cho hình ảnh
+                    height: 175,  
                     decoration: BoxDecoration(
                       image: DecorationImage(
                         image: NetworkImage(story.image),
@@ -79,11 +79,11 @@ class _RecommendComicState extends State<RecommendComic> {
           },
           childCount: listRecommendComic.length<=6? listRecommendComic.length : 6,
         ),
-        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 3,
           crossAxisSpacing: 8.0,
           mainAxisSpacing: 8.0,
-          childAspectRatio: 0.55,  // Điều chỉnh tỷ lệ sao cho phù hợp
+          childAspectRatio: 0.55,  
         ),
       ),
     );

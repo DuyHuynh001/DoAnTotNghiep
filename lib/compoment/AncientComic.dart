@@ -4,24 +4,25 @@ import 'package:manga_application_1/view/DetailComicScreen.dart';
 
 class AncientComic extends StatefulWidget {
   final String UserId;
- const  AncientComic({super.key, required this.UserId});
+  const AncientComic({super.key, required this.UserId});
   @override
   State<AncientComic> createState() => _AncientComicState();
 }
 class _AncientComicState extends State<AncientComic> {
-
   List<Comics> listAncientComic=[];
+   @override
+  void initState() {
+    super.initState();
+    _loadAncientComic();
+  }
+  // load danh sách cổ đại
   void _loadAncientComic() async {   
     List<Comics>list = await Comics.fetchComicsByCategory("Cổ Đại");
       setState(() {
       listAncientComic =list;
     });
   }
-  @override
-  void initState() {
-    super.initState();
-    _loadAncientComic();
-  }
+ 
   @override
   Widget build(BuildContext context) {
     return SliverPadding(
@@ -55,7 +56,7 @@ class _AncientComicState extends State<AncientComic> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Container(
-                    height: 175,  // Chiều cao cố định cho hình ảnh
+                    height: 175, 
                     decoration: BoxDecoration(
                       image: DecorationImage(
                         image: NetworkImage(story.image),
@@ -77,11 +78,11 @@ class _AncientComicState extends State<AncientComic> {
           },
           childCount: listAncientComic.length <=6? listAncientComic.length : 6,
         ),
-        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 3,
           crossAxisSpacing: 8.0,
           mainAxisSpacing: 8.0,
-          childAspectRatio: 0.55,  // Điều chỉnh tỷ lệ sao cho phù hợp
+          childAspectRatio: 0.55, 
         ),
       ),
     );

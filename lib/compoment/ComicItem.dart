@@ -1,4 +1,3 @@
-import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:manga_application_1/model/load_data.dart';
@@ -17,7 +16,7 @@ class _ComicItemState extends State<ComicItem> {
   List<Map<String, dynamic>> chapters = [];
   bool isButtonView = false;
 
-   @override
+  @override
   void initState() {
     super.initState();
    _loadChapters(); 
@@ -27,7 +26,6 @@ class _ComicItemState extends State<ComicItem> {
     List<Map<String, dynamic>> fetchedChapters = await Chapters.fetchChapters(widget.comic.id);
     setState(() {
       chapters = fetchedChapters;
-     
     });
   }
 
@@ -36,8 +34,7 @@ class _ComicItemState extends State<ComicItem> {
     String maxChap = chapters.isNotEmpty ? chapters.map((chapter) => double.tryParse(chapter['id'].toString()) ?? -double.infinity).reduce((a, b) => a > b ? a : b).toString(): '0';
     return GestureDetector(
       onTap: () {
-        Navigator.push(
-            context,
+        Navigator.push(context,
             PageRouteBuilder(
               pageBuilder: (context, animation, secondaryAnimation) => ComicDetailScreen(storyId: widget.comic.id,UserId: widget.UserId,),
               transitionsBuilder: (context, animation, secondaryAnimation, child) {
@@ -51,9 +48,8 @@ class _ComicItemState extends State<ComicItem> {
                   child: child,
                 );
               },
-            ),
-            
-          );
+          ), 
+        );
       },
       child: Container(
       padding: const EdgeInsets.all(8.0),
@@ -74,22 +70,11 @@ class _ComicItemState extends State<ComicItem> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                 widget.comic.name,
-                  style: TextStyle(fontSize: 18.0, fontWeight: FontWeight.bold),
-                ),
+                Text(widget.comic.name,style: const TextStyle(fontSize: 18.0, fontWeight: FontWeight.bold),),
                 SizedBox(height: 7),
-                Text(
-                  'Chương: $maxChap',
-                  style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.w500),
-                ),
+                Text('Chương: $maxChap',style:const TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),),
                 SizedBox(height: 7),
-                Text(
-                  widget.comic.genre.join(' - '),
-                  style: TextStyle(fontSize: 14.0, color: Colors.grey[600]),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
+                Text(widget.comic.genre.join(' - '),style: TextStyle(fontSize: 14.0, color: Colors.grey[600]),maxLines: 2,overflow: TextOverflow.ellipsis,),
                 SizedBox(height: 5),
               ],
             ),

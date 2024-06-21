@@ -1,27 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:manga_application_1/model/load_data.dart';
 import 'package:manga_application_1/view/DetailComicScreen.dart';
-
 class ActionComic extends StatefulWidget {
   final String UserId;
- const  ActionComic({super.key, required this.UserId});
+  const ActionComic({super.key, required this.UserId});
   @override
   State<ActionComic> createState() => _ActionComicState();
 }
 class _ActionComicState extends State<ActionComic> {
-
   List<Comics> listActionComic=[];
+  @override
+  void initState() {
+    super.initState();
+    _loadActionComic();
+  }
+  // lấy danh sách truyện tranh hành động
   void _loadActionComic() async {   
     List<Comics>list = await Comics.fetchComicsByCategory("Action");
       setState(() {
       listActionComic =list;
     });
   }
-  @override
-  void initState() {
-    super.initState();
-    _loadActionComic();
-  }
+  
   @override
   Widget build(BuildContext context) {
     return SliverPadding(
@@ -77,11 +77,11 @@ class _ActionComicState extends State<ActionComic> {
           },
           childCount: listActionComic.length <=6? listActionComic.length : 6,
         ),
-        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 3,
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 3,  // số comic tối đa 1 dòng
           crossAxisSpacing: 8.0,
           mainAxisSpacing: 8.0,
-          childAspectRatio: 0.55,  // Điều chỉnh tỷ lệ sao cho phù hợp
+          childAspectRatio: 0.55,  
         ),
       ),
     );

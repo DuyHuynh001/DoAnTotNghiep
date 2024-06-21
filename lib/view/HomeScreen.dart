@@ -6,14 +6,11 @@ import 'package:manga_application_1/compoment/FullComic.dart';
 import 'package:manga_application_1/compoment/HotComic.dart';
 import 'package:manga_application_1/compoment/AdventureComic.dart';
 import 'package:manga_application_1/compoment/RecommendComic.dart';
-import 'package:manga_application_1/model/load_data.dart';
-import 'package:manga_application_1/view/AddComics.dart';
+import 'package:manga_application_1/view/AddComicScreen.dart';
 import 'package:manga_application_1/view/CategoryScreen.dart';
 import 'package:manga_application_1/view/NewComicScreen.dart';
+import 'package:manga_application_1/view/SearchScreen.dart';
 import 'package:manga_application_1/view/TopComicScreen.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'LoginScreen.dart'; // Cập nhật đường dẫn tới LoginScreen
-import 'SearchScreen.dart'; // Cập nhật đường dẫn tới SearchScreen
 
 class HomeScreen extends StatefulWidget {
   final String UserId;
@@ -90,7 +87,7 @@ class _MyHomeScreen extends State<HomeScreen> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) =>AddComic(),
+                      builder: (context) =>AddComicScreen(),
                     ),
                   );
                 },

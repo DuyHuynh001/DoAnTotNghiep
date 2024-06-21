@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -6,6 +7,8 @@ import 'package:manga_application_1/compoment/CommentItem.dart';
 import 'package:manga_application_1/model/load_data.dart';
 import 'package:manga_application_1/compoment/ChapterDetail.dart';
 import 'package:manga_application_1/view/FullCommentScreen.dart';
+import 'package:google_translator/google_translator.dart';
+import 'package:http/http.dart' as http;
 
 class ComicDetailScreen extends StatefulWidget {
   final String storyId;
@@ -21,12 +24,10 @@ class _ComicDetailScreenState extends State<ComicDetailScreen> {
   bool isButtonView=false;
   bool isFavorited = false;
   bool isView = false;
-  int favoriteCount = 0;
-  int viewCount=0;
   List<Map<String, dynamic>> chapters = [];
-
+ 
   bool showOldest = true; // Biến để theo dõi trạng thái cũ nhất hay mới nhất
-  Comics story= Comics(id: "", name: '', description: "", genre: [], image: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/65/No-Image-Placeholder.svg/1665px-No-Image-Placeholder.svg.png", source: "", status: "", chapters: []);
+  Comics story= Comics(id: "", name: '', description: "", genre: [], image: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/65/No-Image-Placeholder.svg/1665px-No-Image-Placeholder.svg.png", source: "", status: "", chapters: [],favorites:0, view:0);
   final TextEditingController commentController = TextEditingController();
   
  @override
@@ -34,12 +35,12 @@ class _ComicDetailScreenState extends State<ComicDetailScreen> {
     super.initState();
    _loadComic();
    _loadChapters(); 
-    favoriteCount = 10; 
-    viewCount =10 ;
+    checkFavoriteStatus();
+    checkViewStatus();
+
   }
   void _loadComic() async {
     Comics fetchedComic = await Comics.fetchComicsById(widget.storyId);
-
     setState(() { story = fetchedComic; });
   }
   void _loadChapters() async {
@@ -56,6 +57,36 @@ class _ComicDetailScreenState extends State<ComicDetailScreen> {
       }
     });
   }
+  Future<void> checkFavoriteStatus() async {
+  try {
+    DocumentReference favoriteRef = FirebaseFirestore.instance.collection('User').doc(widget.UserId) .collection('FavoritesList').doc(widget.storyId);
+
+    DocumentSnapshot doc = await favoriteRef.get();
+    if (doc.exists) {
+      setState(() {
+        isFavorited = true;
+        isButtonFavorite = true;
+      });
+    }
+  } catch (e) {
+    print('Lỗi khi kiểm tra trạng thái yêu thích: $e');
+  }
+}
+
+Future<void> checkViewStatus() async {
+  try {
+    DocumentReference viewRef = FirebaseFirestore.instance.collection('User').doc(widget.UserId).collection('ViewList').doc(widget.storyId);
+    DocumentSnapshot doc = await viewRef.get();
+    if (doc.exists) {
+      setState(() {
+        isView = true;
+        isButtonView = true;
+      });
+    }
+  } catch (e) {
+    print('Lỗi khi kiểm tra trạng thái theo dõi: $e');
+  }
+}
   
   void updateChapterOrder() {
     setState(() {
@@ -74,47 +105,130 @@ class _ComicDetailScreenState extends State<ComicDetailScreen> {
       }
     });
   }
-  void toggleFavorite() {
-    setState(() {
-      if (isFavorited) {
-        favoriteCount--;
+
+void toggleFavorite() async {
+  try {
+    DocumentReference comicRef =FirebaseFirestore.instance.collection('Comics').doc(widget.storyId);
+    DocumentReference favoriteRef = FirebaseFirestore.instance.collection('User').doc(widget.UserId).collection('FavoritesList').doc(widget.storyId);
+    if (isFavorited) {
+      // Giảm số lượt yêu thích và cập nhật Firestore
+      await comicRef.update({'favorites': FieldValue.increment(-1),});
+      await favoriteRef.delete();
+      setState(() {
         isFavorited = false;
-        isButtonFavorite =false;
-      } else {
-        favoriteCount++;
+        isButtonFavorite = false;
+      });
+    } else {
+      // Tăng số lượt yêu thích và cập nhật Firestore
+      await comicRef.update({'favorites': FieldValue.increment(1),});
+      await favoriteRef.set({
+        'comicId': widget.storyId,
+        'timestamp': Timestamp.now(),
+      });
+      setState(() {
         isFavorited = true;
-        isButtonFavorite =true;
-      }
-    });
+        isButtonFavorite = true;
+      });
+    }
+    _loadComic();
+  } catch (e) {
+    print('Lỗi khi cập nhật số lượt yêu thích: $e');
   }
-  void toggleView() {
-    setState(() {
-      if (isView) {
-        viewCount--;
+}
+  void toggleView() async {
+  try {
+    DocumentReference comicRef =FirebaseFirestore.instance.collection('Comics').doc(widget.storyId);
+    DocumentReference viewRef = FirebaseFirestore.instance .collection('User').doc(widget.UserId).collection('ViewList').doc(widget.storyId);
+    if (isView) {
+      await comicRef.update({'view': FieldValue.increment(-1),});
+      // Xóa khỏi danh sách theo dõi
+      await viewRef.delete();
+      setState(() {
         isView = false;
-        isButtonView =false;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Bạn đã bỏ theo dõi truyện '+ story.name),
-            duration: Duration(seconds: 1),
-          ),
-        );
-      } else {
-        viewCount++;
+        isButtonView = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Bạn đã bỏ theo dõi truyện ' + story.name),
+          duration: Duration(seconds: 2),
+        ),
+      );
+    } else {
+      await comicRef.update({'view': FieldValue.increment(1),});
+      // Thêm vào danh sách theo dõi
+      await viewRef.set({
+        'comicId': widget.storyId,
+        'timestamp': Timestamp.now(),
+      });
+      setState(() {
         isView = true;
-        isButtonView =true;
-         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Đã theo dõi truyện '+ story.name),
-            duration: Duration(seconds: 1),
-            elevation: 4.0,
-          ),
-        );
-      }
-    });
+        isButtonView = true;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Đã theo dõi truyện ' + story.name),
+          duration: Duration(seconds:2),
+          elevation: 4.0,
+        ),
+      );
+    }
+     _loadComic();
+  } catch (e) {
+    print('Lỗi khi cập nhật danh sách theo dõi: $e');
   }
-   
-  
+}
+
+// Future<Map<String, dynamic>> analyzeComment(String comment) async {
+//   final apiKey = 'AIzaSyBsy0xeUF7MF8nCBehb7i_aI3IYUGG9THU'; // Replace with your actual API key
+//   final url = 'https://commentanalyzer.googleapis.com/v1alpha1/comments:analyze?key=$apiKey';
+
+//   try {
+//     final response = await http.post(
+//       Uri.parse(url),
+//       headers: {
+//         'Content-Type': 'application/json',
+//       },
+//       body: json.encode({
+//         'comment': {'text': comment},
+//         'requestedAttributes': {'TOXICITY': {}},
+//         'languages': 'en',
+//       }),
+//     );
+
+//     if (response.statusCode == 200) {
+//       return json.decode(response.body);
+//     } else {
+//       print('Failed to analyze comment. Status code: ${response.statusCode}');
+//       throw Exception('Failed to analyze comment');
+//     }
+//   } catch (e) {
+//     print('Error analyzing comment: $e');
+//     throw Exception('Failed to analyze comment');
+//   }
+// }
+
+
+// Future<void> handleComment(String comment) async {
+//   try {
+//     // Analyze the English comment using Google Perspective API
+//     final analysisResult = await analyzeComment(comment);
+//     final double toxicityScore = analysisResult['attributeScores']['TOXICITY']['summaryScore']['value'];
+
+//     if (toxicityScore < 0.5) {
+//       // Bình luận hợp lệ, lưu vào Firestore
+//       postComment(comment);
+//     } else {
+//       // Bình luận không hợp lệ, thông báo cho người dùng
+//       throw Exception('Comment is too toxic');
+//     }
+//     } catch (e) {
+//       // Xử lý lỗi
+//       print('Error: $e');
+//       throw e;
+//     }
+//   }
+
+
    void postComment(String comment) async {
       await FirebaseFirestore.instance.collection('Comments').add({
         'comicId': widget.storyId,
@@ -169,7 +283,7 @@ class _ComicDetailScreenState extends State<ComicDetailScreen> {
                               ),
                               onPressed: toggleView,
                             ),
-                            Text('$viewCount'),
+                             Text(story.view.toString()),
                             SizedBox(width: 30.0),
                             IconButton(
                               icon: Icon(
@@ -178,7 +292,7 @@ class _ComicDetailScreenState extends State<ComicDetailScreen> {
                               ),
                               onPressed: toggleFavorite,
                             ),
-                            Text('$favoriteCount'),
+                            Text(story.favorites.toString()),
                           ],
                         ),
                         Row(
@@ -203,14 +317,10 @@ class _ComicDetailScreenState extends State<ComicDetailScreen> {
                             Expanded(
                                 child: ElevatedButton.icon(
                                   onPressed: () {
-                                    setState(() {
-                                      isButtonView = !isButtonView;
-                                      toggleView();
-                                    });
+                                     toggleView();      
                                   },
                                   icon: Icon(Icons.bookmark, color: Colors.black),
-                                  label: Text(
-                                    "Theo dõi",
+                                  label: Text( "Theo dõi",
                                     style: TextStyle(color: Colors.black, fontSize: 16),
                                   ),
                                   style: ElevatedButton.styleFrom(
@@ -224,13 +334,10 @@ class _ComicDetailScreenState extends State<ComicDetailScreen> {
                             Expanded(
                               child: ElevatedButton.icon(
                                 onPressed: () {
-                                 setState(() {
-                                      isButtonFavorite= !isButtonFavorite;
-                                      toggleFavorite();
-                                    });
+                                   toggleFavorite();
                                 },
                                 icon: const Icon(Icons.favorite, color: Colors.black),
-                                label: const Text("Yêu Thích", style: TextStyle(color: Colors.black, fontSize: 16)),
+                                label: Text( "Yêu Thích", style: TextStyle(color: Colors.black, fontSize: 16)),
                                 style: ElevatedButton.styleFrom(
                                   primary:  isButtonFavorite? Colors.blue[300] : Colors.grey[200],
                                   side: const BorderSide(color: Colors.black),
@@ -314,6 +421,7 @@ class _ComicDetailScreenState extends State<ComicDetailScreen> {
                                               ChapterId: chapters.first['id'],
                                               chapters: chapters,
                                               comicId: story.id,
+                                              UserId: widget.UserId,
                                              
                                             ),
                                             transitionsBuilder: (context, animation, secondaryAnimation, child) {
@@ -380,7 +488,8 @@ class _ComicDetailScreenState extends State<ComicDetailScreen> {
                                         onPressed: () {
                                           String comment = commentController.text.trim();
                                           if (comment.isNotEmpty) {
-                                            postComment(comment);
+                                          // handleComment(comment);
+                                           postComment(comment);
                                             FocusScope.of(context).unfocus();
                                           } else {
                                             ScaffoldMessenger.of(context).showSnackBar(
@@ -557,10 +666,11 @@ class _ComicDetailScreenState extends State<ComicDetailScreen> {
                                           context,
                                           PageRouteBuilder(
                                             pageBuilder: (context, animation, secondaryAnimation) => 
-                                           ChapterDetail(
+                                            ChapterDetail(
                                               ChapterId:chapterNumber.toString(),
                                               chapters: chapters,
                                               comicId: story.id,
+                                              UserId: widget.UserId,
                                              
                                             ),
                                             transitionsBuilder: (context, animation, secondaryAnimation, child) {

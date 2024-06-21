@@ -4,24 +4,25 @@ import 'package:manga_application_1/view/DetailComicScreen.dart';
 
 class AdventureComic extends StatefulWidget {
   final String UserId;
- const  AdventureComic({super.key, required this.UserId});
+  const AdventureComic({super.key, required this.UserId});
   @override
   State<AdventureComic> createState() => _AdventureComicState();
 }
 class _AdventureComicState extends State<AdventureComic> {
-
   List<Comics> listAdventureComic=[];
+  @override
+  void initState() {
+    super.initState();
+    _loadAdventureComic();
+  }
+  // lấy danh sách truyện phiêu lưu 
   void _loadAdventureComic() async {   
     List<Comics>list = await Comics.fetchComicsByCategory("Adventure");
       setState(() {
       listAdventureComic =list;
     });
   }
-  @override
-  void initState() {
-    super.initState();
-    _loadAdventureComic();
-  }
+  
   @override
   Widget build(BuildContext context) {
     return SliverPadding(
@@ -55,7 +56,7 @@ class _AdventureComicState extends State<AdventureComic> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Container(
-                    height: 175,  // Chiều cao cố định cho hình ảnh
+                    height: 175,  
                     decoration: BoxDecoration(
                       image: DecorationImage(
                         image: NetworkImage(story.image),
@@ -77,11 +78,11 @@ class _AdventureComicState extends State<AdventureComic> {
           },
           childCount: listAdventureComic.length <=6? listAdventureComic.length : 6,
         ),
-        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 3,
           crossAxisSpacing: 8.0,
           mainAxisSpacing: 8.0,
-          childAspectRatio: 0.55,  // Điều chỉnh tỷ lệ sao cho phù hợp
+          childAspectRatio: 0.55,  
         ),
       ),
     );

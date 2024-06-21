@@ -4,25 +4,25 @@ import 'package:manga_application_1/view/DetailComicScreen.dart';
 
 class HotComic extends StatefulWidget {
   final UserId;
-
-  const  HotComic({super.key, required this.UserId});
+  const HotComic({super.key, required this.UserId});
   @override
   State<HotComic> createState() => _HotComicState();
 }
 class _HotComicState extends State<HotComic> {
-
   List<Comics> listHotComic=[];
+  @override
+  void initState() {
+    super.initState();
+    _loadHotComic();
+  }
+  // load danh sách comic hot
   void _loadHotComic() async {   
     List<Comics>list = await Comics.fetchHotComicsList();
       setState(() {
        listHotComic =list;
       });
   }
-  @override
-  void initState() {
-    super.initState();
-    _loadHotComic();
-  }
+  
   @override
   Widget build(BuildContext context) {
     return SliverPadding(
@@ -56,7 +56,7 @@ class _HotComicState extends State<HotComic> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Container(
-                    height: 175,  // Chiều cao cố định cho hình ảnh
+                    height: 175,  
                     decoration: BoxDecoration(
                       image: DecorationImage(
                         image: NetworkImage(story.image),
@@ -82,7 +82,7 @@ class _HotComicState extends State<HotComic> {
           crossAxisCount: 3,
           crossAxisSpacing: 8.0,
           mainAxisSpacing: 8.0,
-          childAspectRatio: 0.55,  // Điều chỉnh tỷ lệ sao cho phù hợp
+          childAspectRatio: 0.55,  
         ),
       ),
     );
