@@ -14,23 +14,24 @@ class RegisterScreen extends StatefulWidget {
 class _RegisterScreenState extends State<RegisterScreen> {
     bool _obscureTextPassword = true;
     bool _obscureTextComfirmPassword=true;
-    FirebaseAuthServiceSignUp _auth = FirebaseAuthServiceSignUp();
-    TextEditingController _emailController = TextEditingController();
-    TextEditingController _passwordController = TextEditingController();
-    TextEditingController _confirmPasswordController = TextEditingController();
-    TextEditingController _nameController = TextEditingController();
+    final  FirebaseAuthServiceSignUp _auth = FirebaseAuthServiceSignUp();
+    final TextEditingController _emailController = TextEditingController();
+    final TextEditingController _passwordController = TextEditingController();
+    final TextEditingController _confirmPasswordController = TextEditingController();
+    final TextEditingController _nameController = TextEditingController();
 
     void showSnackBar(BuildContext context, String message) {
       final snackBar = SnackBar(
-          content: Text(message,
-              style: TextStyle(fontSize: 15), textAlign: TextAlign.center),
-         backgroundColor: const Color.fromARGB(255, 86, 84, 84));
+        content: Text(message,style: TextStyle(fontSize: 15), textAlign: TextAlign.center),
+        backgroundColor: const Color.fromARGB(255, 86, 84, 84));
       ScaffoldMessenger.of(context).showSnackBar(snackBar);
     }
+
     bool isValidEmail(String email) {
       RegExp emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
       return emailRegex.hasMatch(email) && email.endsWith('@gmail.com');
     }
+
    Future<bool> isEmailAlreadyRegistered(String email) async {
     try {
       List<String> signInMethods = await FirebaseAuth.instance.fetchSignInMethodsForEmail(email);
@@ -42,47 +43,48 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
   
   void _SignUp() async {
-  String email = _emailController.text.trim();
-  String password = _passwordController.text.trim();
-  String confirmPassword = _confirmPasswordController.text.trim();
-  String name= _nameController.text.trim();
-  if(email.isEmpty || password.isEmpty||confirmPassword.isEmpty||name.isEmpty)
-  {
-    showSnackBar(context, 'Vui lòng nhập đầy đủ thông tin');
-    return;
-  }
-  else if (password != confirmPassword) {
-    showSnackBar(context, 'Mật khẩu không trùng khớp');
-    return;
-  }
-  bool isvalidEmail = await isValidEmail(email);
-  if (!isvalidEmail) {
-    showSnackBar(context, 'Email không đúng định dạng');
-    return;
-  }
-  bool isEmailUsed = await isEmailAlreadyRegistered(email);
-  if (isEmailUsed) {
-    showSnackBar(context, 'Email đã được sử dụng');
-    return;
-  }
-  
-  try {
-    // Tạo tài khoản người dùng trên Firebase Authentication
-    UserCredential userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
-      email: email,
-      password: password,
-    );
-    String uid = userCredential.user!.uid;
+    String email = _emailController.text.trim();
+    String password = _passwordController.text.trim();
+    String confirmPassword = _confirmPasswordController.text.trim();
+    String name= _nameController.text.trim();
+    if(email.isEmpty || password.isEmpty||confirmPassword.isEmpty||name.isEmpty)
+    {
+      showSnackBar(context, 'Vui lòng nhập đầy đủ thông tin');
+      return;
+    }
+    else if (password != confirmPassword) {
+      showSnackBar(context, 'Mật khẩu không trùng khớp');
+      return;
+    }
+    bool isvalidEmail = await isValidEmail(email);
+    if (!isvalidEmail) {
+      showSnackBar(context, 'Email không đúng định dạng');
+      return;
+    }
+    bool isEmailUsed = await isEmailAlreadyRegistered(email);
+    if (isEmailUsed) {
+      showSnackBar(context, 'Email đã được sử dụng');
+      return;
+    }
+    
+    try {
+      // Tạo tài khoản người dùng trên Firebase Authentication
+      UserCredential userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+      String uid = userCredential.user!.uid;
 
-   _auth.signUpWithEmailAndPassword(name,email,password);
-   _auth.saveUserData(uid,name,email);
-    showSnackBar(context, 'Đăng ký thành công. Bạn có thể đăng nhập');
-    Navigator.pop(context); 
-  } catch (e) {
-    print('Đăng ký thất bại: $e');
-    showSnackBar(context, 'Đã xảy ra lỗi khi đăng ký');
+    _auth.signUpWithEmailAndPassword(name,email,password);
+    _auth.saveUserData(uid,name,email);
+      showSnackBar(context, 'Đăng ký thành công. Bạn có thể đăng nhập');
+
+      Navigator.pop(context); 
+    } catch (e) {
+      print('Đăng ký thất bại: $e');
+      showSnackBar(context, 'Đã xảy ra lỗi khi đăng ký');
+    }
   }
-}
 
   @override
   Widget build(BuildContext context) {
@@ -92,7 +94,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
           image: DecorationImage(
             image: AssetImage("assets/img/backgroundlogin.jpg"),
             fit: BoxFit.cover,
-          ),),
+          ),
+        ),
         padding: EdgeInsets.all(30),
         child: Center(
           child: Column(
@@ -104,9 +107,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 child: Text(
                   "Đăng Ký",
                   style: TextStyle(
-                       color: Colors.lightBlue,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 40.0),
+                    color: Colors.lightBlue,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 40.0),
                 ),
               ),
               TextField(
@@ -181,7 +184,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       borderRadius: BorderRadius.circular(12.0),
                     ),
                   ),
-                  padding: MaterialStatePropertyAll(
+                  padding:const MaterialStatePropertyAll(
                       EdgeInsets.fromLTRB(120, 14, 120, 14)),
                   backgroundColor:
                       MaterialStateProperty.all(Colors.lightBlue),
@@ -208,11 +211,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         ),
                         recognizer: TapGestureRecognizer()
                           ..onTap = () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) => LoginScreen()),
-                            );
+                            Navigator.push(context, MaterialPageRoute(builder: (context) => LoginScreen()),);
                           },
                       ),
                     ],
@@ -228,7 +227,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 }
 class FirebaseAuthServiceSignUp {
   FirebaseAuth auth = FirebaseAuth.instance;
-    final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   Future<User?> signUpWithEmailAndPassword(String username,String email, String password ) async {
   try {

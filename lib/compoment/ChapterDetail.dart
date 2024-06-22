@@ -8,15 +8,16 @@ import 'package:flutter_tts/flutter_tts.dart';
 import 'package:http/http.dart' as http;
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:google_ml_kit/google_ml_kit.dart';
+import 'package:manga_application_1/model/load_data.dart';
 import 'package:path_provider/path_provider.dart';
 
 class ChapterDetail extends StatefulWidget {
   final String ChapterId;
-  final String comicId;
   final String UserId;
+  final Comics comic;
   final List<Map<String, dynamic>> chapters;
 
-  const ChapterDetail({Key? key,required this.ChapterId,required this.comicId,required this.chapters,required this.UserId}) : super(key: key);
+  const ChapterDetail({Key? key,required this.ChapterId,required this.comic,required this.chapters,required this.UserId}) : super(key: key);
 
   @override
   State<ChapterDetail> createState() => _ChapterDetailState();
@@ -42,8 +43,8 @@ class _ChapterDetailState extends State<ChapterDetail> {
     super.initState();
     sortChapters();
     setCurrentChapter();
-    fetchDataChapterFromFirestore(widget.comicId, chapterId);
-    saveReadingHistory(widget.UserId, widget.comicId, chapterId);
+    fetchDataChapterFromFirestore(widget.comic.id, chapterId);
+    saveReadingHistory(widget.UserId, widget.comic.id, chapterId);
   }
 
   @override
@@ -211,8 +212,8 @@ class _ChapterDetailState extends State<ChapterDetail> {
         setState(() {
           currentChapter = getNextChapter() ?? {};
           chapterId = currentChapter['id'];
-          fetchDataChapterFromFirestore(widget.comicId, chapterId);
-          saveReadingHistory(widget.UserId, widget.comicId, chapterId);
+          fetchDataChapterFromFirestore(widget.comic.id, chapterId);
+          saveReadingHistory(widget.UserId, widget.comic.id, chapterId);
         });
       }
     }
@@ -259,12 +260,17 @@ class _ChapterDetailState extends State<ChapterDetail> {
         await historyRef.update({
           'chapterId': chapterId,
           'timestamp': Timestamp.now(),
+          'image':widget.comic.image,
+          'name':widget.comic.name
+
         });
       }
     } else {
       await historyRef.set({   // Nếu lịch sử không tồn tại, tạo mới
         'chapterId': chapterId,
         'timestamp': Timestamp.now(),
+        'image':widget.comic.image,
+        'name':widget.comic.name
       });
     }
   } catch (e) {
@@ -320,8 +326,8 @@ class _ChapterDetailState extends State<ChapterDetail> {
                       setState(() {
                         currentChapter = getPreviousChapter() ?? {};
                         chapterId = currentChapter['id'];
-                        fetchDataChapterFromFirestore(widget.comicId, chapterId);
-                        saveReadingHistory(widget.UserId, widget.comicId, chapterId);
+                        fetchDataChapterFromFirestore(widget.comic.id, chapterId);
+                        saveReadingHistory(widget.UserId, widget.comic.id, chapterId);
                       });
                     }: null,
                     style: ElevatedButton.styleFrom(
@@ -410,8 +416,8 @@ class _ChapterDetailState extends State<ChapterDetail> {
                       setState(() {
                         currentChapter = getNextChapter() ?? {};
                         chapterId = currentChapter['id'];
-                        fetchDataChapterFromFirestore(widget.comicId, chapterId);
-                          saveReadingHistory(widget.UserId, widget.comicId, chapterId);
+                        fetchDataChapterFromFirestore(widget.comic.id, chapterId);
+                          saveReadingHistory(widget.UserId, widget.comic.id, chapterId);
                       });
                     }: null,
                     style: ElevatedButton.styleFrom(

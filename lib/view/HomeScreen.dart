@@ -6,8 +6,12 @@ import 'package:manga_application_1/compoment/FullComic.dart';
 import 'package:manga_application_1/compoment/HotComic.dart';
 import 'package:manga_application_1/compoment/AdventureComic.dart';
 import 'package:manga_application_1/compoment/RecommendComic.dart';
+import 'package:manga_application_1/compoment/ToolItem.dart';
 import 'package:manga_application_1/view/AddComicScreen.dart';
+import 'package:manga_application_1/view/CategoryDetailScreen.dart';
 import 'package:manga_application_1/view/CategoryScreen.dart';
+import 'package:manga_application_1/view/ListFullComicScreen.dart';
+import 'package:manga_application_1/view/ListHotComicScreen.dart';
 import 'package:manga_application_1/view/NewComicScreen.dart';
 import 'package:manga_application_1/view/SearchScreen.dart';
 import 'package:manga_application_1/view/TopComicScreen.dart';
@@ -63,24 +67,13 @@ class _MyHomeScreen extends State<HomeScreen> {
                       padding: EdgeInsets.all(8.0),
                       child: Icon(Icons.search, color: Colors.grey),
                     ),
-                    Text(
-                      'Tìm kiếm ....',
-                      style: TextStyle(color: Colors.grey, fontStyle: FontStyle.italic),
+                    Text('Tìm kiếm ....', style: TextStyle(color: Colors.grey, fontStyle: FontStyle.italic),
                     ),
                   ],
                 ),
               ),
             ),
             actions: [
-              // IconButton(
-              //   icon: const Icon(Icons.logout, color: Colors.black),
-              //   onPressed: () async {
-              //     SharedPreferences prefs = await SharedPreferences.getInstance();
-              //     prefs.setBool('isLoggedIn', false);
-              //     Navigator.pushReplacement(
-              //       context, MaterialPageRoute(builder: (context) => const LoginScreen()));
-              //   },
-              // ),
               IconButton(
                 icon: const Icon(Icons.settings, color: Colors.black),
                 onPressed: ()  {
@@ -92,8 +85,7 @@ class _MyHomeScreen extends State<HomeScreen> {
                   );
                 },
               ),
-            ],
-          
+            ], 
           ),
           SliverToBoxAdapter(
             child: Column(
@@ -116,7 +108,6 @@ class _MyHomeScreen extends State<HomeScreen> {
                         Image.asset('assets/img/onepice.jpg', fit: BoxFit.cover),
                       ],
                       onPageChanged: (value) {
-                       
                       },
                       autoPlayInterval: 7000,
                       isLoop: true,
@@ -125,7 +116,7 @@ class _MyHomeScreen extends State<HomeScreen> {
                 ),
                  Wrap(
                   children: [
-                    ProductCategory(
+                   ToolItem(
                       image: "assets/img/bullets.png", 
                       text: "Thể Loại", 
                       onTap: () {
@@ -134,7 +125,7 @@ class _MyHomeScreen extends State<HomeScreen> {
                           MaterialPageRoute(builder: (context) => CategoryScreen(UserId: widget.UserId,)),
                         );
                       }),
-                    ProductCategory(
+                   ToolItem(
                       image: "assets/img/brand.png", 
                       text: "Top Truyện",
                       onTap: () {
@@ -143,7 +134,7 @@ class _MyHomeScreen extends State<HomeScreen> {
                           MaterialPageRoute(builder: (context) => TopTruyenScreen()),
                         );
                       },),
-                    ProductCategory(
+                    ToolItem(
                       image: "assets/img/new.png",
                       text: "Mới Nhất",onTap: () {
                         Navigator.push(
@@ -151,7 +142,7 @@ class _MyHomeScreen extends State<HomeScreen> {
                           MaterialPageRoute(builder: (context) => NewTruyenScreen()),
                         );
                       },),
-                    ProductCategory(
+                   ToolItem(
                       image: "assets/img/reward.png", 
                       text: "Điểm Của Tôi",
                       onTap: () {
@@ -165,43 +156,44 @@ class _MyHomeScreen extends State<HomeScreen> {
               ],
             ),
           ),
-          const SliverPadding(
-            padding: EdgeInsets.only(top: 15),
-            sliver:  ComicHeader(
-              text: 'Truyện Đề Cử',
-              icon: Icons.back_hand_rounded,
-              color: Colors.blueAccent,
-            ),
-          ),
-          RecommendComic(UserId: widget.UserId,),
-          const ComicHeader(
+          ComicHeader(
               text: 'Truyện Hot',
               icon: Icons.local_fire_department_sharp,
               color: Colors.red,
+              UserId: widget.UserId,
+              name: "Hot"
           ),
           HotComic(UserId: widget.UserId,),
-          const ComicHeader(
+          ComicHeader(
               text: 'Truyện Hoàn',
               icon: Icons.library_add_check_rounded,
               color: Color.fromARGB(255, 187, 187, 8),
+              UserId: widget.UserId,
+              name: "Hoàn",
           ),
           FullComic(UserId: widget.UserId,),
-          const ComicHeader(
+          ComicHeader(
               text: 'Truyện Phiêu Lưu',
               icon: Icons.add_reaction_rounded,
-              color: Colors.green
+              color: Colors.green,
+              name: "Adventure",
+              UserId: widget.UserId,
           ),
           AdventureComic(UserId: widget.UserId,),
-          const ComicHeader(
+          ComicHeader(
               text: 'Truyện Hành Động',
               icon: Icons.sports_gymnastics_outlined,
-              color: Colors.black
+              color: Colors.black,
+              name: "Action",
+              UserId: widget.UserId,
           ),
           ActionComic(UserId: widget.UserId,),
-          const ComicHeader(
+          ComicHeader(
               text: 'Truyện Cổ Đại',
               icon: Icons.access_time,
-              color: Color.fromARGB(255, 146, 52, 18)
+              color: Color.fromARGB(255, 146, 52, 18),
+              name:"Cổ Đại",
+              UserId: widget.UserId,
           ),
           AncientComic(UserId: widget.UserId,)
         ],
@@ -210,66 +202,85 @@ class _MyHomeScreen extends State<HomeScreen> {
   }
 }
 
-class ProductCategory extends StatelessWidget {
-  final String image;
+
+
+class ComicHeader extends StatelessWidget {
   final String text;
-  final VoidCallback onTap;
-  const ProductCategory({Key? key, required this.image, required this.text, required this.onTap}) : super(key: key);
+  final IconData icon;
+  final Color color;
+  final String name; 
+  final String UserId;
+
+  const ComicHeader({
+    Key? key,
+    required this.text,
+    required this.icon,
+    required this.color,
+    required this.UserId,
+    required this.name,
+  }) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: MediaQuery.of(context).size.width / 4.5,
-        height: 70,
-        margin: const EdgeInsets.all(5),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Image.asset(
-              image,
-              width: 51,
-              height: 51,
-              fit: BoxFit.cover,
-            ),
-            const SizedBox(height: 5),
-            Text(
-              text,
-              softWrap: true,
-              style: const TextStyle(fontSize: 12),
-            ),
-          ],
+    return SliverToBoxAdapter(
+      child: GestureDetector(
+        onTap: () {
+          navigateToCategory(context);
+        },
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(8.0),
+          decoration: BoxDecoration(),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  Icon(icon, color: color, size: 25),
+                  const SizedBox(width: 8.0),
+                  Text(
+                    text,
+                    style: const TextStyle(fontSize: 20.0, fontWeight: FontWeight.bold),
+                  ),
+                ],
+              ),
+              const Icon(Icons.arrow_forward_ios_rounded, color: Colors.grey),
+            ],
+          ),
         ),
       ),
     );
   }
-}
-class ComicHeader extends StatelessWidget {
-  final String text;
-  final  IconData icon;
-  final Color color;
-    const ComicHeader({Key? key, required this.icon, required this.text, required this.color}) : super(key: key);
-  @override
-  Widget build(BuildContext context) {
-    return SliverToBoxAdapter(
-      child: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Row(
-              children: [
-                Icon(icon , color: color, size: 25,),
-                const SizedBox(width: 8.0),
-                Text(
-                  text,
-                  style: const TextStyle(fontSize: 20.0, fontWeight: FontWeight.bold),
-                ),
-              ],
-            ),
-             const Icon(Icons.arrow_forward_ios_rounded, color: Colors.grey,),
-          ],
-        ),
+
+  void navigateToCategory(BuildContext context) {
+    Widget destinationWidget;
+    switch (name) {
+      case 'Hot':
+        destinationWidget = ListHotComicScreen(UserId: UserId);
+        break;
+      case 'Hoàn':
+        destinationWidget = ListFullComicScreen(UserId: UserId);
+        break;
+      default:
+       destinationWidget = CategoryDetailScreen(Name: name, Title: "", UserId: UserId);
+        break;
+    }
+
+    Navigator.push(
+      context,
+      PageRouteBuilder(
+        pageBuilder: (context, animation, secondaryAnimation) => destinationWidget,
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          const begin = Offset(1.0, 0.0);
+          const end = Offset.zero;
+          const curve = Curves.easeInOut;
+          var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+          var offsetAnimation = animation.drive(tween);
+          return SlideTransition(
+            position: offsetAnimation,
+            child: child,
+          );
+        },
       ),
     );
   }

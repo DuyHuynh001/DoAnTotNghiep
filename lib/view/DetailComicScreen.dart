@@ -124,6 +124,8 @@ void toggleFavorite() async {
       await favoriteRef.set({
         'comicId': widget.storyId,
         'timestamp': Timestamp.now(),
+        'name': story.name,
+        'image':story.image
       });
       setState(() {
         isFavorited = true;
@@ -159,6 +161,8 @@ void toggleFavorite() async {
       await viewRef.set({
         'comicId': widget.storyId,
         'timestamp': Timestamp.now(),
+        'name': story.name,
+        'image':story.image
       });
       setState(() {
         isView = true;
@@ -420,7 +424,7 @@ void toggleFavorite() async {
                                             ChapterDetail(
                                               ChapterId: chapters.first['id'],
                                               chapters: chapters,
-                                              comicId: story.id,
+                                              comic: story,
                                               UserId: widget.UserId,
                                              
                                             ),
@@ -466,7 +470,7 @@ void toggleFavorite() async {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(
+                                 const Text(
                                     'Bình luận của bạn:',
                                     style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
                                   ),
@@ -540,7 +544,7 @@ void toggleFavorite() async {
                                     ),
                                     SizedBox(height: 20),
                                     if(comments.isEmpty)
-                                    Center(
+                                    const Center(
                                       child: Text("Chưa có bình luận")
                                     )
                                     else
@@ -642,11 +646,10 @@ void toggleFavorite() async {
                               ),
                             ],
                           ),
-                        ),
+                          ),
                           ],
                         ),
                         Divider(height: 1, color: Colors.grey),
-                        
                         Expanded(
                           child: ListView.builder(
                             itemCount: chapters.length,
@@ -669,7 +672,7 @@ void toggleFavorite() async {
                                             ChapterDetail(
                                               ChapterId:chapterNumber.toString(),
                                               chapters: chapters,
-                                              comicId: story.id,
+                                              comic: story,
                                               UserId: widget.UserId,
                                              
                                             ),

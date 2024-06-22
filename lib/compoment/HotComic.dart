@@ -19,7 +19,7 @@ class _HotComicState extends State<HotComic> {
   void _loadHotComic() async {   
     List<Comics>list = await Comics.fetchHotComicsList();
       setState(() {
-       listHotComic =list;
+        listHotComic =list;
       });
   }
   

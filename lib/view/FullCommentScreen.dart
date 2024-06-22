@@ -31,16 +31,16 @@ class _FullCommentsScreenState extends State<FullCommentsScreen> {
   }
 
   void _postComment(String comment) async {
-      await FirebaseFirestore.instance.collection('Comments').add({
-        'comicId': widget.storyId,
-        'comment': comment,
-        'times': FieldValue.serverTimestamp(),
-        'UserId': widget.UserId
-      });
-      setState(() {});
-      commentController.clear();
-       FocusScope.of(context).unfocus(); // Close the keyboard
-      _loadComments();
+    await FirebaseFirestore.instance.collection('Comments').add({
+      'comicId': widget.storyId,
+      'comment': comment,
+      'times': FieldValue.serverTimestamp(),
+      'UserId': widget.UserId
+    });
+    setState(() {});
+    commentController.clear();
+      FocusScope.of(context).unfocus(); // Close the keyboard
+    _loadComments();
   }
   
   @override
@@ -111,30 +111,27 @@ class _FullCommentsScreenState extends State<FullCommentsScreen> {
                         const SnackBar(
                           content: Text('Vui lòng nhập bình luận'),
                           duration: Duration(seconds: 1),
-                          
                         ),
                       );
                     }
                   },
                   style: ElevatedButton.styleFrom(
-                      padding: EdgeInsets.all(8),
-                      backgroundColor: Colors.grey[200],
-                      side: BorderSide(color: Colors.black)),
-                      child: const Row(children: [
-                        Icon(
-                          Icons.send,
-                          size: 30,
-                          color: Colors.black,
-                        ),
-                      ]
+                    padding: EdgeInsets.all(8),
+                    backgroundColor: Colors.grey[200],
+                    side: BorderSide(color: Colors.black)),
+                    child: const Row(children: [
+                      Icon(
+                        Icons.send,
+                        size: 30,
+                        color: Colors.black,
+                      ),
+                    ]
                   ),
                 ),
               ],
             ),
-          ),
-            
-          ),
-          
+          ),   
+          ), 
         ],
       ),
     );

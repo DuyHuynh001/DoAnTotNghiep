@@ -24,7 +24,6 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
 
   void fetchData() async {
     setState(() { isLoading = true;});
-
     try {
       List<Comics>? fetchedComics = await Comics.fetchComicsByCategoryAndStatus(widget.Name, selectedFilter);
       setState(() {
@@ -54,20 +53,25 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
       ),
       body: Container(
         child: Column(
-          children: [
+          children: [ 
+            widget.Title != null && widget.Title.isNotEmpty?
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: Container(
+                width: double.infinity,
                 padding: const EdgeInsets.all(8.0),
                 decoration: BoxDecoration(
                   border: Border.all(color: Colors.black),
                 ),
-                child: Text(
-                  widget.Title,
-                  style: TextStyle(fontSize: 16.0),
+                child: Align(
+                  alignment:Alignment.centerLeft,
+                  child:Text(
+                    widget.Title,
+                    style: TextStyle(fontSize: 16.0),
+                  ),
                 ),
               ),
-            ),
+            ):  SizedBox.shrink(), // Trả về một widget rỗng nếu Title rỗng hoặc null
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 3),
               child: Row(

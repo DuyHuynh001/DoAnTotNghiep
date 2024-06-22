@@ -17,8 +17,6 @@ class _AddComicScreenState extends State<AddComicScreen> {
 
   String statusValue = 'Đang cập nhật';
   bool isLoading = false;
-  bool isRecommend = false;
-  bool isHot = false;
   bool isNew = false;
   
   void _handleStatusChange(String? value) {
@@ -47,11 +45,9 @@ class _AddComicScreenState extends State<AddComicScreen> {
       if (response.statusCode == 200) {
         Map<String, dynamic> data = json.decode(response.body);
 
-        await  saveComicAndChaptersToFirestore(name, statusValue, urlImage, description, isHot, isNew, isRecommend, categories, data['data']['item'] );
+        await  saveComicAndChaptersToFirestore(name, statusValue, urlImage, description, isNew, categories, data['data']['item'] );
         setState(() {
            isLoading = false;
-           isHot = false;
-           isRecommend = false;
            isNew = false;
           _name.clear();
           _urlImage.clear();
@@ -137,50 +133,6 @@ class _AddComicScreenState extends State<AddComicScreen> {
                       ),
                       Text('Hoàn Thành'),
                     ],
-                  ),
-                ],
-              ),
-              const Divider(color: Colors.grey, thickness: 1,),
-              Row(
-                children: [
-                  Text("Truyện Đề Cử: ",style: TextStyle(fontSize: 16),),
-                  Expanded(
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        Checkbox(
-                          value: isRecommend,
-                          onChanged: (bool? newValue) {
-                            setState(() {
-                              isRecommend = newValue ?? false;
-                            });
-                          },
-                          checkColor: Colors.white, 
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              const Divider( color: Colors.grey,thickness: 1 ),
-              Row(
-                children: [
-                  const Text("Truyện Hot: ",style: TextStyle(fontSize: 16)),
-                  Expanded(
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        Checkbox(
-                          value: isHot,
-                          onChanged: (bool? newValue) {
-                            setState(() {
-                              isHot = newValue ?? false;
-                            });
-                          },
-                          checkColor: Colors.white, 
-                        ),
-                      ],
-                    ),
                   ),
                 ],
               ),

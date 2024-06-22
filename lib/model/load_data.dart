@@ -48,8 +48,6 @@ class Chapters {
           });
         }
       });
-
-    print(chapters);
     return chapters;
   } catch (e) {
     throw Exception('Failed to load chapters: $e');
@@ -132,19 +130,7 @@ class Comics {
   }
   static FirebaseFirestore _db = FirebaseFirestore.instance;
    // lấy danh sách truyện đề cử
-  static Future<List<Comics>> fetchRecomendComicsList() async {
-    try {
-      QuerySnapshot querySnapshot = await _db.collection('Comics').where('recommend', isEqualTo: true).get();
-
-      return querySnapshot.docs.map((doc) {
-        Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-        return Comics.fromJson(doc.id, data);
-      }).toList();
-    } catch (e) {
-      print("Error fetching comics list: $e");
-      return [];
-    }
-  }
+  
    // lấy danh sách truyện hành động
   static Future<List<Comics>> fetchActionComicsList() async {
     try {
@@ -172,10 +158,14 @@ class Comics {
       return [];
     }
   }
-  // lấy danh sách truyện hot
-   static Future<List<Comics>> fetchHotComicsList() async {
+  // // lấy danh sách truyện hot
+  static Future<List<Comics>> fetchHotComicsList() async {
     try {
-      QuerySnapshot querySnapshot = await _db.collection('Comics').where('hot', isEqualTo: true).get();
+      QuerySnapshot querySnapshot = await _db
+          .collection('Comics')
+          .orderBy('favorites', descending: true) // Sắp xếp theo lượt yêu thích giảm dần
+          .get();
+
       return querySnapshot.docs.map((doc) {
         Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
         return Comics.fromJson(doc.id, data);
@@ -183,6 +173,29 @@ class Comics {
     } catch (e) {
       print("Error fetching comics list: $e");
       return [];
+    }
+  }
+   static Future<List<Comics>?> fetchHotComicsListByStatus(String status) async {
+    try {
+      Query query = FirebaseFirestore.instance
+          .collection('Comics');
+      if (status != "Tất cả") {
+        query = query.where('status', isEqualTo: status);
+      }
+
+      QuerySnapshot querySnapshot = await query.get();
+      if (querySnapshot.docs.isEmpty) {
+        return null;
+      }
+
+      List<Comics> comicsList = querySnapshot.docs.map((doc) {
+        Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+        return Comics.fromJson(doc.id, data);
+      }).toList();
+
+      return comicsList;
+    } catch (e) {
+      throw Exception('Lỗi khi tải thông tin truyện theo trạng thái: $e');
     }
   }
   // Phương thức tải thông tin truyện từ Firestore dựa trên ID
@@ -245,12 +258,11 @@ class Comics {
   }
 }
 }
-Future<void> saveComicAndChaptersToFirestore(String name, String status, String urlImage, String content,bool IsHot , bool IsNew, bool IsRecommend,List<String> categories, Map<String, dynamic> comicData) 
+Future<void> saveComicAndChaptersToFirestore(String name, String status, String urlImage, String content ,bool IsNew,List<String> categories, Map<String, dynamic> comicData) 
    async {
     
     try {
       CollectionReference comicsCollection = FirebaseFirestore.instance.collection('Comics');
-      
       Map<String, dynamic> comicDetails = {
         'name': name,
         'status': status,
@@ -258,9 +270,7 @@ Future<void> saveComicAndChaptersToFirestore(String name, String status, String 
         'description': content,
         'source': 'otruyen', 
         'genre': categories,
-        'recommend': IsRecommend,
         'new':IsNew,
-        'hot':IsHot,
         'favorites':0,
         'view':0
       };
@@ -372,6 +382,7 @@ class User {
       return []; // Trả về danh sách rỗng nếu có lỗi
     }
 }
+ 
 
 class Category {
   final String id;
@@ -410,5 +421,89 @@ class Category {
     }
 
     return categories;
+  }
+}
+class History {
+  final String id;
+  final String name;
+  final String image;
+  final String chapterId;
+  final Timestamp timestamp;
+
+ History({
+    required this.id,
+    required this.name,
+    required this.image,
+    required this.chapterId,
+    required this.timestamp,
+  });
+
+  factory History.fromFirestore(DocumentSnapshot doc) {
+    Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+    return  History(
+      id: doc.id,
+      name: data['name'] ?? '',
+      image: data['image'] ?? '',
+      chapterId: data['chapterId'] ?? '',
+      timestamp: (data['timestamp'] )
+    );
+  }
+
+  static Future<List<History>> fetchHistoryList(String userId) async {
+    try {
+      QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+          .collection('User')
+          .doc(userId)
+          .collection('History')
+          .orderBy('timestamp', descending: true) 
+          .get();
+
+      List<History> historyList = querySnapshot.docs.map((doc) {
+        return History.fromFirestore(doc);
+      }).toList();
+
+      return historyList;
+    } catch (e) {
+      print("Error fetching history list: $e");
+      throw Exception('Error fetching history list');
+    }
+  }
+  static Future<List<History>> fetchFavoritesList(String userId) async {
+    try {
+      QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+          .collection('User')
+          .doc(userId)
+          .collection('FavoritesList')
+          .orderBy('timestamp', descending: true) 
+          .get();
+
+      List<History> FavoritesList = querySnapshot.docs.map((doc) {
+        return History.fromFirestore(doc);
+      }).toList();
+
+      return FavoritesList;
+    } catch (e) {
+      print("Error fetching favorite list: $e");
+      throw Exception('Error fetching favorite list');
+    }
+  }
+  static Future<List<History>> fetchViewList(String userId) async {
+    try {
+      QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+          .collection('User')
+          .doc(userId)
+          .collection('ViewList')
+          .orderBy('timestamp', descending: true) 
+          .get();
+
+      List<History> FavoritesList = querySnapshot.docs.map((doc) {
+        return History.fromFirestore(doc);
+      }).toList();
+
+      return FavoritesList;
+    } catch (e) {
+      print("Error fetching view list: $e");
+      throw Exception('Error fetching view list');
+    }
   }
 }

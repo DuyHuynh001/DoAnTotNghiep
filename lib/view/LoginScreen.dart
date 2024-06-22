@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:manga_application_1/compoment/Navigation.dart';
 import 'package:manga_application_1/view/ForgotPasswordScreen.dart';
-import 'package:manga_application_1/view/HomeScreen.dart';
 import 'package:manga_application_1/view/RegisterScreen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -25,55 +24,53 @@ class _LoginScreenState extends State<LoginScreen> {
 
   void showSnackBar(BuildContext context, String message) {
     final snackBar = SnackBar(
-        content: Text(message,
-            style: TextStyle(fontSize: 15), textAlign: TextAlign.center),
-          backgroundColor: const Color.fromARGB(255, 86, 84, 84));
+        content: Text(message,style: TextStyle(fontSize: 15), textAlign: TextAlign.center),
+        backgroundColor: const Color.fromARGB(255, 86, 84, 84));
     ScaffoldMessenger.of(context).showSnackBar(snackBar);
   }
-void _signIn() async {
-  String email = _emailController.text;
-  String password = _passwordController.text;
+  void _signIn() async {
+    String email = _emailController.text;
+    String password = _passwordController.text;
 
-  if (email.trim().isEmpty || password.trim().isEmpty) {
-    showSnackBar(context, 'Vui lòng nhập tài khoản và mật khẩu.');
-    return;
-  }
-
-  setState(() {
-    _isSigning = true;
-  });
-
-  try {
-    UserCredential userCredential = await FirebaseAuth.instance.signInWithEmailAndPassword(
-      email: email,
-      password: password,
-    );
-
-    // Đăng nhập thành công
-    User? user = userCredential.user;
-    if (user != null) {
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      prefs.setBool('isLoggedIn', true);
-      String userId = user.uid;
-      prefs.setString('UserId', userId);
-      print("Id: $userId");
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => NavigationScreen(UserId: userId)),
-      );
+    if (email.trim().isEmpty || password.trim().isEmpty) {
+      showSnackBar(context, 'Vui lòng nhập tài khoản và mật khẩu.');
+      return;
     }
-  } catch (e) {
-    // Xử lý lỗi đăng nhập
-    print("Error signing in: $e");
-    showSnackBar(context, 'Tài khoản hoặc mật khẩu không đúng');
-  } finally {
-    setState(() {
-      _isSigning = false;
-    });
-  }
-}
 
- 
+    setState(() {
+      _isSigning = true;
+    });
+
+    try {
+      UserCredential userCredential = await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+
+      // Đăng nhập thành công
+      User? user = userCredential.user;
+      if (user != null) {
+        SharedPreferences prefs = await SharedPreferences.getInstance();
+        prefs.setBool('isLoggedIn', true);
+        String userId = user.uid;
+        prefs.setString('UserId', userId);
+        print("Id: $userId");
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => NavigationScreen(UserId: userId)),
+        );
+      }
+    } catch (e) {
+      // Xử lý lỗi đăng nhập
+      print("Error signing in: $e");
+      showSnackBar(context, 'Tài khoản hoặc mật khẩu không đúng');
+    } finally {
+      setState(() {
+        _isSigning = false;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -95,9 +92,9 @@ void _signIn() async {
                 child: Text(
                   "COMICZ APP",
                   style: TextStyle(
-                      color: Colors.lightBlue,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 40.0),
+                    color: Colors.lightBlue,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 40.0),
                 ),
               ),
               TextField(
@@ -111,7 +108,7 @@ void _signIn() async {
                 ),
               ),
               Padding(
-                padding: EdgeInsets.fromLTRB(0,20, 0, 0),
+                padding:const EdgeInsets.fromLTRB(0,20, 0, 0),
                 child: TextField(
                   controller: _passwordController,
                   obscureText: _obscureText,
@@ -143,12 +140,12 @@ void _signIn() async {
                       MaterialPageRoute(builder: (context) => ForgotPasswordScreen()),
                     );
                   },
-                child: Text('Quên mật khẩu?',style: TextStyle(color: Colors.black,fontWeight: FontWeight.bold, fontSize: 16),),
+                child:const Text('Quên mật khẩu?',style: TextStyle(color: Colors.black,fontWeight: FontWeight.bold, fontSize: 16),),
                ),
               ],
               ),            
               Padding(
-                padding: EdgeInsets.fromLTRB(0, 10, 0, 0),
+                padding:const EdgeInsets.fromLTRB(0, 10, 0, 0),
                 child: ElevatedButton(
                   style: ButtonStyle(
                     shape: MaterialStateProperty.all<RoundedRectangleBorder>(
@@ -156,7 +153,7 @@ void _signIn() async {
                         borderRadius: BorderRadius.circular(12.0),
                       ),
                     ),
-                    padding: MaterialStatePropertyAll(
+                    padding: const MaterialStatePropertyAll(
                         EdgeInsets.fromLTRB(110, 14, 110, 14)),
                     backgroundColor:
                         MaterialStateProperty.all(Colors.lightBlue),
@@ -169,12 +166,12 @@ void _signIn() async {
                 ),
               ),
               Padding(
-                padding: EdgeInsets.fromLTRB(0, 50, 0, 0),
+                padding:const EdgeInsets.fromLTRB(0, 50, 0, 0),
                 child: RichText(
                   text: TextSpan(
                     text: 'Bạn chưa có tài khoản? ',
-                    style: TextStyle(color: Colors.black, fontSize: 16),
-                    children: <TextSpan>[
+                    style: const TextStyle(color: Colors.black, fontSize: 16),
+                    children: [
                       TextSpan(
                         text: 'Đăng ký',
                         style: const TextStyle(
@@ -224,6 +221,17 @@ class FirebaseAuthServiceSignIn {
   FirebaseAuth auth = FirebaseAuth.instance;
    final GoogleSignIn _googleSignIn = GoogleSignIn();
     final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+    
+    Future<User?> signInWithEmailAndPassword(
+      String email, String password) async {
+    try {
+      UserCredential credential = await auth.signInWithEmailAndPassword(
+          email: email, password: password);
+      return credential.user;
+    } catch (e) {
+      print("Some Error $e");
+    }
+  }
 
 //  Future<User?> _signInWithGoogle() async {
 //   try {
@@ -249,16 +257,7 @@ class FirebaseAuthServiceSignIn {
 //     return null;
 //   }
 // }
-  Future<User?> signInWithEmailAndPassword(
-      String email, String password) async {
-    try {
-      UserCredential credential = await auth.signInWithEmailAndPassword(
-          email: email, password: password);
-      return credential.user;
-    } catch (e) {
-      print("Some Error $e");
-    }
-  }
+  
   // Future<void> _saveUserToFirestore(User user) async {
   //   final DocumentReference userRef = _firestore.collection('User').doc(user.uid);
 

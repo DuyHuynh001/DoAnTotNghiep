@@ -1,23 +1,92 @@
 import 'package:flutter/material.dart';
+import 'package:manga_application_1/compoment/FavoriteTab.dart';
+import 'package:manga_application_1/compoment/HistoryTab.dart';
+import 'package:manga_application_1/compoment/ViewTab.dart';
 
-class HistoryScreen extends StatefulWidget {
+class HistoryScreen extends StatefulWidget  {
   final String UserId;
-  const HistoryScreen({super.key, required this.UserId});
+
+  const HistoryScreen({Key? key, required this.UserId}) : super(key: key);
 
   @override
-  State<HistoryScreen> createState() => _HistoryScreenState();
+  _HistoryScreenState createState() => _HistoryScreenState();
 }
+
 class _HistoryScreenState extends State<HistoryScreen> {
+  
+  @override
+  void initState() {
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
-     return Scaffold(
-      appBar: AppBar(
-        title: Text("Màn Hình Lịch Sử"),
-        
-      ),
-     body: Center(
-        child: Text('Lịch sử dọc truyện'),
+    return DefaultTabController(
+      length: 3,
+      child: Scaffold(
+        body: SafeArea(
+          child: Column(
+            children: [
+              Container(
+                color: Colors.blue[50],
+                child: const TabBar(
+                  labelColor: Colors.blue,
+                  unselectedLabelColor: Colors.black,
+                  indicatorColor: Colors.blue,
+                  indicatorSize: TabBarIndicatorSize.label,
+                  indicatorWeight: 3.0,
+                  tabs: [
+                    Tab(
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.history),
+                          SizedBox(width: 8),
+                          Text('Vừa xem'),
+                        ],
+                      ),
+                    ),
+                    Tab(
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.bookmark),
+                          SizedBox(width: 8),
+                          Text('Theo dõi'),
+                        ],
+                      ),
+                    ),
+                    Tab(
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.favorite),
+                          SizedBox(width: 8),
+                          Text('Yêu thích'),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Expanded(
+                child: TabBarView(
+                  children: [
+                    HistoryTab(
+                     
+                      UserId: widget.UserId,
+                    ),
+                    ViewTab(UserId: widget.UserId),
+                    FavoriteTab(UserId: widget.UserId),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
 }
+
+ 
