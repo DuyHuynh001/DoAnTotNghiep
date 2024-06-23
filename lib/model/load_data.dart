@@ -449,61 +449,42 @@ class History {
     );
   }
 
-  static Future<List<History>> fetchHistoryList(String userId) async {
-    try {
-      QuerySnapshot querySnapshot = await FirebaseFirestore.instance
-          .collection('User')
-          .doc(userId)
-          .collection('History')
-          .orderBy('timestamp', descending: true) 
-          .get();
-
-      List<History> historyList = querySnapshot.docs.map((doc) {
-        return History.fromFirestore(doc);
-      }).toList();
-
-      return historyList;
-    } catch (e) {
-      print("Error fetching history list: $e");
-      throw Exception('Error fetching history list');
-    }
+  static Stream<List<History>> fetchHistoryList(String userId) {
+    return FirebaseFirestore.instance
+      .collection('User')
+      .doc(userId)
+      .collection('History')
+      .orderBy('timestamp', descending: true)
+      .snapshots()
+      .map((snapshot) => snapshot.docs.map((doc) => History.fromFirestore(doc)).toList());
   }
-  static Future<List<History>> fetchFavoritesList(String userId) async {
-    try {
-      QuerySnapshot querySnapshot = await FirebaseFirestore.instance
-          .collection('User')
-          .doc(userId)
-          .collection('FavoritesList')
-          .orderBy('timestamp', descending: true) 
-          .get();
-
-      List<History> FavoritesList = querySnapshot.docs.map((doc) {
-        return History.fromFirestore(doc);
-      }).toList();
-
-      return FavoritesList;
-    } catch (e) {
-      print("Error fetching favorite list: $e");
-      throw Exception('Error fetching favorite list');
-    }
+  static Future<void> deleteHistoryComic(String userId, String comicId) {
+    return FirebaseFirestore.instance .collection('User') .doc(userId).collection('History').doc(comicId).delete();
   }
-  static Future<List<History>> fetchViewList(String userId) async {
-    try {
-      QuerySnapshot querySnapshot = await FirebaseFirestore.instance
-          .collection('User')
-          .doc(userId)
-          .collection('ViewList')
-          .orderBy('timestamp', descending: true) 
-          .get();
 
-      List<History> FavoritesList = querySnapshot.docs.map((doc) {
-        return History.fromFirestore(doc);
-      }).toList();
-
-      return FavoritesList;
-    } catch (e) {
-      print("Error fetching view list: $e");
-      throw Exception('Error fetching view list');
-    }
+  static Stream<List<History>> fetchFavoriteList(String userId) {
+    return FirebaseFirestore.instance
+      .collection('User')
+      .doc(userId)
+      .collection('FavoritesList')
+      .orderBy('timestamp', descending: true)
+      .snapshots()
+      .map((snapshot) => snapshot.docs.map((doc) => History.fromFirestore(doc)).toList());
+  }
+  static Future<void> deleteFavoriteComic(String userId, String comicId) {
+    return FirebaseFirestore.instance .collection('User') .doc(userId).collection('FavoritesList').doc(comicId).delete();
+  }
+  
+  static Stream<List<History>> fetchViewList(String userId) {
+    return FirebaseFirestore.instance
+      .collection('User')
+      .doc(userId)
+      .collection('ViewList')
+      .orderBy('timestamp', descending: true)
+      .snapshots()
+      .map((snapshot) => snapshot.docs.map((doc) => History.fromFirestore(doc)).toList());
+  }
+  static Future<void> deleteViewComic(String userId, String comicId) {
+    return FirebaseFirestore.instance .collection('User') .doc(userId).collection('ViewList').doc(comicId).delete();
   }
 }

@@ -4,11 +4,13 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:manga_application_1/compoment/CommentItem.dart';
+import 'package:manga_application_1/compoment/ViewTab.dart';
 import 'package:manga_application_1/model/load_data.dart';
 import 'package:manga_application_1/compoment/ChapterDetail.dart';
 import 'package:manga_application_1/view/FullCommentScreen.dart';
 import 'package:google_translator/google_translator.dart';
 import 'package:http/http.dart' as http;
+import 'package:manga_application_1/view/HistoryScreen.dart';
 
 class ComicDetailScreen extends StatefulWidget {
   final String storyId;
@@ -164,6 +166,7 @@ void toggleFavorite() async {
         'name': story.name,
         'image':story.image
       });
+     
       setState(() {
         isView = true;
         isButtonView = true;
@@ -181,6 +184,7 @@ void toggleFavorite() async {
     print('Lỗi khi cập nhật danh sách theo dõi: $e');
   }
 }
+
 
 // Future<Map<String, dynamic>> analyzeComment(String comment) async {
 //   final apiKey = 'AIzaSyBsy0xeUF7MF8nCBehb7i_aI3IYUGG9THU'; // Replace with your actual API key

@@ -47,14 +47,6 @@ class _ChapterDetailState extends State<ChapterDetail> {
     saveReadingHistory(widget.UserId, widget.comic.id, chapterId);
   }
 
-  @override
-  void dispose() {
-    autoPlayTimer?.cancel();
-    _scrollController.dispose();
-    super.dispose();
-    flutterTts.stop();
-    textRecognizer.close();
-  }
   
   void sortChapters() {
     widget.chapters.sort((a, b) {
@@ -441,5 +433,14 @@ class _ChapterDetailState extends State<ChapterDetail> {
         ],
       ),
     );
+  }
+  
+  @override
+  void dispose() {
+    autoPlayTimer?.cancel();
+    _scrollController.dispose();
+    super.dispose();
+    flutterTts.stop();
+    textRecognizer.close();
   }
 }

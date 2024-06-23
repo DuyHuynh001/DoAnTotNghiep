@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -55,6 +56,7 @@ class _LoginScreenState extends State<LoginScreen> {
         String userId = user.uid;
         prefs.setString('UserId', userId);
         print("Id: $userId");
+        saveTokenToFirestore();
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => NavigationScreen(UserId: userId)),
@@ -192,24 +194,6 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
               ),
-            //   Center(
-            //   child: ElevatedButton(
-            //     onPressed: () async {
-            //       User? user = await _auth._signInWithGoogle();
-            //       print("haha");
-            //       print(user);
-            //       if (user != null) {
-            //         SharedPreferences prefs = await SharedPreferences.getInstance();
-            //         prefs.setBool('isLoggedIn', true);
-            //         await _auth._saveUserToFirestore(user);
-            //         String userId = user.uid;
-            //         prefs.setString('UserId', userId);
-            //         Navigator.pushReplacement(context,MaterialPageRoute(builder: (context) => NavigationScreen(UserId: userId)), );
-            //       }
-            //     },
-            //     child: Text("Sign in with Google"),
-            //   ),
-            // ),
             ],
           ),
         ),
@@ -219,9 +203,8 @@ class _LoginScreenState extends State<LoginScreen> {
 }
 class FirebaseAuthServiceSignIn {
   FirebaseAuth auth = FirebaseAuth.instance;
-   final GoogleSignIn _googleSignIn = GoogleSignIn();
-    final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-    
+   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  
     Future<User?> signInWithEmailAndPassword(
       String email, String password) async {
     try {
@@ -233,42 +216,7 @@ class FirebaseAuthServiceSignIn {
     }
   }
 
-//  Future<User?> _signInWithGoogle() async {
-//   try {
-//     final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
-//     print("Google user:");
-//     print(googleUser);
 
-//     if (googleUser == null) {
-//       print("Google sign in failed or user cancelled.");
-//       return null;
-//     }
-
-//     final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
-//     final AuthCredential credential = GoogleAuthProvider.credential(
-//       accessToken: googleAuth.accessToken,
-//       idToken: googleAuth.idToken,
-//     );
-
-//     final UserCredential userCredential = await auth.signInWithCredential(credential);
-//     return userCredential.user;
-//   } catch (e) {
-//     print("Error signing in with Google: $e");
-//     return null;
-//   }
-// }
-  
-  // Future<void> _saveUserToFirestore(User user) async {
-  //   final DocumentReference userRef = _firestore.collection('User').doc(user.uid);
-
-  //   await userRef.set({
-  //     'Name': user.displayName,
-  //     'Email': user.email,
-  //     'Image': user.photoURL,
-  //     'Phone': user.phoneNumber,
-  //     'status': false
-  //   }, SetOptions(merge: true));
-  // }
   Future<bool> getUserStatus(String userId) async {
   try {
     DocumentSnapshot userDoc =
@@ -288,3 +236,15 @@ class FirebaseAuthServiceSignIn {
 }
 }
 
+Future<void> saveTokenToFirestore() async {
+    String userId = FirebaseAuth.instance.currentUser!.uid;
+    FirebaseMessaging messaging = FirebaseMessaging.instance;
+
+    String? token = await messaging.getToken();
+    if (token != null) {
+      CollectionReference users = FirebaseFirestore.instance.collection('User');
+      await users.doc(userId).set({
+        'tokens': FieldValue.arrayUnion([token]),
+      }, SetOptions(merge: true));
+    }
+  }

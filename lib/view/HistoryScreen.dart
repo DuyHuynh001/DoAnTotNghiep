@@ -10,14 +10,16 @@ class HistoryScreen extends StatefulWidget  {
 
   @override
   _HistoryScreenState createState() => _HistoryScreenState();
+
+  static of(BuildContext context) {}
 }
 
 class _HistoryScreenState extends State<HistoryScreen> {
-  
   @override
   void initState() {
     super.initState();
   }
+   
 
   @override
   Widget build(BuildContext context) {
@@ -72,10 +74,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
               Expanded(
                 child: TabBarView(
                   children: [
-                    HistoryTab(
-                     
-                      UserId: widget.UserId,
-                    ),
+                    HistoryTab( UserId: widget.UserId,),
                     ViewTab(UserId: widget.UserId),
                     FavoriteTab(UserId: widget.UserId),
                   ],
