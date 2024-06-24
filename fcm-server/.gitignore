@@ -1,6 +1,0 @@
-# Ignore the Firebase Admin SDK JSON key
-firebase-adminsdk.json
-
-# Other files and directories to ignore
-node_modules/
-.env

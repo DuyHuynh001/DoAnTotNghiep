@@ -1,5 +1,4 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -56,7 +55,7 @@ class _LoginScreenState extends State<LoginScreen> {
         String userId = user.uid;
         prefs.setString('UserId', userId);
         print("Id: $userId");
-        saveTokenToFirestore();
+        // saveTokenToFirestore();
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => NavigationScreen(UserId: userId)),
@@ -236,15 +235,15 @@ class FirebaseAuthServiceSignIn {
 }
 }
 
-Future<void> saveTokenToFirestore() async {
-    String userId = FirebaseAuth.instance.currentUser!.uid;
-    FirebaseMessaging messaging = FirebaseMessaging.instance;
+// Future<void> saveTokenToFirestore() async {
+//     String userId = FirebaseAuth.instance.currentUser!.uid;
+//     FirebaseMessaging messaging = FirebaseMessaging.instance;
 
-    String? token = await messaging.getToken();
-    if (token != null) {
-      CollectionReference users = FirebaseFirestore.instance.collection('User');
-      await users.doc(userId).set({
-        'tokens': FieldValue.arrayUnion([token]),
-      }, SetOptions(merge: true));
-    }
-  }
+//     String? token = await messaging.getToken();
+//     if (token != null) {
+//       CollectionReference users = FirebaseFirestore.instance.collection('User');
+//       await users.doc(userId).set({
+//         'tokens': FieldValue.arrayUnion([token]),
+//       }, SetOptions(merge: true));
+//     }
+//   }

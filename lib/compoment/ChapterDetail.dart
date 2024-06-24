@@ -24,6 +24,9 @@ class ChapterDetail extends StatefulWidget {
 }
 
 class _ChapterDetailState extends State<ChapterDetail> {
+  late Timer _readTimer;
+  late DateTime _startTime;
+  bool _isReading = false;
   FlutterTts flutterTts = FlutterTts();
   ScrollController _scrollController = ScrollController();
   final TextRecognizer textRecognizer = GoogleMlKit.vision.textRecognizer();
@@ -42,11 +45,41 @@ class _ChapterDetailState extends State<ChapterDetail> {
   void initState() {
     super.initState();
     sortChapters();
+    startReadingTimer();
     setCurrentChapter();
     fetchDataChapterFromFirestore(widget.comic.id, chapterId);
     saveReadingHistory(widget.UserId, widget.comic.id, chapterId);
   }
+  void startReadingTimer() {
+  setState(() {
+    _isReading = true;
+    _startTime = DateTime.now();
 
+  });
+
+    _readTimer = Timer.periodic(Duration(seconds: 1), (timer) {
+    if (DateTime.now().difference(_startTime).inSeconds >= 30) {
+      updateIsRead();
+      timer.cancel(); // Hủy bỏ định kỳ
+    }
+  });
+}
+void updateIsRead() async {
+  try {
+    final CollectionReference usersCollection = FirebaseFirestore.instance.collection('User');
+    DocumentReference userRef = usersCollection.doc(widget.UserId);
+
+    // Cập nhật trường isRead trong tài liệu của User
+    await userRef.update({
+      'IsRead': FieldValue.increment(1),
+    });
+    _readTimer.cancel(); // Hủy bỏ timer sau khi cập nhật thành công
+
+    print('Đã cập nhật trường isRead thành công');
+  } catch (e) {
+    print('Lỗi khi cập nhật trường isRead: $e');
+  }
+}
   
   void sortChapters() {
     widget.chapters.sort((a, b) {
@@ -77,10 +110,10 @@ class _ChapterDetailState extends State<ChapterDetail> {
       });
       //  imageUrls.forEach((url) => print(imageUrls));
       // Clear recognizedTexts before extracting text
-      recognizedTexts.clear();
-      for (int i = 0; i < imageUrls.length; i++) {
-         await extractTextFromImage(imageUrls[i]);
-      }
+      // recognizedTexts.clear();
+      // for (int i = 0; i < imageUrls.length; i++) {
+      //    await extractTextFromImage(imageUrls[i]);
+      // }
     } else {
       throw Exception('Failed to load images');
     }
@@ -104,7 +137,9 @@ class _ChapterDetailState extends State<ChapterDetail> {
       if (chapterSnapshot.exists) {
         Map<String, dynamic> data = chapterSnapshot.data() as Map<String, dynamic>;
         String apiUrl = data['chapterApiData'];
+         _readTimer.cancel(); // Hủy bỏ timer hiện tại trước khi tải chương mới
         await fetchData(apiUrl);
+        startReadingTimer(); // Khởi động lại timer cho chương mới
         // startTTS();  // Bắt đầu đọc văn bản của chương mới sau khi tải xong
       } else {
         throw Exception('Chapter not found');
@@ -117,38 +152,38 @@ class _ChapterDetailState extends State<ChapterDetail> {
     }
   }
 
-  Future<void> extractTextFromImage(String imageUrl) async {
-    try {
-      var response = await http.get(Uri.parse(imageUrl)); // Tải hình ảnh từ URL
-      var imageData = response.bodyBytes;
-      // Lưu hình ảnh vào bộ nhớ tạm
-      final tempDir = await getTemporaryDirectory();
-      final tempImagePath = '${tempDir.path}/temp_image.jpg';
-      final file = await File(tempImagePath).writeAsBytes(imageData);
-      // Tạo InputImage từ đường dẫn tệp
-      final inputImage = InputImage.fromFilePath(file.path);
-      // Nhận diện văn bản
-      final RecognizedText recognizedText = await textRecognizer.processImage(inputImage);
+//   Future<void> extractTextFromImage(String imageUrl) async {
+//     try {
+//       var response = await http.get(Uri.parse(imageUrl)); // Tải hình ảnh từ URL
+//       var imageData = response.bodyBytes;
+//       // Lưu hình ảnh vào bộ nhớ tạm
+//       final tempDir = await getTemporaryDirectory();
+//       final tempImagePath = '${tempDir.path}/temp_image.jpg';
+//       final file = await File(tempImagePath).writeAsBytes(imageData);
+//       // Tạo InputImage từ đường dẫn tệp
+//       final inputImage = InputImage.fromFilePath(file.path);
+//       // Nhận diện văn bản
+//       final RecognizedText recognizedText = await textRecognizer.processImage(inputImage);
 
-      setState(() {
-        recognizedTexts.add(recognizedText.text);
-      });
-      await deleteTemporaryImage(tempImagePath);  
-      // Giải phóng tài nguyên của TextRecognizer
-      await textRecognizer.close();
-    } catch (e) {
-      print('Error extracting text from image: $e');
-    }
- }
+//       setState(() {
+//         recognizedTexts.add(recognizedText.text);
+//       });
+//       await deleteTemporaryImage(tempImagePath);  
+//       // Giải phóng tài nguyên của TextRecognizer
+//       await textRecognizer.close();
+//     } catch (e) {
+//       print('Error extracting text from image: $e');
+//     }
+//  }
 
- Future<void> deleteTemporaryImage(String imagePath) async {
-    final file = File(imagePath);
-    if (await file.exists()) {
-      await file.delete();
-    } else {
-      print('Temporary image file does not exist: $imagePath');
-    }
-  }
+//  Future<void> deleteTemporaryImage(String imagePath) async {
+//     final file = File(imagePath);
+//     if (await file.exists()) {
+//       await file.delete();
+//     } else {
+//       print('Temporary image file does not exist: $imagePath');
+//     }
+//   }
 
   Map<String, dynamic>? getPreviousChapter() {
     int currentIndex =
@@ -211,33 +246,33 @@ class _ChapterDetailState extends State<ChapterDetail> {
     }
   }
 
-  void startTTS() async {
-    setState(() {
-      isTTSPlaying = true;
-    });
-    await flutterTts.setLanguage("vi-VN");
-    await flutterTts.setPitch(1.0);
-    String fullText="";
-    fullText += recognizedTexts.join(' ');
+  // void startTTS() async {
+  //   setState(() {
+  //     isTTSPlaying = true;
+  //   });
+  //   await flutterTts.setLanguage("vi-VN");
+  //   await flutterTts.setPitch(1.0);
+  //   String fullText="";
+  //   fullText += recognizedTexts.join(' ');
 
-    await flutterTts.speak(fullText);
-    setState(() {
-      isTTSPlaying = false;
-    });
-  }
+  //   await flutterTts.speak(fullText);
+  //   setState(() {
+  //     isTTSPlaying = false;
+  //   });
+  // }
 
-  void toggleTTS() {
-    if (isTTSPlaying) {
-      flutterTts.stop();
-    } else {
-      if (recognizedTexts.isNotEmpty) {
-        startTTS();
-      }
-    }
-    setState(() {
-      isTTSPlaying = !isTTSPlaying;
-    });
-  }
+  // void toggleTTS() {
+  //   if (isTTSPlaying) {
+  //     flutterTts.stop();
+  //   } else {
+  //     if (recognizedTexts.isNotEmpty) {
+  //       startTTS();
+  //     }
+  //   }
+  //   setState(() {
+  //     isTTSPlaying = !isTTSPlaying;
+  //   });
+  // }
   
   void saveReadingHistory(String userId, String comicId, String chapterId) async {
     try {
@@ -389,10 +424,10 @@ class _ChapterDetailState extends State<ChapterDetail> {
                                   ),
                                   ],
                                 ),
-                                ElevatedButton(
-                                  onPressed: toggleTTS,
-                                 child: Text(isTTSPlaying ? 'Dừng đọc' : 'Nghe đọc'),
-                                ),
+                                // ElevatedButton(
+                                //   onPressed: toggleTTS,
+                                //  child: Text(isTTSPlaying ? 'Dừng đọc' : 'Nghe đọc'),
+                                // ),
                                 //  ...recognizedTexts.map((text) => Text(text)).toList(),
                               ],
                             ),
@@ -439,6 +474,7 @@ class _ChapterDetailState extends State<ChapterDetail> {
   void dispose() {
     autoPlayTimer?.cancel();
     _scrollController.dispose();
+     _readTimer.cancel(); // Hủy bỏ timer khi widget bị dispose
     super.dispose();
     flutterTts.stop();
     textRecognizer.close();
