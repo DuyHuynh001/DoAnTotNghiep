@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:cloud_functions/cloud_functions.dart';
 import 'package:manga_application_1/model/load_data.dart';
 class AddComicScreen extends StatefulWidget {
   const AddComicScreen({super.key});
@@ -20,18 +19,7 @@ class _AddComicScreenState extends State<AddComicScreen> {
   bool isLoading = false;
   bool isNew = false;
 
-  Future<void> sendNotificationToAllUsers() async {
-    try {
-      final HttpsCallable callable = FirebaseFunctions.instance.httpsCallable(
-        'sendNotificationToAllUsers',
-      );
 
-      await callable.call(); // Call the Cloud Function
-      print('Notification sent successfully!');
-    } catch (e) {
-      print('Error sending notification: $e');
-    }
-  }
 
   void _handleStatusChange(String? value) {
     setState(() {
@@ -60,7 +48,6 @@ class _AddComicScreenState extends State<AddComicScreen> {
         Map<String, dynamic> data = json.decode(response.body);
 
         await  saveComicAndChaptersToFirestore(name, statusValue, urlImage, description, isNew, categories, data['data']['item'] );
-        await sendNotificationToAllUsers();
         setState(() {
            isLoading = false;
            isNew = false;

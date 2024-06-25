@@ -52,27 +52,26 @@ class _ListfullComicScreenState extends State<ListFullComicScreen> {
       ),
       body: Column(
         children: [
-          
           isLoading
-              ? Center(child: CircularProgressIndicator())
-              : fullComicsList.isEmpty
-                  ? Center(
-                      child: Text('Không có truyện theo thể loại và trạng thái này'),
-                    )
-                  : Expanded(
-                      child: ListView.builder(
-                        shrinkWrap: true,
-                        physics: AlwaysScrollableScrollPhysics(),
-                        itemCount: fullComicsList.length,
-                        itemBuilder: (context, index) {
-                          Comics comic = fullComicsList[index];
-                          return ComicItem(
-                            comic: comic,
-                            UserId: widget.UserId,
-                          );
-                        },
-                      ),
+            ? Center(child: CircularProgressIndicator())
+            : fullComicsList.isEmpty
+                ? Center(
+                    child: Text('Không có truyện theo thể loại và trạng thái này'),
+                  )
+                : Expanded(
+                    child: ListView.builder(
+                      shrinkWrap: true,
+                      physics: AlwaysScrollableScrollPhysics(),
+                      itemCount: fullComicsList.length,
+                      itemBuilder: (context, index) {
+                        Comics comic = fullComicsList[index];
+                        return ComicItem(
+                          comic: comic,
+                          UserId: widget.UserId,
+                        );
+                      },
                     ),
+                  ),
         ],
       ),
     );

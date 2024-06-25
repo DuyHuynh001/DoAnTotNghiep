@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:manga_application_1/model/load_data.dart';
-import 'package:manga_application_1/view/DetailComicScreen.dart';
+import 'package:manga_application_1/view/ComicDetailScreen.dart';
 
 class AdventureComic extends StatefulWidget {
   final String UserId;
