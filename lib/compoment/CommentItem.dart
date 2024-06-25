@@ -13,13 +13,11 @@ class CommentItem extends StatefulWidget {
   _CommentItemState createState() => _CommentItemState();
 }
 class _CommentItemState extends State<CommentItem> {
-  User userData= User(Id: "", Name: "", Image: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/65/No-Image-Placeholder.svg/1665px-No-Image-Placeholder.svg.png", Email: "", Status: false);
-  String time="";
+  User userData= User(Id: "", Name: "", Image: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/65/No-Image-Placeholder.svg/1665px-No-Image-Placeholder.svg.png", Email: "", Status: false, Points: 0);
   @override
   void initState() {
     super.initState();
     _loadUserData();
-    time= formatTimestamp(widget.time);
   }
 
   void _loadUserData() async {

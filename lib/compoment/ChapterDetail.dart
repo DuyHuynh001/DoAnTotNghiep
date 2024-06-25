@@ -12,12 +12,12 @@ import 'package:manga_application_1/model/load_data.dart';
 import 'package:path_provider/path_provider.dart';
 
 class ChapterDetail extends StatefulWidget {
-  final String ChapterId;
+  final String chapterId;
   final String UserId;
   final Comics comic;
   final List<Map<String, dynamic>> chapters;
 
-  const ChapterDetail({Key? key,required this.ChapterId,required this.comic,required this.chapters,required this.UserId}) : super(key: key);
+  const ChapterDetail({Key? key,required this.chapterId,required this.comic,required this.chapters,required this.UserId}) : super(key: key);
 
   @override
   State<ChapterDetail> createState() => _ChapterDetailState();
@@ -26,12 +26,14 @@ class ChapterDetail extends StatefulWidget {
 class _ChapterDetailState extends State<ChapterDetail> {
   late Timer _readTimer;
   late DateTime _startTime;
+  bool canread = false; // Biến để kiểm tra có thể đọc hay không
   bool _isReading = false;
   FlutterTts flutterTts = FlutterTts();
   ScrollController _scrollController = ScrollController();
   final TextRecognizer textRecognizer = GoogleMlKit.vision.textRecognizer();
+  bool isAutoUnlockEnabled = false;
 
-  late String chapterId;
+  late String chapterId = widget.chapterId;
   late Map<String, dynamic> currentChapter;
   bool isLoading = true;
   bool showSettings = false;
@@ -44,43 +46,137 @@ class _ChapterDetailState extends State<ChapterDetail> {
   @override
   void initState() {
     super.initState();
-    sortChapters();
     startReadingTimer();
+    fetchDataChapterFromFirestore(widget.comic.id, widget.chapterId);
+    saveReadingHistory(widget.UserId, widget.comic.id, widget.chapterId);
+    sortChapters();
     setCurrentChapter();
-    fetchDataChapterFromFirestore(widget.comic.id, chapterId);
-    saveReadingHistory(widget.UserId, widget.comic.id, chapterId);
   }
+
   void startReadingTimer() {
-  setState(() {
-    _isReading = true;
-    _startTime = DateTime.now();
-
-  });
-
+    setState(() {
+      _isReading = true;
+      _startTime = DateTime.now();
+    });
     _readTimer = Timer.periodic(Duration(seconds: 1), (timer) {
-    if (DateTime.now().difference(_startTime).inSeconds >= 30) {
-      updateIsRead();
-      timer.cancel(); // Hủy bỏ định kỳ
+      if (DateTime.now().difference(_startTime).inSeconds >= 30) {
+        updateIsRead();
+        timer.cancel(); // Hủy bỏ định kỳ
+      }
+    });
+  }
+
+  void toggleAutoUnlock(bool value) {
+    setState(() {
+      isAutoUnlockEnabled = value;
+      if (value) {
+        autoUnlockVipChapter(); // Kích hoạt tự động mở chương VIP
+      }
+    });
+  }
+
+void autoUnlockVipChapter() async {
+  // Kiểm tra và tự động mở chương VIP nếu đủ điều kiện
+  if (isAutoUnlockEnabled) {
+    try {
+      Map<String, dynamic>? nextChapter = getNextChapter();
+      if (nextChapter != null && nextChapter['vip']) {
+        bool success = await unlockVipChapter(nextChapter['id']);
+        if (!success) {
+          setState(() {
+            isAutoUnlockEnabled = false;
+          });
+        }
+      }
+    } catch (e) {
+      print('Error auto unlocking VIP chapter: $e');
     }
-  });
+  }
 }
-void updateIsRead() async {
+
+Future<bool> unlockVipChapter(String chapterId) async {
   try {
     final CollectionReference usersCollection = FirebaseFirestore.instance.collection('User');
-    DocumentReference userRef = usersCollection.doc(widget.UserId);
+    DocumentSnapshot userSnapshot = await usersCollection.doc(widget.UserId).get();
+    Map<String, dynamic> userData = userSnapshot.data() as Map<String, dynamic>;
+    int userPoints = userData['Points'];
 
-    // Cập nhật trường isRead trong tài liệu của User
-    await userRef.update({
-      'IsRead': FieldValue.increment(1),
-    });
-    _readTimer.cancel(); // Hủy bỏ timer sau khi cập nhật thành công
-
-    print('Đã cập nhật trường isRead thành công');
+    if (userPoints >= 100) {
+      // Trừ điểm và mở khóa chương
+      await updateUserPoints(widget.UserId, -100, chapterId);
+      await fetchDataChapterFromFirestore(widget.comic.id, chapterId);
+      return true;
+    } else {
+      // Không đủ điểm, thông báo và tắt switch
+      showInsufficientPointsDialog();
+      return false;
+    }
   } catch (e) {
-    print('Lỗi khi cập nhật trường isRead: $e');
+    print('Error unlocking VIP chapter: $e');
+    return false;
   }
 }
-  
+
+void showInsufficientPointsDialog() {
+  showDialog(
+    context: context,
+    builder: (context) {
+      return AlertDialog(
+        title: Text('Không đủ điểm'),
+        content: Text('Bạn không đủ điểm để mở khóa chương VIP.'),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            child: Text('OK'),
+          ),
+        ],
+      );
+    },
+  );
+}
+
+
+  Future<void> updateUserPoints(String userId, int points, String chapterId) async {
+  try {
+    final CollectionReference usersCollection = FirebaseFirestore.instance.collection('User');
+    DocumentReference userRef = usersCollection.doc(userId);
+
+    // Cập nhật điểm người dùng
+    await userRef.update({
+      'Points': FieldValue.increment(points),
+    });
+
+    // Lưu trữ thông tin về chương đã mở khóa
+    await userRef.collection('UnlockedChapters').doc(chapterId).set({
+      'unlockedAt': Timestamp.now(),
+    });
+
+    print('Đã cập nhật điểm người dùng và lưu trữ thông tin chương đã mở khóa thành công');
+  } catch (e) {
+    print('Lỗi khi cập nhật điểm người dùng hoặc lưu trữ thông tin chương đã mở khóa: $e');
+  }
+}
+
+
+  void updateIsRead() async {
+    try {
+      final CollectionReference usersCollection = FirebaseFirestore.instance.collection('User');
+      DocumentReference userRef = usersCollection.doc(widget.UserId);
+
+      // Cập nhật trường isRead trong tài liệu của User
+      await userRef.update({
+        'IsRead': FieldValue.increment(1),
+      });
+      _readTimer.cancel(); // Hủy bỏ timer sau khi cập nhật thành công
+
+      print('Đã cập nhật trường isRead thành công');
+    } catch (e) {
+      print('Lỗi khi cập nhật trường isRead: $e');
+    }
+  }
+
   void sortChapters() {
     widget.chapters.sort((a, b) {
       double idA = double.tryParse(a['id'].toString()) ?? double.negativeInfinity;
@@ -91,33 +187,27 @@ void updateIsRead() async {
 
   void setCurrentChapter() {
     currentChapter = widget.chapters.firstWhere(
-      (chapter) => chapter['id'] == widget.ChapterId,
+      (chapter) => chapter['id'] == widget.chapterId,
       orElse: () => {},
     );
-    chapterId = widget.ChapterId;
+    chapterId = widget.chapterId;
   }
-  // lấy dử liệu của 1 chương theo đường dẫn
+
   Future<void> fetchData(String apiUrl) async {
-  try {
-    final response = await http.get(Uri.parse(apiUrl));
-    if (response.statusCode == 200) {
-      Map<String, dynamic> data = json.decode(response.body);
-      List<dynamic> images = data['data']['item']['chapter_image'];
-      List<String> urls = images.map((image) => '${data['data']['domain_cdn']}/${data['data']['item']['chapter_path']}/${image['image_file']}').toList();
-      setState(() {
-        imageUrls = urls;
-        isLoading = false;
-      });
-      //  imageUrls.forEach((url) => print(imageUrls));
-      // Clear recognizedTexts before extracting text
-      // recognizedTexts.clear();
-      // for (int i = 0; i < imageUrls.length; i++) {
-      //    await extractTextFromImage(imageUrls[i]);
-      // }
-    } else {
-      throw Exception('Failed to load images');
-    }
-  } catch (e) {
+    try {
+      final response = await http.get(Uri.parse(apiUrl));
+      if (response.statusCode == 200) {
+        Map<String, dynamic> data = json.decode(response.body);
+        List<dynamic> images = data['data']['item']['chapter_image'];
+        List<String> urls = images.map((image) => '${data['data']['domain_cdn']}/${data['data']['item']['chapter_path']}/${image['image_file']}').toList();
+        setState(() {
+          imageUrls = urls;
+          isLoading = false;
+        });
+      } else {
+        throw Exception('Failed to load images');
+      }
+    } catch (e) {
       print('Error fetching images: $e');
       setState(() {
         isLoading = false;
@@ -125,69 +215,69 @@ void updateIsRead() async {
     }
   }
 
-  Future<void> fetchDataChapterFromFirestore(String comicId, String chapterId) async {
-    setState(() {
-      isLoading = true;
-      imageUrls = [];
-      recognizedTexts = [];
-    });
-    try {
-      DocumentSnapshot chapterSnapshot = await FirebaseFirestore.instance.collection('Comics').doc(comicId).collection('chapters').doc(chapterId).get();
+ Future<void> fetchDataChapterFromFirestore(String comicId, String chapterId) async {
+  setState(() {
+    isLoading = true;
+    imageUrls = [];
+    recognizedTexts = [];
+  });
+  try {
+    DocumentSnapshot chapterSnapshot = await FirebaseFirestore.instance.collection('Comics').doc(comicId).collection('chapters').doc(chapterId).get();
 
-      if (chapterSnapshot.exists) {
-        Map<String, dynamic> data = chapterSnapshot.data() as Map<String, dynamic>;
-        String apiUrl = data['chapterApiData'];
-         _readTimer.cancel(); // Hủy bỏ timer hiện tại trước khi tải chương mới
-        await fetchData(apiUrl);
-        startReadingTimer(); // Khởi động lại timer cho chương mới
-        // startTTS();  // Bắt đầu đọc văn bản của chương mới sau khi tải xong
+    if (chapterSnapshot.exists) {
+      Map<String, dynamic> data = chapterSnapshot.data() as Map<String, dynamic>;
+      bool isVipChapter = data['vip']; 
+      print(isVipChapter);
+
+      if (isVipChapter) {
+        // Kiểm tra nếu chương đã được mở khóa trong vòng 24 giờ
+        DocumentSnapshot unlockedChapterSnapshot = await FirebaseFirestore.instance.collection('User').doc(widget.UserId).collection('UnlockedChapters').doc(chapterId).get();
+        
+        if (unlockedChapterSnapshot.exists) {
+          Timestamp unlockedAt = unlockedChapterSnapshot['unlockedAt'];
+          DateTime unlockedAtDate = unlockedAt.toDate();
+          DateTime now = DateTime.now();
+
+          // Kiểm tra nếu chương đã được mở khóa trong vòng 24 giờ
+          if (now.difference(unlockedAtDate).inHours < 24) {
+            setState(() {
+              canread = true;
+            });
+            await fetchData(data['chapterApiData']);
+          } else {
+            setState(() {
+              canread = false;
+            });
+          }
+        } else {
+          setState(() {
+            canread = false;
+          });
+        }
       } else {
-        throw Exception('Chapter not found');
+        setState(() {
+          canread = true;
+        });
+        await fetchData(data['chapterApiData']);
       }
-    } catch (e) {
-      print('Error fetching chapter data: $e');
+
       setState(() {
         isLoading = false;
       });
+    } else {
+      throw Exception('Chapter not found');
     }
+  } catch (e) {
+    print('Error fetching chapter data: $e');
+    setState(() {
+      isLoading = false;
+    });
   }
+}
 
-//   Future<void> extractTextFromImage(String imageUrl) async {
-//     try {
-//       var response = await http.get(Uri.parse(imageUrl)); // Tải hình ảnh từ URL
-//       var imageData = response.bodyBytes;
-//       // Lưu hình ảnh vào bộ nhớ tạm
-//       final tempDir = await getTemporaryDirectory();
-//       final tempImagePath = '${tempDir.path}/temp_image.jpg';
-//       final file = await File(tempImagePath).writeAsBytes(imageData);
-//       // Tạo InputImage từ đường dẫn tệp
-//       final inputImage = InputImage.fromFilePath(file.path);
-//       // Nhận diện văn bản
-//       final RecognizedText recognizedText = await textRecognizer.processImage(inputImage);
-
-//       setState(() {
-//         recognizedTexts.add(recognizedText.text);
-//       });
-//       await deleteTemporaryImage(tempImagePath);  
-//       // Giải phóng tài nguyên của TextRecognizer
-//       await textRecognizer.close();
-//     } catch (e) {
-//       print('Error extracting text from image: $e');
-//     }
-//  }
-
-//  Future<void> deleteTemporaryImage(String imagePath) async {
-//     final file = File(imagePath);
-//     if (await file.exists()) {
-//       await file.delete();
-//     } else {
-//       print('Temporary image file does not exist: $imagePath');
-//     }
-//   }
 
   Map<String, dynamic>? getPreviousChapter() {
-    int currentIndex =
-        widget.chapters.indexWhere((chapter) => chapter['id'] == currentChapter['id']);
+    int currentIndex = widget.chapters.indexWhere((chapter) => chapter['id'] == currentChapter['id']);
     if (currentIndex > 0) {
       return widget.chapters[currentIndex - 1];
     }
@@ -195,9 +285,7 @@ void updateIsRead() async {
   }
 
   Map<String, dynamic>? getNextChapter() {
-    int currentIndex =
-        widget.chapters.indexWhere((chapter) => chapter['id'] == currentChapter['id']);
-
+    int currentIndex = widget.chapters.indexWhere((chapter) => chapter['id'] == currentChapter['id']);
     if (currentIndex != -1 && currentIndex < widget.chapters.length - 1) {
       return widget.chapters[currentIndex + 1];
     }
@@ -235,7 +323,7 @@ void updateIsRead() async {
           curve: Curves.linear,
         );
       } else {
-        autoPlayTimer?.cancel();  // Dừng tự động cuộn khi đến cuối trang
+        autoPlayTimer?.cancel(); // Dừng tự động cuộn khi đến cuối trang
         setState(() {
           currentChapter = getNextChapter() ?? {};
           chapterId = currentChapter['id'];
@@ -245,35 +333,6 @@ void updateIsRead() async {
       }
     }
   }
-
-  // void startTTS() async {
-  //   setState(() {
-  //     isTTSPlaying = true;
-  //   });
-  //   await flutterTts.setLanguage("vi-VN");
-  //   await flutterTts.setPitch(1.0);
-  //   String fullText="";
-  //   fullText += recognizedTexts.join(' ');
-
-  //   await flutterTts.speak(fullText);
-  //   setState(() {
-  //     isTTSPlaying = false;
-  //   });
-  // }
-
-  // void toggleTTS() {
-  //   if (isTTSPlaying) {
-  //     flutterTts.stop();
-  //   } else {
-  //     if (recognizedTexts.isNotEmpty) {
-  //       startTTS();
-  //     }
-  //   }
-  //   setState(() {
-  //     isTTSPlaying = !isTTSPlaying;
-  //   });
-  // }
-  
   void saveReadingHistory(String userId, String comicId, String chapterId) async {
     try {
     DocumentReference historyRef = FirebaseFirestore.instance.collection('User').doc(userId).collection('History').doc(comicId);
@@ -315,27 +374,123 @@ void updateIsRead() async {
         title: Text('Chương $chapterId', style: TextStyle(color: Colors.black)),
         iconTheme: IconThemeData(color: Colors.black),
       ),
-      body: Stack(
+      body:Stack(
         children: [
           GestureDetector(
             onTap: toggleSettings,
             child: Column(
               children: [
+                if (canread==false)
+                 Expanded(
+                    child: Column(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(16, 30, 16, 30),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Image.asset('assets/img/lock.png',
+                                width: 170, 
+                                height: 170, 
+                                fit: BoxFit.cover, 
+                              ),
+                              SizedBox(height: 16),
+                              const Text(
+                                'Thông Báo',
+                                style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold),
+                              ),
+                              SizedBox(height: 16),
+                              const Column(
+                                children: [
+                                  Text(
+                                    'Nội dung hình ảnh của chương này bị khóa',
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(fontSize: 16),
+                                  ),
+                                  SizedBox(height: 16),
+                                  Text(
+                                    'Để mở khóa, vui lòng click vào nút mở khóa ở dưới để xem chương này',
+                                    textAlign: TextAlign.left,
+                                    style: TextStyle(fontSize: 16),
+                                  ),
+                                  SizedBox(height: 16),
+                                ],
+                              ),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: ElevatedButton.icon(
+                                      onPressed: () {
+                                          updateUserPoints(widget.UserId,-100, widget.chapterId);
+                                          setState(() {
+                                            canread=true;
+                                            startReadingTimer();
+      fetchDataChapterFromFirestore(widget.comic.id, widget.chapterId);
+      saveReadingHistory(widget.UserId, widget.comic.id, widget.chapterId);
+
+                                          });
+                                          
+                                      },
+                                      style: ElevatedButton.styleFrom(
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(30.0), // Độ cong của góc
+                                        ),
+                                        primary: Colors.blue,
+                                        side: const BorderSide(color: Colors.black),
+                                        padding: const EdgeInsets.symmetric(vertical: 15),
+                                      ),
+                                      icon: Icon(Icons.lock_open),
+                                      label: Text('Mở Khóa (100 Xu)'),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              SizedBox(height: 16),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text('Mở chương vip tự động'),
+                                  Switch(
+                                    value: isAutoUnlockEnabled,
+                                    onChanged: toggleAutoUnlock,
+                                  ),
+                                ],
+                              ),
+                              SizedBox(height: 16),
+                              Container(
+                                height: 1.0,
+                                color: const Color.fromARGB(255, 2, 2, 2),
+                                margin: EdgeInsets.symmetric(vertical: 5.0),
+                              ),
+                              ElevatedButton.icon(
+                                onPressed: () {
+                                  // Xử lý nhiệm vụ kiếm xu
+                                },
+                                icon: Icon(Icons.task),
+                                label: Text('Làm Nhiệm Vụ Kiếm Xu'),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                if(canread==true)
                 Expanded(
                   child: isLoading
-                      ? Center(child: CircularProgressIndicator())
-                      : ListView.builder(
-                          controller: _scrollController,
-                          itemCount: imageUrls.length,
-                          itemBuilder: (context, index) {
-                            return CachedNetworkImage(
-                              imageUrl: imageUrls[index],
-                              placeholder: (context, url) => Center(child: CircularProgressIndicator()),
-                              errorWidget: (context, url, error) => Icon(Icons.error),
-                              fit: BoxFit.cover,
-                            );
-                          },
-                        ),
+                    ? Center(child: CircularProgressIndicator())
+                    : ListView.builder(
+                        controller: _scrollController,
+                        itemCount: imageUrls.length,
+                        itemBuilder: (context, index) {
+                          return CachedNetworkImage(
+                            imageUrl: imageUrls[index],
+                            placeholder: (context, url) => Center(child: CircularProgressIndicator()),
+                            errorWidget: (context, url, error) => Icon(Icons.error),
+                            fit: BoxFit.cover,
+                          );
+                        },
+                      ),
                 ),
               ],
             ),
@@ -424,11 +579,6 @@ void updateIsRead() async {
                                   ),
                                   ],
                                 ),
-                                // ElevatedButton(
-                                //   onPressed: toggleTTS,
-                                //  child: Text(isTTSPlaying ? 'Dừng đọc' : 'Nghe đọc'),
-                                // ),
-                                //  ...recognizedTexts.map((text) => Text(text)).toList(),
                               ],
                             ),
                           );
@@ -444,10 +594,11 @@ void updateIsRead() async {
                         currentChapter = getNextChapter() ?? {};
                         chapterId = currentChapter['id'];
                         fetchDataChapterFromFirestore(widget.comic.id, chapterId);
-                          saveReadingHistory(widget.UserId, widget.comic.id, chapterId);
+                        saveReadingHistory(widget.UserId, widget.comic.id, chapterId);
                       });
                     }: null,
                     style: ElevatedButton.styleFrom(
+
                       padding: EdgeInsets.all(7),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8.0),

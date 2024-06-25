@@ -9,12 +9,12 @@ class Chapters {
   final String chapterName;
   final DateTime dateTime;
   final String chapterApiData;
-
   Chapters({
     required this.Id,
     required this.chapterName,
     required this.dateTime,
     required this.chapterApiData,
+
   });
 
   factory Chapters.fromJson(Map<String, dynamic> json) {
@@ -26,6 +26,7 @@ class Chapters {
       chapterApiData: json['chapter_api_data'],
     );
   }
+  
   static Future<List<Map<String, dynamic>>> fetchChapters(String comicId) async {
   try {
     QuerySnapshot chaptersSnapshot = await FirebaseFirestore.instance
@@ -39,12 +40,14 @@ class Chapters {
       chaptersSnapshot.docs.forEach((doc) {
         String chapterId = doc.id; // Keep the chapter ID as a string
         String chapterTime = doc.get('time') ?? '';
+        bool Isvip= doc.get('vip')?? false;
 
         if (!uniqueIds.contains(chapterId)) {
           uniqueIds.add(chapterId);
           chapters.add({
             'id': chapterId,
             'time': chapterTime,
+            'vip':Isvip
           });
         }
       });
@@ -323,13 +326,15 @@ class User {
   final String Image;
   final bool Status;
   final String Email;
+  final int Points;
 
   User({
     required this.Id,
     required this.Name,
     required this.Image,
     required this.Email,
-    required this.Status
+    required this.Status,
+    required this.Points
   });
 
   factory User.fromJson(String Id, Map<String, dynamic> json) {
@@ -339,7 +344,7 @@ class User {
       Email: json['Email'],
       Status: json['Status'],
       Image: json['Image'],
-      
+      Points: json['Points']
     );
   }
   static Future<User> fetchUserById(String id) async {
@@ -365,7 +370,6 @@ class User {
       QuerySnapshot querySnapshot = await FirebaseFirestore.instance
           .collection('Comments')
           .where('comicId', isEqualTo: ComicId)
-          // .orderBy("times", descending: true)
           .get();
       List<DocumentSnapshot> comments = querySnapshot.docs;
 
