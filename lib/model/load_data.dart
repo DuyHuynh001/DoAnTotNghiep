@@ -290,6 +290,7 @@ Future<void> saveComicAndChaptersToFirestore(String name, String status, String 
           Map<String, dynamic> chapterData = {
             'chapterApiData': chapter['chapter_api_data'] ?? '',
             'time': formattedToday,
+            'vip': false
           };
 
           // Sắp xếp các chương theo thuộc tính chapter_name hoặc một thuộc tính khác nếu có

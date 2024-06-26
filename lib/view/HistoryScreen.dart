@@ -20,7 +20,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
     super.initState();
   }
    
-
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
@@ -44,7 +43,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                         children: [
                           Icon(Icons.history),
                           SizedBox(width: 8),
-                          Text('Vừa xem'),
+                          Text('Đã xem'),
                         ],
                       ),
                     ),

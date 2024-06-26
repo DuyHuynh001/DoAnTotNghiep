@@ -1,15 +1,10 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter_tts/flutter_tts.dart';
-import 'package:http/http.dart' as http;
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:google_ml_kit/google_ml_kit.dart';
 import 'package:manga_application_1/model/load_data.dart';
-import 'package:path_provider/path_provider.dart';
+import 'package:http/http.dart' as http;
 
 class ChapterDetail extends StatefulWidget {
   final String chapterId;
@@ -24,173 +19,82 @@ class ChapterDetail extends StatefulWidget {
 }
 
 class _ChapterDetailState extends State<ChapterDetail> {
-  late Timer _readTimer;
-  late DateTime _startTime;
-  bool canread = false; // Biến để kiểm tra có thể đọc hay không
-  bool _isReading = false;
-  FlutterTts flutterTts = FlutterTts();
-  ScrollController _scrollController = ScrollController();
-  final TextRecognizer textRecognizer = GoogleMlKit.vision.textRecognizer();
-  bool isAutoUnlockEnabled = false;
-
+  late Timer readTimer;    // thời gian đọc
+  late DateTime startTime;  // tg bắt đầu đọc
   late String chapterId = widget.chapterId;
   late Map<String, dynamic> currentChapter;
+  late bool isVipChapter;   // kiểm tra chương vip
+  bool canRead=true;     // Biến để kiểm tra có thể đọc hay không 
+  bool isReading = false;   
+  bool isAutoUnlockEnabled = false;
   bool isLoading = true;
   bool showSettings = false;
   bool isSwitched = false;
-  bool isTTSPlaying = false;
   Timer? autoPlayTimer;
-  List<String> recognizedTexts = [];
   List<String> imageUrls = [];
+  ScrollController scrollController = ScrollController();
 
   @override
   void initState() {
     super.initState();
-    startReadingTimer();
     fetchDataChapterFromFirestore(widget.comic.id, widget.chapterId);
     saveReadingHistory(widget.UserId, widget.comic.id, widget.chapterId);
     sortChapters();
     setCurrentChapter();
+    getCurrentChapter();
+    autoUnlockVipChapter();
   }
-
-  void startReadingTimer() {
+  
+  @override
+  void dispose() {
+    autoPlayTimer?.cancel();
+    scrollController.dispose();
+    readTimer.cancel(); // Hủy bỏ timer khi widget bị dispose
+    super.dispose();
+  }
+  Future<void> fetchDataChapterFromFirestore(String comicId, String chapterId) async {
     setState(() {
-      _isReading = true;
-      _startTime = DateTime.now();
+      isLoading = true;
+      imageUrls = [];
     });
-    _readTimer = Timer.periodic(Duration(seconds: 1), (timer) {
-      if (DateTime.now().difference(_startTime).inSeconds >= 30) {
-        updateIsRead();
-        timer.cancel(); // Hủy bỏ định kỳ
-      }
-    });
-  }
 
-  void toggleAutoUnlock(bool value) {
-    setState(() {
-      isAutoUnlockEnabled = value;
-      if (value) {
-        autoUnlockVipChapter(); // Kích hoạt tự động mở chương VIP
-      }
-    });
-  }
-
-void autoUnlockVipChapter() async {
-  // Kiểm tra và tự động mở chương VIP nếu đủ điều kiện
-  if (isAutoUnlockEnabled) {
     try {
-      Map<String, dynamic>? nextChapter = getNextChapter();
-      if (nextChapter != null && nextChapter['vip']) {
-        bool success = await unlockVipChapter(nextChapter['id']);
-        if (!success) {
-          setState(() {
-            isAutoUnlockEnabled = false;
-          });
+      DocumentSnapshot chapterSnapshot = await FirebaseFirestore.instance.collection('Comics').doc(comicId).collection('chapters').doc(chapterId).get();
+
+      if (!chapterSnapshot.exists) {
+        throw Exception('Chapter not found');
+      }
+
+      Map<String, dynamic> data = chapterSnapshot.data() as Map<String, dynamic>;
+      bool isVipChapter = data['vip'];
+
+      if (!isVipChapter) {
+         setState(() { canRead = true; });
+         await fetchData(data['chapterApiData']);
+      }
+      else{
+        DocumentSnapshot unlockedChapterSnapshot = await FirebaseFirestore.instance.collection('User').doc(widget.UserId).collection('UnlockedChapters').doc(comicId + chapterId).get();
+
+        if (unlockedChapterSnapshot.exists) {
+          Timestamp unlockedAt = unlockedChapterSnapshot['unlockedAt'];
+          DateTime unlockedAtDate = unlockedAt.toDate();
+          DateTime now = DateTime.now();
+
+          if (unlockedChapterSnapshot['chapterId'] == chapterId && now.difference(unlockedAtDate).inHours < 24) {
+            setState(() { canRead = true; });
+            await fetchData(data['chapterApiData']);
+          } else {
+            setState(() { canRead = false; });
+          }
+        } else {
+          setState(() { canRead = false; });
         }
-      }
+      } 
     } catch (e) {
-      print('Error auto unlocking VIP chapter: $e');
+      print('Error fetching chapter data: $e');
+    } finally {
+      setState(() { isLoading = false; });
     }
-  }
-}
-
-Future<bool> unlockVipChapter(String chapterId) async {
-  try {
-    final CollectionReference usersCollection = FirebaseFirestore.instance.collection('User');
-    DocumentSnapshot userSnapshot = await usersCollection.doc(widget.UserId).get();
-    Map<String, dynamic> userData = userSnapshot.data() as Map<String, dynamic>;
-    int userPoints = userData['Points'];
-
-    if (userPoints >= 100) {
-      // Trừ điểm và mở khóa chương
-      await updateUserPoints(widget.UserId, -100, chapterId);
-      await fetchDataChapterFromFirestore(widget.comic.id, chapterId);
-      return true;
-    } else {
-      // Không đủ điểm, thông báo và tắt switch
-      showInsufficientPointsDialog();
-      return false;
-    }
-  } catch (e) {
-    print('Error unlocking VIP chapter: $e');
-    return false;
-  }
-}
-
-void showInsufficientPointsDialog() {
-  showDialog(
-    context: context,
-    builder: (context) {
-      return AlertDialog(
-        title: Text('Không đủ điểm'),
-        content: Text('Bạn không đủ điểm để mở khóa chương VIP.'),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-            child: Text('OK'),
-          ),
-        ],
-      );
-    },
-  );
-}
-
-
-  Future<void> updateUserPoints(String userId, int points, String chapterId) async {
-  try {
-    final CollectionReference usersCollection = FirebaseFirestore.instance.collection('User');
-    DocumentReference userRef = usersCollection.doc(userId);
-
-    // Cập nhật điểm người dùng
-    await userRef.update({
-      'Points': FieldValue.increment(points),
-    });
-
-    // Lưu trữ thông tin về chương đã mở khóa
-    await userRef.collection('UnlockedChapters').doc(chapterId).set({
-      'unlockedAt': Timestamp.now(),
-    });
-
-    print('Đã cập nhật điểm người dùng và lưu trữ thông tin chương đã mở khóa thành công');
-  } catch (e) {
-    print('Lỗi khi cập nhật điểm người dùng hoặc lưu trữ thông tin chương đã mở khóa: $e');
-  }
-}
-
-
-  void updateIsRead() async {
-    try {
-      final CollectionReference usersCollection = FirebaseFirestore.instance.collection('User');
-      DocumentReference userRef = usersCollection.doc(widget.UserId);
-
-      // Cập nhật trường isRead trong tài liệu của User
-      await userRef.update({
-        'IsRead': FieldValue.increment(1),
-      });
-      _readTimer.cancel(); // Hủy bỏ timer sau khi cập nhật thành công
-
-      print('Đã cập nhật trường isRead thành công');
-    } catch (e) {
-      print('Lỗi khi cập nhật trường isRead: $e');
-    }
-  }
-
-  void sortChapters() {
-    widget.chapters.sort((a, b) {
-      double idA = double.tryParse(a['id'].toString()) ?? double.negativeInfinity;
-      double idB = double.tryParse(b['id'].toString()) ?? double.negativeInfinity;
-      return idA.compareTo(idB);
-    });
-  }
-
-  void setCurrentChapter() {
-    currentChapter = widget.chapters.firstWhere(
-      (chapter) => chapter['id'] == widget.chapterId,
-      orElse: () => {},
-    );
-    chapterId = widget.chapterId;
   }
 
   Future<void> fetchData(String apiUrl) async {
@@ -203,6 +107,7 @@ void showInsufficientPointsDialog() {
         setState(() {
           imageUrls = urls;
           isLoading = false;
+          startReadingTimer(); 
         });
       } else {
         throw Exception('Failed to load images');
@@ -215,81 +120,12 @@ void showInsufficientPointsDialog() {
     }
   }
 
- Future<void> fetchDataChapterFromFirestore(String comicId, String chapterId) async {
-  setState(() {
-    isLoading = true;
-    imageUrls = [];
-    recognizedTexts = [];
-  });
-  try {
-    DocumentSnapshot chapterSnapshot = await FirebaseFirestore.instance.collection('Comics').doc(comicId).collection('chapters').doc(chapterId).get();
-
-    if (chapterSnapshot.exists) {
-      Map<String, dynamic> data = chapterSnapshot.data() as Map<String, dynamic>;
-      bool isVipChapter = data['vip']; 
-      print(isVipChapter);
-
-      if (isVipChapter) {
-        // Kiểm tra nếu chương đã được mở khóa trong vòng 24 giờ
-        DocumentSnapshot unlockedChapterSnapshot = await FirebaseFirestore.instance.collection('User').doc(widget.UserId).collection('UnlockedChapters').doc(chapterId).get();
-        
-        if (unlockedChapterSnapshot.exists) {
-          Timestamp unlockedAt = unlockedChapterSnapshot['unlockedAt'];
-          DateTime unlockedAtDate = unlockedAt.toDate();
-          DateTime now = DateTime.now();
-
-          // Kiểm tra nếu chương đã được mở khóa trong vòng 24 giờ
-          if (now.difference(unlockedAtDate).inHours < 24) {
-            setState(() {
-              canread = true;
-            });
-            await fetchData(data['chapterApiData']);
-          } else {
-            setState(() {
-              canread = false;
-            });
-          }
-        } else {
-          setState(() {
-            canread = false;
-          });
-        }
-      } else {
-        setState(() {
-          canread = true;
-        });
-        await fetchData(data['chapterApiData']);
-      }
-
-      setState(() {
-        isLoading = false;
-      });
-    } else {
-      throw Exception('Chapter not found');
-    }
-  } catch (e) {
-    print('Error fetching chapter data: $e');
-    setState(() {
-      isLoading = false;
+  void sortChapters() {
+    widget.chapters.sort((a, b) {
+      double idA = double.tryParse(a['id'].toString()) ?? double.negativeInfinity;
+      double idB = double.tryParse(b['id'].toString()) ?? double.negativeInfinity;
+      return idA.compareTo(idB);
     });
-  }
-}
-
-
-  Map<String, dynamic>? getPreviousChapter() {
-    int currentIndex = widget.chapters.indexWhere((chapter) => chapter['id'] == currentChapter['id']);
-    if (currentIndex > 0) {
-      return widget.chapters[currentIndex - 1];
-    }
-    return null;
-  }
-
-  Map<String, dynamic>? getNextChapter() {
-    int currentIndex = widget.chapters.indexWhere((chapter) => chapter['id'] == currentChapter['id']);
-    if (currentIndex != -1 && currentIndex < widget.chapters.length - 1) {
-      return widget.chapters[currentIndex + 1];
-    }
-    return null;
   }
 
   void toggleSettings() {
@@ -298,11 +134,11 @@ void showInsufficientPointsDialog() {
     });
   }
 
-  void toggleAutoPlay(bool value) {
+  void toggleAutoPlay(bool value) {  
     setState(() {
       isSwitched = value;
       if (isSwitched) {
-        autoPlayTimer = Timer.periodic(Duration(milliseconds: 30), (timer) {
+          autoPlayTimer = Timer.periodic(Duration(milliseconds: 30), (timer) {
           autoScroll();
         });
       } else {
@@ -311,30 +147,95 @@ void showInsufficientPointsDialog() {
     });
   }
 
+  void toggleAutoUnlock(bool value) {
+    setState(() {
+      isAutoUnlockEnabled = value;
+      if (value) {
+        autoUnlockVipChapter(); // Kích hoạt tự động mở chương VIP
+      }
+    });
+  }
+  
+  void startReadingTimer() {
+    setState(() {
+      isReading = true;
+      startTime = DateTime.now();
+    });
+    readTimer = Timer.periodic(Duration(seconds: 1), (timer) {
+      if (DateTime.now().difference(startTime).inSeconds >= 30) {
+        updateIsRead();
+        timer.cancel(); // Hủy bỏ định kỳ
+      }
+    });
+  }
+  
+  void updateIsRead() async {
+    try {
+      final CollectionReference usersCollection = FirebaseFirestore.instance.collection('User');
+      DocumentReference userRef = usersCollection.doc(widget.UserId);
+      await userRef.update({
+        'IsRead': FieldValue.increment(1),
+      });
+      readTimer.cancel(); // Hủy bỏ timer sau khi cập nhật thành công
+    } catch (e) {
+      print('Lỗi khi cập nhật trường isRead: $e');
+    }
+  }
+
+  void autoUnlockVipChapter() async {
+    if (isAutoUnlockEnabled) {
+      try {
+        Map<String, dynamic>? currentChapter = getCurrentChapter(); 
+        
+        if (currentChapter != null && currentChapter['vip'] ) {
+          bool success = await unlockVipChapter(currentChapter['id']);
+          if (!success) {
+            setState(() {
+              isAutoUnlockEnabled = false;
+            });
+          }
+        }
+      } catch (e) {
+        print('Error auto unlocking VIP chapter: $e');
+      }
+    }
+  }
+
   void autoScroll() {
-    if (_scrollController.hasClients) {
-      final maxScrollExtent = _scrollController.position.maxScrollExtent;
-      final currentScrollPosition = _scrollController.position.pixels;
+    if (scrollController.hasClients) {
+      final maxScrollExtent = scrollController.position.maxScrollExtent;
+      final currentScrollPosition = scrollController.position.pixels;
 
       if (currentScrollPosition < maxScrollExtent) {
-        _scrollController.animateTo(
-          currentScrollPosition + 8.0,
+        scrollController.animateTo(
+          currentScrollPosition + 12.0,
           duration: Duration(milliseconds: 30),
           curve: Curves.linear,
         );
       } else {
-        autoPlayTimer?.cancel(); // Dừng tự động cuộn khi đến cuối trang
-        setState(() {
-          currentChapter = getNextChapter() ?? {};
-          chapterId = currentChapter['id'];
-          fetchDataChapterFromFirestore(widget.comic.id, chapterId);
-          saveReadingHistory(widget.UserId, widget.comic.id, chapterId);
-        });
+        fetchAndScrollToNextChapter();
       }
     }
   }
+  Future<void> fetchAndScrollToNextChapter() async {
+    setState(() {
+      currentChapter = getNextChapter() ?? {};
+      chapterId = currentChapter['id'];
+    });
+    await fetchDataChapterFromFirestore(widget.comic.id, chapterId);
+    saveReadingHistory(widget.UserId, widget.comic.id, chapterId);
+    autoUnlockVipChapter();
+    // Cuộn lại đầu trang sau khi chuyển chương và tải xong dữ liệu
+    scrollController.jumpTo(0);
+    Future.delayed(Duration(milliseconds: 500), () {
+      autoPlayTimer = Timer.periodic(Duration(milliseconds: 30), (timer) {
+        autoScroll();
+      });
+    });
+  }
+
   void saveReadingHistory(String userId, String comicId, String chapterId) async {
-    try {
+  try {
     DocumentReference historyRef = FirebaseFirestore.instance.collection('User').doc(userId).collection('History').doc(comicId);
     DocumentSnapshot historySnapshot = await historyRef.get();
     if (historySnapshot.exists) {
@@ -364,6 +265,111 @@ void showInsufficientPointsDialog() {
     }
   }
 
+  Future<bool> unlockVipChapter(String chapterId) async {
+    try {
+      final CollectionReference usersCollection = FirebaseFirestore.instance.collection('User');
+      DocumentSnapshot userSnapshot = await usersCollection.doc(widget.UserId).get();
+      Map<String, dynamic> userData = userSnapshot.data() as Map<String, dynamic>;
+      int userPoints = userData['Points'];
+
+      if (userPoints >= 100) {
+        await updateUserPoints(widget.UserId, -100, chapterId);
+        await fetchDataChapterFromFirestore(widget.comic.id, chapterId);
+        return true;
+      } else {
+        showInsufficientPointsDialog();
+        return false;
+      }
+    } catch (e) {
+      print('Error unlocking VIP chapter: $e');
+      return false;
+    }
+  }
+
+  void showInsufficientPointsDialog() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(Radius.circular(20.0)),
+        ),
+        title:Row(
+          mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              Container(
+                child:const Row(
+                  children: [
+                    Icon(Icons.notification_important_outlined,color: Colors.black,),
+                    Text("Thông báo"),
+                  ],
+                )
+              ),
+            ],
+          ),
+          content: Text('Bạn không đủ điểm để mở khóa chương VIP.'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text('OK'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> updateUserPoints(String userId, int points, String chapterId) async {
+    try {
+      final CollectionReference usersCollection = FirebaseFirestore.instance.collection('User');
+      DocumentReference userRef = usersCollection.doc(userId);
+    
+      await userRef.update({
+        'Points': FieldValue.increment(points),
+      });
+
+      // Lưu trữ thông tin về chương đã mở khóa
+      await userRef.collection('UnlockedChapters').doc(widget.comic.id + chapterId).set({
+        'unlockedAt': FieldValue.serverTimestamp(),
+        'chapterId':chapterId,
+      });
+
+    } catch (e) {
+      print('Lỗi : $e');
+    }
+  }
+
+  void setCurrentChapter() {
+    currentChapter = widget.chapters.firstWhere(
+      (chapter) => chapter['id'] == widget.chapterId,
+      orElse: () => {},
+    );
+    chapterId = widget.chapterId;
+  }
+
+   Map<String, dynamic>? getCurrentChapter() {
+    return currentChapter;
+  }
+  
+  Map<String, dynamic>? getPreviousChapter() {
+    int currentIndex = widget.chapters.indexWhere((chapter) => chapter['id'] == currentChapter['id']);
+    if (currentIndex > 0) {
+      return widget.chapters[currentIndex - 1];
+    }
+    return null;
+  }
+
+  Map<String, dynamic>? getNextChapter() {
+    int currentIndex = widget.chapters.indexWhere((chapter) => chapter['id'] == currentChapter['id']);
+    if (currentIndex != -1 && currentIndex < widget.chapters.length - 1) {
+      return widget.chapters[currentIndex + 1];
+      
+    }
+    return null;
+  }
+
   @override
   Widget build(BuildContext context) {
     bool canNavigatePrevious = getPreviousChapter() != null;
@@ -377,11 +383,29 @@ void showInsufficientPointsDialog() {
       body:Stack(
         children: [
           GestureDetector(
+            behavior: HitTestBehavior.translucent,  
             onTap: toggleSettings,
             child: Column(
               children: [
-                if (canread==false)
+                if (canRead == true)
                  Expanded(
+                  child: isLoading
+                    ? Center(child: CircularProgressIndicator())
+                    : ListView.builder(
+                        controller: scrollController,
+                        itemCount: imageUrls.length,
+                        itemBuilder: (context, index) {
+                          return CachedNetworkImage(
+                            imageUrl: imageUrls[index],
+                            placeholder: (context, url) => Center(child: CircularProgressIndicator()),
+                            errorWidget: (context, url, error) => Icon(Icons.error),
+                            fit: BoxFit.cover,
+                          );
+                        },
+                      ),
+                ),
+                if(canRead==false)
+                  Expanded(
                     child: Column(
                       children: [
                         Padding(
@@ -421,15 +445,7 @@ void showInsufficientPointsDialog() {
                                   Expanded(
                                     child: ElevatedButton.icon(
                                       onPressed: () {
-                                          updateUserPoints(widget.UserId,-100, widget.chapterId);
-                                          setState(() {
-                                            canread=true;
-                                            startReadingTimer();
-      fetchDataChapterFromFirestore(widget.comic.id, widget.chapterId);
-      saveReadingHistory(widget.UserId, widget.comic.id, widget.chapterId);
-
-                                          });
-                                          
+                                        unlockVipChapter(chapterId);
                                       },
                                       style: ElevatedButton.styleFrom(
                                         shape: RoundedRectangleBorder(
@@ -440,7 +456,7 @@ void showInsufficientPointsDialog() {
                                         padding: const EdgeInsets.symmetric(vertical: 15),
                                       ),
                                       icon: Icon(Icons.lock_open),
-                                      label: Text('Mở Khóa (100 Xu)'),
+                                      label: Text('Mở Khóa (100 Xu)', style: TextStyle(fontSize: 16),),
                                     ),
                                   ),
                                 ],
@@ -449,7 +465,7 @@ void showInsufficientPointsDialog() {
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
-                                  Text('Mở chương vip tự động'),
+                                  Text('Mở chương vip tự động', style: TextStyle(fontSize: 16)),
                                   Switch(
                                     value: isAutoUnlockEnabled,
                                     onChanged: toggleAutoUnlock,
@@ -462,12 +478,25 @@ void showInsufficientPointsDialog() {
                                 color: const Color.fromARGB(255, 2, 2, 2),
                                 margin: EdgeInsets.symmetric(vertical: 5.0),
                               ),
-                              ElevatedButton.icon(
-                                onPressed: () {
-                                  // Xử lý nhiệm vụ kiếm xu
-                                },
-                                icon: Icon(Icons.task),
-                                label: Text('Làm Nhiệm Vụ Kiếm Xu'),
+
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: ElevatedButton.icon(
+                                      onPressed: () {},
+                                      style: ElevatedButton.styleFrom(
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(10.0), // Độ cong của góc
+                                        ),
+                                        primary: Colors.blue,
+                                        side: const BorderSide(color: Colors.black),
+                                        padding: const EdgeInsets.symmetric(vertical: 15),
+                                      ),
+                                      icon: Icon(Icons.assignment_add),
+                                      label: Text('Làm nhiệm vụ kiếm xu', style: TextStyle(fontSize: 16),),
+                                    ),
+                                  ),
+                                ],
                               ),
                             ],
                           ),
@@ -475,23 +504,6 @@ void showInsufficientPointsDialog() {
                       ],
                     ),
                   ),
-                if(canread==true)
-                Expanded(
-                  child: isLoading
-                    ? Center(child: CircularProgressIndicator())
-                    : ListView.builder(
-                        controller: _scrollController,
-                        itemCount: imageUrls.length,
-                        itemBuilder: (context, index) {
-                          return CachedNetworkImage(
-                            imageUrl: imageUrls[index],
-                            placeholder: (context, url) => Center(child: CircularProgressIndicator()),
-                            errorWidget: (context, url, error) => Icon(Icons.error),
-                            fit: BoxFit.cover,
-                          );
-                        },
-                      ),
-                ),
               ],
             ),
           ),
@@ -510,6 +522,7 @@ void showInsufficientPointsDialog() {
                         chapterId = currentChapter['id'];
                         fetchDataChapterFromFirestore(widget.comic.id, chapterId);
                         saveReadingHistory(widget.UserId, widget.comic.id, chapterId);
+                         autoUnlockVipChapter();
                       });
                     }: null,
                     style: ElevatedButton.styleFrom(
@@ -533,7 +546,7 @@ void showInsufficientPointsDialog() {
                         return StatefulBuilder(
                           builder: (context, setState) {
                             return Container(
-                              height: 200,
+                              height: 170,
                               padding: EdgeInsets.all(16.0),
                               child: Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
@@ -542,7 +555,7 @@ void showInsufficientPointsDialog() {
                                 Row(
                                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [
-                                    Text('Tự động cuộn'),
+                                    Text('Tự động cuộn', style: TextStyle(fontSize: 16),),
                                     GestureDetector(
                                       onTap: () {
                                         setState(() {
@@ -579,6 +592,46 @@ void showInsufficientPointsDialog() {
                                   ),
                                   ],
                                 ),
+                                // Row(
+                                //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                //   children: [
+                                //     Text('Tự động mở chương', style: TextStyle(fontSize: 16),),
+                                //     GestureDetector(
+                                //       onTap: () {
+                                //         setState(() {
+                                //          toggleAutoUnlock(!isAutoUnlockEnabled);
+                                //           Navigator.of(context).pop();
+                                //         });
+                                //       },
+                                //       child: Container(
+                                //         width: 60,
+                                //         height: 30,
+                                //         decoration: BoxDecoration(
+                                //           borderRadius: BorderRadius.circular(20),
+                                //           color:isAutoUnlockEnabled ? Colors.green : Colors.grey,
+                                //         ),
+                                //         child: Row(
+                                //           mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                //           children: [
+                                //             Expanded(
+                                //               child: Container(
+                                //                 alignment: isAutoUnlockEnabled ? Alignment.centerRight : Alignment.centerLeft,
+                                //                 child: Container(
+                                //                   width: 30,
+                                //                   height: 30,
+                                //                   decoration: const BoxDecoration(
+                                //                     shape: BoxShape.circle,
+                                //                     color: Colors.white,
+                                //                   ),
+                                //                   child: isAutoUnlockEnabled ? Icon(Icons.check, color: Colors.green): Icon(Icons.close, color: Colors.grey),),
+                                //               ),
+                                //             ),
+                                //           ],
+                                //         ),
+                                //     ),
+                                //   ),
+                                //   ],
+                                // ),
                               ],
                             ),
                           );
@@ -595,6 +648,7 @@ void showInsufficientPointsDialog() {
                         chapterId = currentChapter['id'];
                         fetchDataChapterFromFirestore(widget.comic.id, chapterId);
                         saveReadingHistory(widget.UserId, widget.comic.id, chapterId);
+                        autoUnlockVipChapter();
                       });
                     }: null,
                     style: ElevatedButton.styleFrom(
@@ -619,15 +673,5 @@ void showInsufficientPointsDialog() {
         ],
       ),
     );
-  }
-  
-  @override
-  void dispose() {
-    autoPlayTimer?.cancel();
-    _scrollController.dispose();
-     _readTimer.cancel(); // Hủy bỏ timer khi widget bị dispose
-    super.dispose();
-    flutterTts.stop();
-    textRecognizer.close();
   }
 }

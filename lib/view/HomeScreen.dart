@@ -5,7 +5,6 @@ import 'package:manga_application_1/compoment/AncientComic.dart';
 import 'package:manga_application_1/compoment/FullComic.dart';
 import 'package:manga_application_1/compoment/HotComic.dart';
 import 'package:manga_application_1/compoment/AdventureComic.dart';
-import 'package:manga_application_1/compoment/RecommendComic.dart';
 import 'package:manga_application_1/compoment/ToolItem.dart';
 import 'package:manga_application_1/view/AddComicScreen.dart';
 import 'package:manga_application_1/view/CategoryDetailScreen.dart';
@@ -116,40 +115,95 @@ class _MyHomeScreen extends State<HomeScreen> {
                 ),
                  Wrap(
                   children: [
-                   ToolItem(
+                    ToolItem(
                       image: "assets/img/bullets.png", 
                       text: "Thể Loại", 
                       onTap: () {
                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (context) => CategoryScreen(UserId: widget.UserId,)),
+                          PageRouteBuilder(
+                            pageBuilder: (context, animation, secondaryAnimation) => CategoryScreen(UserId: widget.UserId,),
+                            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                              const begin = Offset(1.0, 0.0);
+                              const end = Offset.zero;
+                              const curve = Curves.easeInOut;
+                              var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+                              var offsetAnimation = animation.drive(tween);
+                              return SlideTransition(
+                                position: offsetAnimation,
+                                child: child,
+                              );
+                            },
+                          ),
                         );
-                      }),
-                   ToolItem(
+                      }
+                    ),
+                    ToolItem(
                       image: "assets/img/brand.png", 
                       text: "Top Truyện",
                       onTap: () {
                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (context) => TopTruyenScreen()),
+                          PageRouteBuilder(
+                            pageBuilder: (context, animation, secondaryAnimation) => TopTruyenScreen(),
+                            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                              const begin = Offset(1.0, 0.0);
+                              const end = Offset.zero;
+                              const curve = Curves.easeInOut;
+                              var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+                              var offsetAnimation = animation.drive(tween);
+                              return SlideTransition(
+                                position: offsetAnimation,
+                                child: child,
+                              );
+                            },
+                          ),
                         );
-                      },),
+                      },
+                    ),
                     ToolItem(
                       image: "assets/img/new.png",
                       text: "Mới Nhất",onTap: () {
-                        Navigator.push(
+                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (context) => NewTruyenScreen()),
+                          PageRouteBuilder(
+                            pageBuilder: (context, animation, secondaryAnimation) => NewTruyenScreen(),
+                            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                              const begin = Offset(1.0, 0.0);
+                              const end = Offset.zero;
+                              const curve = Curves.easeInOut;
+                              var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+                              var offsetAnimation = animation.drive(tween);
+                              return SlideTransition(
+                                position: offsetAnimation,
+                                child: child,
+                              );
+                            },
+                          ),
                         );
-                      },),
-                   ToolItem(
+                      },
+                    ),
+                    ToolItem(
                       image: "assets/img/reward.png", 
                       text: "Điểm Của Tôi",
                       onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => CategoryScreen(UserId: widget.UserId,)),
-                        );
+                        //  Navigator.push(
+                        //   context,
+                        //   PageRouteBuilder(
+                        //     pageBuilder: (context, animation, secondaryAnimation) => CategoryScreen(UserId: widget.UserId,),
+                        //     transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                        //       const begin = Offset(1.0, 0.0);
+                        //       const end = Offset.zero;
+                        //       const curve = Curves.easeInOut;
+                        //       var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+                        //       var offsetAnimation = animation.drive(tween);
+                        //       return SlideTransition(
+                        //         position: offsetAnimation,
+                        //         child: child,
+                        //       );
+                        //     },
+                        //   ),
+                        // );
                       },),
                   ],
                 ),
