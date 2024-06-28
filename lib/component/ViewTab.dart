@@ -38,7 +38,6 @@ class _ViewTabState extends State<ViewTab> {
     setState(() {
       _selectedViewList.clear();
     });
-
   }
 
   @override

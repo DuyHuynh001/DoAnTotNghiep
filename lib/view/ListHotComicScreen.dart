@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:manga_application_1/compoment/ComicItem.dart';
+import 'package:manga_application_1/component/ComicItem.dart';
 import 'package:manga_application_1/model/load_data.dart';
 
 class ListHotComicScreen extends StatefulWidget {

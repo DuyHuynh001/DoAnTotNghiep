@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:manga_application_1/compoment/ChapterDetail.dart';
+import 'package:manga_application_1/component/ChapterDetail.dart';
 import 'package:manga_application_1/model/load_data.dart';
 
 class ChapterTab extends StatefulWidget {

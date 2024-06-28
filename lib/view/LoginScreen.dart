@@ -2,7 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:manga_application_1/compoment/Navigation.dart';
+import 'package:manga_application_1/component/Navigation.dart';
 import 'package:manga_application_1/view/ForgotPasswordScreen.dart';
 import 'package:manga_application_1/view/RegisterScreen.dart';
 import 'package:shared_preferences/shared_preferences.dart';

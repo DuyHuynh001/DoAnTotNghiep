@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:manga_application_1/compoment/FavoriteTab.dart';
-import 'package:manga_application_1/compoment/HistoryTab.dart';
-import 'package:manga_application_1/compoment/ViewTab.dart';
+import 'package:manga_application_1/component/FavoriteTab.dart';
+import 'package:manga_application_1/component/HistoryTab.dart';
+import 'package:manga_application_1/component/ViewTab.dart';
 
 class HistoryScreen extends StatefulWidget  {
   final String UserId;

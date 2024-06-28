@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_image_slideshow/flutter_image_slideshow.dart';
-import 'package:manga_application_1/compoment/ActionComic.dart';
-import 'package:manga_application_1/compoment/AncientComic.dart';
-import 'package:manga_application_1/compoment/FullComic.dart';
-import 'package:manga_application_1/compoment/HotComic.dart';
-import 'package:manga_application_1/compoment/AdventureComic.dart';
-import 'package:manga_application_1/compoment/ToolItem.dart';
+import 'package:manga_application_1/component/ActionComic.dart';
+import 'package:manga_application_1/component/AncientComic.dart';
+import 'package:manga_application_1/component/FullComic.dart';
+import 'package:manga_application_1/component/HotComic.dart';
+import 'package:manga_application_1/component/AdventureComic.dart';
+import 'package:manga_application_1/component/ToolItem.dart';
 import 'package:manga_application_1/view/AddComicScreen.dart';
 import 'package:manga_application_1/view/CategoryDetailScreen.dart';
 import 'package:manga_application_1/view/CategoryScreen.dart';
@@ -145,7 +145,7 @@ class _MyHomeScreen extends State<HomeScreen> {
                         Navigator.push(
                           context,
                           PageRouteBuilder(
-                            pageBuilder: (context, animation, secondaryAnimation) => TopTruyenScreen(),
+                            pageBuilder: (context, animation, secondaryAnimation) => TopTruyenScreen(UserId: widget.UserId,),
                             transitionsBuilder: (context, animation, secondaryAnimation, child) {
                               const begin = Offset(1.0, 0.0);
                               const end = Offset.zero;

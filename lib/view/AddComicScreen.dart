@@ -50,18 +50,22 @@ class _AddComicScreenState extends State<AddComicScreen> {
   }
 
   Future<void> _saveComic() async {
-    if (_name.text.trim().isEmpty || _urlImage.text.trim().isEmpty || _description.text.trim().isEmpty || selectedCategories.isEmpty || _chapterUrl.text.trim().isEmpty) {
+    if (_name.text.trim().isEmpty ||  _description.text.trim().isEmpty || selectedCategories.isEmpty || _chapterUrl.text.trim().isEmpty) {
       _showErrorDialog("Vui lòng nhập đầy đủ thông tin");
       return;
     }
     setState(() {
       isLoading = true;
     });
+    if(_urlImage.text.trim().isEmpty)
+    {
+      _urlImage.text="https://firebasestorage.googleapis.com/v0/b/appdoctruyentranhonline.appspot.com/o/No-Image-Placeholder.svg.webp?alt=media&token=319ebc86-9ec0-4a16-a877-b477564b212b";
+    }
     final String name = _name.text;
     final String urlImage = _urlImage.text;
     final String description = _description.text;
     final String chaptersUrl = _chapterUrl.text;
-
+    
     try {
       final response = await http.get(Uri.parse(chaptersUrl));
       if (response.statusCode == 200) {

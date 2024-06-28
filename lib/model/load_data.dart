@@ -132,8 +132,6 @@ class Comics {
     );
   }
   static FirebaseFirestore _db = FirebaseFirestore.instance;
-   // lấy danh sách truyện đề cử
-  
    // lấy danh sách truyện hành động
   static Future<List<Comics>> fetchActionComicsList() async {
     try {
@@ -161,12 +159,44 @@ class Comics {
       return [];
     }
   }
+  static Future<List<Comics>> fetchFullComicsListAndFavorite() async {
+    try {
+      QuerySnapshot querySnapshot = await _db.collection('Comics')
+      .where('status', isEqualTo: "Hoàn thành") 
+      .orderBy('favorites', descending: true).get(); // Sắp xếp theo lượt yêu thích giảm dần
+      
+      return querySnapshot.docs.map((doc) {
+        Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+        return Comics.fromJson(doc.id, data);
+      }).toList();
+    } catch (e) {
+      print("Error fetching comics list: $e");
+      return [];
+    }
+  }
   // // lấy danh sách truyện hot
   static Future<List<Comics>> fetchHotComicsList() async {
     try {
       QuerySnapshot querySnapshot = await _db
           .collection('Comics')
           .orderBy('favorites', descending: true) // Sắp xếp theo lượt yêu thích giảm dần
+          .get();
+
+      return querySnapshot.docs.map((doc) {
+        Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+        return Comics.fromJson(doc.id, data);
+      }).toList();
+    } catch (e) {
+      print("Error fetching comics list: $e");
+      return [];
+    }
+  }
+  static Future<List<Comics>> fetchViewComicsList() async {
+    try {
+      QuerySnapshot querySnapshot = await _db
+          .collection('Comics')
+          .orderBy('view', descending: true)
+          .limit(50) // Sắp xếp theo lượt yêu thích giảm dần
           .get();
 
       return querySnapshot.docs.map((doc) {
@@ -258,6 +288,20 @@ class Comics {
     return comicsList;
   } catch (e) {
     throw Exception('Lỗi khi tải thông tin truyện theo thể loại và trạng thái: $e');
+  }
+}
+static Future<List<Comics>> fetchComics() async {
+  try {
+    Query query = FirebaseFirestore.instance.collection('Comics');
+    QuerySnapshot querySnapshot = await query.get();
+    List<Comics> comicsList = querySnapshot.docs.map((doc) {
+      Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      return Comics.fromJson(doc.id, data);
+    }).toList();
+
+    return comicsList;
+  } catch (e) {
+    throw Exception('Lỗi khi tải thông tin truyện $e');
   }
 }
 }
@@ -492,4 +536,66 @@ class History {
   static Future<void> deleteViewComic(String userId, String comicId) {
     return FirebaseFirestore.instance .collection('User') .doc(userId).collection('ViewList').doc(comicId).delete();
   }
+}
+class Community {
+  final String Id;
+  final String UserId;
+  final String content;
+  final String ComicId;
+  int like;
+  final String imageUrl;
+  final Timestamp time;
+
+  Community({ required this.imageUrl, required this.content, required this.UserId, required this.time, required this.ComicId, required this.like, required this.Id});
+  factory Community.fromJson(String id, Map<String, dynamic> json) {
+    return Community(
+      Id: id,
+      UserId: json['userId'],
+      content: json['content'],
+      ComicId: json['comicId'],
+      imageUrl: json['image_url'],
+      like: json['like'],
+      time: json['timestamp']
+    );
+  }
+ static Future<List<Map<String, dynamic>>> fetchCommunityPostsWithUsers() async {
+  try {
+    List<Map<String, dynamic>> postsWithUsersAndComics = [];
+    QuerySnapshot snapshot = await FirebaseFirestore.instance
+        .collection('Community')
+        .orderBy('timestamp', descending: true)
+        .get();
+
+    for (var doc in snapshot.docs) {
+      Community post = Community.fromJson(doc.id, doc.data() as Map<String, dynamic>);
+      DocumentSnapshot userSnapshot = await FirebaseFirestore.instance
+          .collection('User')
+          .doc(post.UserId)
+          .get();
+      User user = User.fromJson(userSnapshot.id, userSnapshot.data() as Map<String, dynamic>);
+      Comics? comic;
+      if (post.ComicId.isNotEmpty) {
+        DocumentSnapshot comicSnapshot = await FirebaseFirestore.instance
+            .collection('Comics')
+            .doc(post.ComicId)
+            .get();
+
+        if (comicSnapshot.exists) {
+          comic = Comics.fromJson(comicSnapshot.id, comicSnapshot.data() as Map<String, dynamic>);
+        }
+      }
+      Map<String, dynamic> postWithUserAndComic = {
+        'post': post,
+        'user': user,
+        'comic': comic,
+      };
+      postsWithUsersAndComics.add(postWithUserAndComic);
+    }
+    return postsWithUsersAndComics;
+  } catch (e) {
+    print('Error fetching posts: $e');
+    throw e; 
+  }
+}
+
 }

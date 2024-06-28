@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:manga_application_1/compoment/CommentItem.dart';
+import 'package:manga_application_1/component/CommentItem.dart';
 import 'package:manga_application_1/model/load_data.dart';
 
 class FullCommentsScreen extends StatefulWidget {

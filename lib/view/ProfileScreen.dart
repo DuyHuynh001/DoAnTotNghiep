@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:manga_application_1/model/load_data.dart';
 import 'package:manga_application_1/view/AddCategoryScreen.dart';
 import 'package:manga_application_1/view/LoginScreen.dart';
+import 'package:manga_application_1/view/tam.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:percent_indicator/percent_indicator.dart';
 
@@ -169,6 +170,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             backgroundColor: Colors.grey,
                           ),
                         ),
+                        Header()
                       ],
                     ),
                   ),

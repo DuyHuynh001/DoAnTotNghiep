@@ -1,10 +1,10 @@
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:manga_application_1/compoment/ChapterTab.dart';
-import 'package:manga_application_1/compoment/DetailAndCommentTab.dart';
+import 'package:manga_application_1/component/ChapterTab.dart';
+import 'package:manga_application_1/component/DetailAndCommentTab.dart';
 import 'package:manga_application_1/model/load_data.dart';
-import 'package:manga_application_1/compoment/ChapterDetail.dart';
+import 'package:manga_application_1/component/ChapterDetail.dart';
 
 class ComicDetailScreen extends StatefulWidget {
   final String storyId;
@@ -23,7 +23,7 @@ class _ComicDetailScreenState extends State<ComicDetailScreen> {
   List<Map<String, dynamic>> chapters = [];
  
   
-  Comics story= Comics(id: "", name: '', description: "", genre: [], image: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/65/No-Image-Placeholder.svg/1665px-No-Image-Placeholder.svg.png", source: "", status: "", chapters: [],favorites:0, view:0);
+  Comics story= Comics(id: "", name: '', description: "", genre: [], image: "https://firebasestorage.googleapis.com/v0/b/appdoctruyentranhonline.appspot.com/o/No-Image-Placeholder.svg.webp?alt=media&token=319ebc86-9ec0-4a16-a877-b477564b212b", source: "", status: "", chapters: [],favorites:0, view:0);
  
  @override
   void initState() {
