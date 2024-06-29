@@ -1,11 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:manga_application_1/view/DetailprofileScreen.dart';
+
 import 'package:manga_application_1/model/load_data.dart';
 import 'package:manga_application_1/view/IntroduceScreen.dart';
 import 'package:manga_application_1/view/LoginScreen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/material.dart';
-import 'package:manga_application_1/view/AttendanceScreen.dart';
 
 class ProfileScreen extends StatefulWidget {
   final String UserId;

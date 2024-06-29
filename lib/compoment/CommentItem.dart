@@ -1,25 +1,39 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:manga_application_1/model/load_data.dart'; // Import your User model 
+import 'package:manga_application_1/model/load_data.dart'; // Import your User model
 
 class CommentItem extends StatefulWidget {
   final String userId;
   final String commentText;
   final Timestamp time;
 
-  const CommentItem({Key? key,required this.userId,required this.commentText,required this.time,}) : super(key: key);
+  const CommentItem({
+    Key? key,
+    required this.userId,
+    required this.commentText,
+    required this.time,
+  }) : super(key: key);
   @override
   _CommentItemState createState() => _CommentItemState();
 }
+
 class _CommentItemState extends State<CommentItem> {
-  User userData= User(Id: "", Name: "", Image: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/65/No-Image-Placeholder.svg/1665px-No-Image-Placeholder.svg.png", Email: "", Status: false);
-  String time="";
+  User userData = User(
+      Id: "",
+      Name: "",
+      Image:
+          "https://upload.wikimedia.org/wikipedia/commons/thumb/6/65/No-Image-Placeholder.svg/1665px-No-Image-Placeholder.svg.png",
+      Email: "",
+      Status: false,
+      Level: 0,
+      Points: 0);
+  String time = "";
   @override
   void initState() {
     super.initState();
     _loadUserData();
-    time= formatTimestamp(widget.time);
+    time = formatTimestamp(widget.time);
   }
 
   void _loadUserData() async {
@@ -35,9 +49,10 @@ class _CommentItemState extends State<CommentItem> {
 
   String formatTimestamp(Timestamp timestamp) {
     DateTime dateTime = timestamp.toDate();
-    return DateFormat('dd-MM-yyyy HH:mm:ss').format(dateTime); // Định dạng thời gian
+    return DateFormat('dd-MM-yyyy HH:mm:ss')
+        .format(dateTime); // Định dạng thời gian
   }
- 
+
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -46,7 +61,8 @@ class _CommentItemState extends State<CommentItem> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           CircleAvatar(
-            backgroundImage:NetworkImage(userData.Image),radius:30,
+            backgroundImage: NetworkImage(userData.Image),
+            radius: 30,
           ),
           SizedBox(width: 10),
           Expanded(
@@ -59,13 +75,19 @@ class _CommentItemState extends State<CommentItem> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(userData.Name ,style: const TextStyle(fontWeight: FontWeight.bold),),
+                  Text(
+                    userData.Name,
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
                   SizedBox(height: 5),
                   Text(widget.commentText),
                   SizedBox(height: 5),
                   Align(
                     alignment: Alignment.bottomRight,
-                    child: Text(formatTimestamp(widget.time),style: const TextStyle(color: Colors.grey, fontSize: 12),),
+                    child: Text(
+                      formatTimestamp(widget.time),
+                      style: const TextStyle(color: Colors.grey, fontSize: 12),
+                    ),
                   ),
                 ],
               ),

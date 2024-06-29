@@ -25,7 +25,7 @@ class _NavigationScreenState extends State<NavigationScreen> {
           HomeScreen(UserId: widget.UserId),
           CommunityScreen(UserId: widget.UserId),
           HistoryScreen(UserId: widget.UserId),
-          ProfileScreen(userId: widget.UserId),
+          ProfileScreen(UserId: widget.UserId),
         ],
         index: _selectedScreen,
       ),

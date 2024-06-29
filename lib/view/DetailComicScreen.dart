@@ -21,162 +21,211 @@ class ComicDetailScreen extends StatefulWidget {
 
 class _ComicDetailScreenState extends State<ComicDetailScreen> {
   bool isButtonFavorite = false;
-  bool isButtonView=false;
+  bool isButtonView = false;
   bool isFavorited = false;
   bool isView = false;
   List<Map<String, dynamic>> chapters = [];
- 
+
   bool showOldest = true; // Biến để theo dõi trạng thái cũ nhất hay mới nhất
-  Comics story= Comics(id: "", name: '', description: "", genre: [], image: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/65/No-Image-Placeholder.svg/1665px-No-Image-Placeholder.svg.png", source: "", status: "", chapters: [],favorites:0, view:0);
+  Comics story = Comics(
+      id: "",
+      name: '',
+      description: "",
+      genre: [],
+      image:
+          "https://upload.wikimedia.org/wikipedia/commons/thumb/6/65/No-Image-Placeholder.svg/1665px-No-Image-Placeholder.svg.png",
+      source: "",
+      status: "",
+      chapters: [],
+      favorites: 0,
+      view: 0);
   final TextEditingController commentController = TextEditingController();
-  
- @override
+
+  @override
   void initState() {
     super.initState();
-   _loadComic();
-   _loadChapters(); 
+    _loadComic();
+    _loadChapters();
     checkFavoriteStatus();
     checkViewStatus();
-
   }
+
   void _loadComic() async {
     Comics fetchedComic = await Comics.fetchComicsById(widget.storyId);
-    setState(() { story = fetchedComic; });
+    setState(() {
+      story = fetchedComic;
+    });
   }
+
   void _loadChapters() async {
-    List<Map<String, dynamic>> fetchedChapters = await Chapters.fetchChapters(widget.storyId);
+    List<Map<String, dynamic>> fetchedChapters =
+        await Chapters.fetchChapters(widget.storyId);
     setState(() {
       chapters = fetchedChapters;
       if (chapters.isNotEmpty) {
         // Sắp xếp bằng cách chuyển 'id' thành kiểu double để so sánh
         chapters.sort((a, b) {
-          double idA = double.tryParse(a['id'].toString()) ?? double.negativeInfinity;
-          double idB = double.tryParse(b['id'].toString()) ?? double.negativeInfinity;
+          double idA =
+              double.tryParse(a['id'].toString()) ?? double.negativeInfinity;
+          double idB =
+              double.tryParse(b['id'].toString()) ?? double.negativeInfinity;
           return idA.compareTo(idB);
         });
       }
     });
   }
+
   Future<void> checkFavoriteStatus() async {
-  try {
-    DocumentReference favoriteRef = FirebaseFirestore.instance.collection('User').doc(widget.UserId) .collection('FavoritesList').doc(widget.storyId);
+    try {
+      DocumentReference favoriteRef = FirebaseFirestore.instance
+          .collection('User')
+          .doc(widget.UserId)
+          .collection('FavoritesList')
+          .doc(widget.storyId);
 
-    DocumentSnapshot doc = await favoriteRef.get();
-    if (doc.exists) {
-      setState(() {
-        isFavorited = true;
-        isButtonFavorite = true;
-      });
+      DocumentSnapshot doc = await favoriteRef.get();
+      if (doc.exists) {
+        setState(() {
+          isFavorited = true;
+          isButtonFavorite = true;
+        });
+      }
+    } catch (e) {
+      print('Lỗi khi kiểm tra trạng thái yêu thích: $e');
     }
-  } catch (e) {
-    print('Lỗi khi kiểm tra trạng thái yêu thích: $e');
   }
-}
 
-Future<void> checkViewStatus() async {
-  try {
-    DocumentReference viewRef = FirebaseFirestore.instance.collection('User').doc(widget.UserId).collection('ViewList').doc(widget.storyId);
-    DocumentSnapshot doc = await viewRef.get();
-    if (doc.exists) {
-      setState(() {
-        isView = true;
-        isButtonView = true;
-      });
+  Future<void> checkViewStatus() async {
+    try {
+      DocumentReference viewRef = FirebaseFirestore.instance
+          .collection('User')
+          .doc(widget.UserId)
+          .collection('ViewList')
+          .doc(widget.storyId);
+      DocumentSnapshot doc = await viewRef.get();
+      if (doc.exists) {
+        setState(() {
+          isView = true;
+          isButtonView = true;
+        });
+      }
+    } catch (e) {
+      print('Lỗi khi kiểm tra trạng thái theo dõi: $e');
     }
-  } catch (e) {
-    print('Lỗi khi kiểm tra trạng thái theo dõi: $e');
   }
-}
-  
+
   void updateChapterOrder() {
     setState(() {
-      if (showOldest) {    
+      if (showOldest) {
         chapters.sort((a, b) {
-            double idA = double.tryParse(a['id'].toString()) ?? double.negativeInfinity;
-            double idB = double.tryParse(b['id'].toString()) ?? double.negativeInfinity;
-            return idA.compareTo(idB); 
-          });
+          double idA =
+              double.tryParse(a['id'].toString()) ?? double.negativeInfinity;
+          double idB =
+              double.tryParse(b['id'].toString()) ?? double.negativeInfinity;
+          return idA.compareTo(idB);
+        });
       } else {
-         chapters.sort((a, b) {
-            double idA = double.tryParse(a['id'].toString()) ?? double.negativeInfinity;
-            double idB = double.tryParse(b['id'].toString()) ?? double.negativeInfinity;
-            return idB.compareTo(idA);
-          });
+        chapters.sort((a, b) {
+          double idA =
+              double.tryParse(a['id'].toString()) ?? double.negativeInfinity;
+          double idB =
+              double.tryParse(b['id'].toString()) ?? double.negativeInfinity;
+          return idB.compareTo(idA);
+        });
       }
     });
   }
 
-void toggleFavorite() async {
-  try {
-    DocumentReference comicRef =FirebaseFirestore.instance.collection('Comics').doc(widget.storyId);
-    DocumentReference favoriteRef = FirebaseFirestore.instance.collection('User').doc(widget.UserId).collection('FavoritesList').doc(widget.storyId);
-    if (isFavorited) {
-      // Giảm số lượt yêu thích và cập nhật Firestore
-      await comicRef.update({'favorites': FieldValue.increment(-1),});
-      await favoriteRef.delete();
-      setState(() {
-        isFavorited = false;
-        isButtonFavorite = false;
-      });
-    } else {
-      // Tăng số lượt yêu thích và cập nhật Firestore
-      await comicRef.update({'favorites': FieldValue.increment(1),});
-      await favoriteRef.set({
-        'comicId': widget.storyId,
-        'timestamp': Timestamp.now(),
-      });
-      setState(() {
-        isFavorited = true;
-        isButtonFavorite = true;
-      });
+  void toggleFavorite() async {
+    try {
+      DocumentReference comicRef =
+          FirebaseFirestore.instance.collection('Comics').doc(widget.storyId);
+      DocumentReference favoriteRef = FirebaseFirestore.instance
+          .collection('User')
+          .doc(widget.UserId)
+          .collection('FavoritesList')
+          .doc(widget.storyId);
+      if (isFavorited) {
+        // Giảm số lượt yêu thích và cập nhật Firestore
+        await comicRef.update({
+          'favorites': FieldValue.increment(-1),
+        });
+        await favoriteRef.delete();
+        setState(() {
+          isFavorited = false;
+          isButtonFavorite = false;
+        });
+      } else {
+        // Tăng số lượt yêu thích và cập nhật Firestore
+        await comicRef.update({
+          'favorites': FieldValue.increment(1),
+        });
+        await favoriteRef.set({
+          'comicId': widget.storyId,
+          'timestamp': Timestamp.now(),
+        });
+        setState(() {
+          isFavorited = true;
+          isButtonFavorite = true;
+        });
+      }
+      _loadComic();
+    } catch (e) {
+      print('Lỗi khi cập nhật số lượt yêu thích: $e');
     }
-    _loadComic();
-  } catch (e) {
-    print('Lỗi khi cập nhật số lượt yêu thích: $e');
   }
-}
+
   void toggleView() async {
-  try {
-    DocumentReference comicRef =FirebaseFirestore.instance.collection('Comics').doc(widget.storyId);
-    DocumentReference viewRef = FirebaseFirestore.instance .collection('User').doc(widget.UserId).collection('ViewList').doc(widget.storyId);
-    if (isView) {
-      await comicRef.update({'view': FieldValue.increment(-1),});
-      // Xóa khỏi danh sách theo dõi
-      await viewRef.delete();
-      setState(() {
-        isView = false;
-        isButtonView = false;
-      });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Bạn đã bỏ theo dõi truyện ' + story.name),
-          duration: Duration(seconds: 2),
-        ),
-      );
-    } else {
-      await comicRef.update({'view': FieldValue.increment(1),});
-      // Thêm vào danh sách theo dõi
-      await viewRef.set({
-        'comicId': widget.storyId,
-        'timestamp': Timestamp.now(),
-      });
-      setState(() {
-        isView = true;
-        isButtonView = true;
-      });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Đã theo dõi truyện ' + story.name),
-          duration: Duration(seconds:2),
-          elevation: 4.0,
-        ),
-      );
+    try {
+      DocumentReference comicRef =
+          FirebaseFirestore.instance.collection('Comics').doc(widget.storyId);
+      DocumentReference viewRef = FirebaseFirestore.instance
+          .collection('User')
+          .doc(widget.UserId)
+          .collection('ViewList')
+          .doc(widget.storyId);
+      if (isView) {
+        await comicRef.update({
+          'view': FieldValue.increment(-1),
+        });
+        // Xóa khỏi danh sách theo dõi
+        await viewRef.delete();
+        setState(() {
+          isView = false;
+          isButtonView = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Bạn đã bỏ theo dõi truyện ' + story.name),
+            duration: Duration(seconds: 2),
+          ),
+        );
+      } else {
+        await comicRef.update({
+          'view': FieldValue.increment(1),
+        });
+        // Thêm vào danh sách theo dõi
+        await viewRef.set({
+          'comicId': widget.storyId,
+          'timestamp': Timestamp.now(),
+        });
+        setState(() {
+          isView = true;
+          isButtonView = true;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Đã theo dõi truyện ' + story.name),
+            duration: Duration(seconds: 2),
+            elevation: 4.0,
+          ),
+        );
+      }
+      _loadComic();
+    } catch (e) {
+      print('Lỗi khi cập nhật danh sách theo dõi: $e');
     }
-     _loadComic();
-  } catch (e) {
-    print('Lỗi khi cập nhật danh sách theo dõi: $e');
   }
-}
 
 // Future<Map<String, dynamic>> analyzeComment(String comment) async {
 //   final apiKey = 'AIzaSyBsy0xeUF7MF8nCBehb7i_aI3IYUGG9THU'; // Replace with your actual API key
@@ -207,7 +256,6 @@ void toggleFavorite() async {
 //   }
 // }
 
-
 // Future<void> handleComment(String comment) async {
 //   try {
 //     // Analyze the English comment using Google Perspective API
@@ -228,22 +276,27 @@ void toggleFavorite() async {
 //     }
 //   }
 
-
-   void postComment(String comment) async {
-      await FirebaseFirestore.instance.collection('Comments').add({
-        'comicId': widget.storyId,
-        'comment': comment,
-        'times': FieldValue.serverTimestamp(),
-        'UserId': widget.UserId
-      });
-      setState(() {});
-      // Xóa nội dung trong TextField sau khi gửi comment thành công
-      commentController.clear();
+  void postComment(String comment) async {
+    await FirebaseFirestore.instance.collection('Comments').add({
+      'comicId': widget.storyId,
+      'comment': comment,
+      'times': FieldValue.serverTimestamp(),
+      'UserId': widget.UserId
+    });
+    setState(() {});
+    // Xóa nội dung trong TextField sau khi gửi comment thành công
+    commentController.clear();
   }
-  
+
   @override
   Widget build(BuildContext context) {
-    String maxChap = chapters.isNotEmpty ? chapters.map((chapter) => double.tryParse(chapter['id'].toString()) ?? -double.infinity).reduce((a, b) => a > b ? a : b).toString(): '0';
+    String maxChap = chapters.isNotEmpty
+        ? chapters
+            .map((chapter) =>
+                double.tryParse(chapter['id'].toString()) ?? -double.infinity)
+            .reduce((a, b) => a > b ? a : b)
+            .toString()
+        : '0';
     return DefaultTabController(
       length: 2,
       child: Scaffold(
@@ -259,35 +312,46 @@ void toggleFavorite() async {
                 children: [
                   ClipRRect(
                     borderRadius: BorderRadius.circular(8.0),
-                    child: Image.network( story.image, width: 130,height: 250, fit: BoxFit.cover ),
+                    child: Image.network(story.image,
+                        width: 130, height: 250, fit: BoxFit.cover),
                   ),
                   SizedBox(width: 16.0),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text( story.name, style: TextStyle(fontSize: 18.0, fontWeight: FontWeight.bold), ),
+                        Text(
+                          story.name,
+                          style: TextStyle(
+                              fontSize: 18.0, fontWeight: FontWeight.bold),
+                        ),
                         SizedBox(height: 5),
                         Wrap(
                           spacing: 5.0,
                           runSpacing: 4.0,
-                          children: story.genre.map((genre) => CategoryItem(Item: genre)).toList(),
+                          children: story.genre
+                              .map((genre) => CategoryItem(Item: genre))
+                              .toList(),
                         ),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.start,
                           children: [
                             IconButton(
                               icon: Icon(
-                                isView ? Icons.remove_red_eye : Icons.remove_red_eye_outlined,
+                                isView
+                                    ? Icons.remove_red_eye
+                                    : Icons.remove_red_eye_outlined,
                                 color: isView ? Colors.blue : Colors.grey,
                               ),
                               onPressed: toggleView,
                             ),
-                             Text(story.view.toString()),
+                            Text(story.view.toString()),
                             SizedBox(width: 30.0),
                             IconButton(
                               icon: Icon(
-                                isFavorited ? Icons.favorite : Icons.favorite_border,
+                                isFavorited
+                                    ? Icons.favorite
+                                    : Icons.favorite_border,
                                 color: isFavorited ? Colors.red : Colors.grey,
                               ),
                               onPressed: toggleFavorite,
@@ -297,51 +361,73 @@ void toggleFavorite() async {
                         ),
                         Row(
                           children: [
-                            Text('Tình trạng:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                            Text('Tình trạng:',
+                                style: TextStyle(
+                                    fontWeight: FontWeight.bold, fontSize: 16)),
                             SizedBox(width: 10),
-                            Text('${story.status}',style: TextStyle(fontSize: 16)),
+                            Text('${story.status}',
+                                style: TextStyle(fontSize: 16)),
                           ],
                         ),
-                        SizedBox(height: 5,),
+                        SizedBox(
+                          height: 5,
+                        ),
                         Row(
                           children: [
-                            Text('Nguồn:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                            Text('Nguồn:',
+                                style: TextStyle(
+                                    fontWeight: FontWeight.bold, fontSize: 16)),
                             SizedBox(width: 10),
-                            Text('${story.source}',style: TextStyle(fontSize: 16)),
+                            Text('${story.source}',
+                                style: TextStyle(fontSize: 16)),
                           ],
                         ),
-                        SizedBox(height: 5,),
+                        SizedBox(
+                          height: 5,
+                        ),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: [
                             Expanded(
-                                child: ElevatedButton.icon(
-                                  onPressed: () {
-                                     toggleView();      
-                                  },
-                                  icon: Icon(Icons.bookmark, color: Colors.black),
-                                  label: Text( "Theo dõi",
-                                    style: TextStyle(color: Colors.black, fontSize: 16),
-                                  ),
-                                  style: ElevatedButton.styleFrom(
-                                      primary: isButtonView ? Colors.blue[300] : Colors.grey[200], // Thay đổi màu nền của nút
-                                      side: BorderSide(color: Colors.black),
-                                      padding: EdgeInsets.symmetric(vertical: 9),
-                                    ),
+                              child: ElevatedButton.icon(
+                                onPressed: () {
+                                  toggleView();
+                                },
+                                icon: Icon(Icons.bookmark, color: Colors.black),
+                                label: Text(
+                                  "Theo dõi",
+                                  style: TextStyle(
+                                      color: Colors.black, fontSize: 16),
+                                ),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: isButtonView
+                                      ? Colors.blue[300]
+                                      : Colors.grey[
+                                          200], // Thay đổi màu nền của nút
+                                  side: BorderSide(color: Colors.black),
+                                  padding: EdgeInsets.symmetric(vertical: 9),
                                 ),
                               ),
+                            ),
                             SizedBox(width: 10),
                             Expanded(
                               child: ElevatedButton.icon(
                                 onPressed: () {
-                                   toggleFavorite();
+                                  toggleFavorite();
                                 },
-                                icon: const Icon(Icons.favorite, color: Colors.black),
-                                label: Text( "Yêu Thích", style: TextStyle(color: Colors.black, fontSize: 16)),
+                                icon: const Icon(Icons.favorite,
+                                    color: Colors.black),
+                                label: Text("Yêu Thích",
+                                    style: TextStyle(
+                                        color: Colors.black, fontSize: 16)),
                                 style: ElevatedButton.styleFrom(
-                                  primary:  isButtonFavorite? Colors.blue[300] : Colors.grey[200],
+                                  backgroundColor: isButtonFavorite
+                                      ? Colors.blue[300]
+                                      : Colors.grey[200],
                                   side: const BorderSide(color: Colors.black),
-                                  padding: const EdgeInsets.symmetric(vertical: 9,),
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 9,
+                                  ),
                                 ),
                               ),
                             ),
@@ -376,7 +462,8 @@ void toggleFavorite() async {
                   Tab(
                     child: Align(
                       alignment: Alignment.center,
-                      child: Text('Danh sách chương', style: TextStyle(fontSize: 16)),
+                      child: Text('Danh sách chương',
+                          style: TextStyle(fontSize: 16)),
                     ),
                   ),
                 ],
@@ -389,7 +476,8 @@ void toggleFavorite() async {
                   Padding(
                     padding: const EdgeInsets.all(8.0),
                     child: SingleChildScrollView(
-                      physics: AlwaysScrollableScrollPhysics(), // Đảm bảo luôn có thể scroll
+                      physics:
+                          AlwaysScrollableScrollPhysics(), // Đảm bảo luôn có thể scroll
                       child: Container(
                         padding: EdgeInsets.all(8.0),
                         child: Column(
@@ -416,20 +504,27 @@ void toggleFavorite() async {
                                         Navigator.push(
                                           context,
                                           PageRouteBuilder(
-                                            pageBuilder: (context, animation, secondaryAnimation) => 
-                                            ChapterDetail(
+                                            pageBuilder: (context, animation,
+                                                    secondaryAnimation) =>
+                                                ChapterDetail(
                                               ChapterId: chapters.first['id'],
                                               chapters: chapters,
                                               comicId: story.id,
                                               UserId: widget.UserId,
-                                             
                                             ),
-                                            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                                            transitionsBuilder: (context,
+                                                animation,
+                                                secondaryAnimation,
+                                                child) {
                                               const begin = Offset(1.0, 0.0);
                                               const end = Offset.zero;
                                               const curve = Curves.easeInOut;
-                                              var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
-                                              var offsetAnimation = animation.drive(tween);
+                                              var tween = Tween(
+                                                      begin: begin, end: end)
+                                                  .chain(
+                                                      CurveTween(curve: curve));
+                                              var offsetAnimation =
+                                                  animation.drive(tween);
                                               return SlideTransition(
                                                 position: offsetAnimation,
                                                 child: child,
@@ -438,18 +533,25 @@ void toggleFavorite() async {
                                           ),
                                         );
                                       },
-                                      icon: Icon(Icons.auto_stories, size: 25, color: Colors.white),
+                                      icon: Icon(Icons.auto_stories,
+                                          size: 25, color: Colors.white),
                                       style: ElevatedButton.styleFrom(
                                         shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(30.0), // Độ cong của góc
+                                          borderRadius: BorderRadius.circular(
+                                              30.0), // Độ cong của góc
                                         ),
-                                        primary: Colors.blue,
-                                        side: const BorderSide(color: Colors.black),
-                                        padding: const EdgeInsets.symmetric(vertical: 15),
+                                        backgroundColor: Colors.blue,
+                                        side: const BorderSide(
+                                            color: Colors.black),
+                                        padding: const EdgeInsets.symmetric(
+                                            vertical: 15),
                                       ),
                                       label: Text(
                                         "Bắt đầu xem",
-                                        style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 20),
+                                        style: TextStyle(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 20),
                                       ),
                                     ),
                                   ),
@@ -468,7 +570,9 @@ void toggleFavorite() async {
                                 children: [
                                   Text(
                                     'Bình luận của bạn:',
-                                    style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
+                                    style: TextStyle(
+                                        fontSize: 16.0,
+                                        fontWeight: FontWeight.bold),
                                   ),
                                   SizedBox(height: 8.0),
                                   Row(
@@ -478,23 +582,29 @@ void toggleFavorite() async {
                                           controller: commentController,
                                           decoration: const InputDecoration(
                                             border: OutlineInputBorder(),
-                                            hintText: 'Nhập bình luận của bạn...',
-                                            contentPadding: EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+                                            hintText:
+                                                'Nhập bình luận của bạn...',
+                                            contentPadding:
+                                                EdgeInsets.symmetric(
+                                                    vertical: 8, horizontal: 8),
                                           ),
                                         ),
                                       ),
                                       SizedBox(width: 8.0),
                                       ElevatedButton(
                                         onPressed: () {
-                                          String comment = commentController.text.trim();
+                                          String comment =
+                                              commentController.text.trim();
                                           if (comment.isNotEmpty) {
-                                          // handleComment(comment);
-                                           postComment(comment);
+                                            // handleComment(comment);
+                                            postComment(comment);
                                             FocusScope.of(context).unfocus();
                                           } else {
-                                            ScaffoldMessenger.of(context).showSnackBar(
+                                            ScaffoldMessenger.of(context)
+                                                .showSnackBar(
                                               const SnackBar(
-                                                content: Text('Vui lòng nhập bình luận'),
+                                                content: Text(
+                                                    'Vui lòng nhập bình luận'),
                                                 duration: Duration(seconds: 1),
                                                 elevation: 4.0,
                                               ),
@@ -504,7 +614,8 @@ void toggleFavorite() async {
                                         style: ElevatedButton.styleFrom(
                                             padding: EdgeInsets.all(8),
                                             backgroundColor: Colors.grey[200],
-                                            side: BorderSide(color: Colors.black)),
+                                            side: BorderSide(
+                                                color: Colors.black)),
                                         child: const Row(children: [
                                           Icon(
                                             Icons.send,
@@ -526,60 +637,79 @@ void toggleFavorite() async {
                             FutureBuilder<List<DocumentSnapshot>>(
                               future: fetchCommentsByComicId(widget.storyId),
                               builder: (context, snapshot) {
-                                if (snapshot.connectionState == ConnectionState.waiting) {
-                                  return Center(child: CircularProgressIndicator());
+                                if (snapshot.connectionState ==
+                                    ConnectionState.waiting) {
+                                  return Center(
+                                      child: CircularProgressIndicator());
                                 }
-                                List<DocumentSnapshot> comments = snapshot.data ?? [];
+                                List<DocumentSnapshot> comments =
+                                    snapshot.data ?? [];
                                 return Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     SizedBox(height: 10),
                                     const Text(
                                       'Danh sách bình luận:',
-                                      style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
+                                      style: TextStyle(
+                                          fontSize: 16.0,
+                                          fontWeight: FontWeight.bold),
                                     ),
                                     SizedBox(height: 20),
-                                    if(comments.isEmpty)
-                                    Center(
-                                      child: Text("Chưa có bình luận")
-                                    )
+                                    if (comments.isEmpty)
+                                      Center(child: Text("Chưa có bình luận"))
                                     else
-
-                                    ListView.builder(
-                                      physics: NeverScrollableScrollPhysics(), // Tắt scroll của ListView trong SingleChildScrollView
-                                      shrinkWrap: true,
-                                      itemCount: comments.length <=4? comments.length : 4,
-                                      itemBuilder: (context, index) {
-                                        var comment = comments[index];
-                                        return CommentItem(
-                                          userId: comment['UserId'],
-                                          commentText: comment['comment'],
-                                          time: comment['times'],
-                                        );
-                                      },
-                                    ),
+                                      ListView.builder(
+                                        physics:
+                                            NeverScrollableScrollPhysics(), // Tắt scroll của ListView trong SingleChildScrollView
+                                        shrinkWrap: true,
+                                        itemCount: comments.length <= 4
+                                            ? comments.length
+                                            : 4,
+                                        itemBuilder: (context, index) {
+                                          var comment = comments[index];
+                                          return CommentItem(
+                                            userId: comment['UserId'],
+                                            commentText: comment['comment'],
+                                            time: comment['times'],
+                                          );
+                                        },
+                                      ),
                                     if (comments.length >= 4)
                                       Center(
                                         child: TextButton(
-                                          onPressed: ()
-                                          {
-                                          Navigator.push(
-                                           context,
-                                            PageRouteBuilder(
-                                              pageBuilder: (context, animation, secondaryAnimation) => FullCommentsScreen(storyId:widget.storyId, UserId: widget.UserId),
-                                              transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                                                const begin = Offset(1.0, 0.0);
-                                                const end = Offset.zero;
-                                                const curve = Curves.easeInOut;
-                                                var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
-                                                var offsetAnimation = animation.drive(tween);
-                                                return SlideTransition(
-                                                  position: offsetAnimation,
-                                                  child: child,
-                                                );
-                                              },
-                                            ),
-                                          );
+                                          onPressed: () {
+                                            Navigator.push(
+                                              context,
+                                              PageRouteBuilder(
+                                                pageBuilder: (context,
+                                                        animation,
+                                                        secondaryAnimation) =>
+                                                    FullCommentsScreen(
+                                                        storyId: widget.storyId,
+                                                        UserId: widget.UserId),
+                                                transitionsBuilder: (context,
+                                                    animation,
+                                                    secondaryAnimation,
+                                                    child) {
+                                                  const begin =
+                                                      Offset(1.0, 0.0);
+                                                  const end = Offset.zero;
+                                                  const curve =
+                                                      Curves.easeInOut;
+                                                  var tween = Tween(
+                                                          begin: begin,
+                                                          end: end)
+                                                      .chain(CurveTween(
+                                                          curve: curve));
+                                                  var offsetAnimation =
+                                                      animation.drive(tween);
+                                                  return SlideTransition(
+                                                    position: offsetAnimation,
+                                                    child: child,
+                                                  );
+                                                },
+                                              ),
+                                            );
                                           },
                                           child: Text('Xem thêm'),
                                         ),
@@ -593,60 +723,70 @@ void toggleFavorite() async {
                       ),
                     ),
                   ),
-                   
+
                   // Tab Chapters
                   Padding(
                     padding: EdgeInsets.all(8),
                     child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                           Text("Cập nhất đến chương "+ maxChap.toString()),
-                           Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            children: [
-                              GestureDetector(
-                                onTap: () {
-                                  setState(() {
-                                    showOldest = true; // Chuyển sang hiển thị cũ nhất
-                                    updateChapterOrder();
-                                  });
-                                },
-                                child: Text(
-                                  'Cũ nhất',
-                                  style: TextStyle(
-                                    color: showOldest ? Colors.red : Colors.black,
-                                    decoration: showOldest ? TextDecoration.underline : null,
+                            Text("Cập nhất đến chương " + maxChap.toString()),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 16.0, vertical: 8.0),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.end,
+                                children: [
+                                  GestureDetector(
+                                    onTap: () {
+                                      setState(() {
+                                        showOldest =
+                                            true; // Chuyển sang hiển thị cũ nhất
+                                        updateChapterOrder();
+                                      });
+                                    },
+                                    child: Text(
+                                      'Cũ nhất',
+                                      style: TextStyle(
+                                        color: showOldest
+                                            ? Colors.red
+                                            : Colors.black,
+                                        decoration: showOldest
+                                            ? TextDecoration.underline
+                                            : null,
+                                      ),
+                                    ),
                                   ),
-                                ),
-                              ),
-                              SizedBox(width: 10),
-                              GestureDetector(
-                                onTap: () {
-                                  setState(() {
-                                    showOldest = false; // Chuyển sang hiển thị mới nhất
-                                    updateChapterOrder();
-                                  });
-                                },
-                                child: Text(
-                                  'Mới nhất',
-                                  style: TextStyle(
-                                    color: !showOldest ? Colors.red : Colors.black,
-                                    decoration: !showOldest ? TextDecoration.underline : null,
+                                  SizedBox(width: 10),
+                                  GestureDetector(
+                                    onTap: () {
+                                      setState(() {
+                                        showOldest =
+                                            false; // Chuyển sang hiển thị mới nhất
+                                        updateChapterOrder();
+                                      });
+                                    },
+                                    child: Text(
+                                      'Mới nhất',
+                                      style: TextStyle(
+                                        color: !showOldest
+                                            ? Colors.red
+                                            : Colors.black,
+                                        decoration: !showOldest
+                                            ? TextDecoration.underline
+                                            : null,
+                                      ),
+                                    ),
                                   ),
-                                ),
+                                ],
                               ),
-                            ],
-                          ),
-                        ),
+                            ),
                           ],
                         ),
                         Divider(height: 1, color: Colors.grey),
-                        
                         Expanded(
                           child: ListView.builder(
                             itemCount: chapters.length,
@@ -660,32 +800,40 @@ void toggleFavorite() async {
                                       width: 40,
                                     ),
                                     title: Text('Chương $chapterNumber'),
-                                    subtitle: Text(chapters[index]['time'].toString()),
+                                    subtitle: Text(
+                                        chapters[index]['time'].toString()),
                                     onTap: () {
                                       Navigator.push(
-                                          context,
-                                          PageRouteBuilder(
-                                            pageBuilder: (context, animation, secondaryAnimation) => 
-                                            ChapterDetail(
-                                              ChapterId:chapterNumber.toString(),
-                                              chapters: chapters,
-                                              comicId: story.id,
-                                              UserId: widget.UserId,
-                                             
-                                            ),
-                                            transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                                              const begin = Offset(1.0, 0.0);
-                                              const end = Offset.zero;
-                                              const curve = Curves.easeInOut;
-                                              var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
-                                              var offsetAnimation = animation.drive(tween);
-                                              return SlideTransition(
-                                                position: offsetAnimation,
-                                                child: child,
-                                              );
-                                            },
+                                        context,
+                                        PageRouteBuilder(
+                                          pageBuilder: (context, animation,
+                                                  secondaryAnimation) =>
+                                              ChapterDetail(
+                                            ChapterId: chapterNumber.toString(),
+                                            chapters: chapters,
+                                            comicId: story.id,
+                                            UserId: widget.UserId,
                                           ),
-                                        );
+                                          transitionsBuilder: (context,
+                                              animation,
+                                              secondaryAnimation,
+                                              child) {
+                                            const begin = Offset(1.0, 0.0);
+                                            const end = Offset.zero;
+                                            const curve = Curves.easeInOut;
+                                            var tween = Tween(
+                                                    begin: begin, end: end)
+                                                .chain(
+                                                    CurveTween(curve: curve));
+                                            var offsetAnimation =
+                                                animation.drive(tween);
+                                            return SlideTransition(
+                                              position: offsetAnimation,
+                                              child: child,
+                                            );
+                                          },
+                                        ),
+                                      );
                                     },
                                   ),
                                   Divider(height: 1, color: Colors.grey),
