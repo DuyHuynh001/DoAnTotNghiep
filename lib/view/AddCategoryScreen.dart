@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:manga_application_1/model/load_data.dart';
+import 'package:manga_application_1/model/Category.dart';
+import 'package:manga_application_1/model/Community.dart';
 
 class AddCategoryScreen extends StatefulWidget {
   const AddCategoryScreen({super.key});
@@ -23,7 +24,7 @@ class _AddCategoryScreenState extends State<AddCategoryScreen> {
     }
     setState(() { isLoading = true; });
     try{
-      await saveCategory(name, title);
+      await Category.saveCategory(name, title);
       setState(() {
         isLoading = false;
         _categoryName.clear();

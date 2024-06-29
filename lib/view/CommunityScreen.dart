@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:manga_application_1/component/CommunityItem.dart';
-import 'package:manga_application_1/model/load_data.dart';
+import 'package:manga_application_1/model/Comic.dart';
+import 'package:manga_application_1/model/Community.dart';
+import 'package:manga_application_1/model/User.dart';
 import 'package:manga_application_1/view/AddPostScreen.dart';
 
 class CommunityScreen extends StatefulWidget {
@@ -70,7 +72,7 @@ class _CommunityScreenState extends State<CommunityScreen> {
             context,
             PageRouteBuilder(
               pageBuilder: (context, animation, secondaryAnimation) =>
-                  AddPost(
+              AddPost(
                 UserId: widget.UserId,
                 onPostAdded: () {
                   setState(() {
@@ -78,13 +80,11 @@ class _CommunityScreenState extends State<CommunityScreen> {
                   });
                 },
               ),
-              transitionsBuilder:
-                  (context, animation, secondaryAnimation, child) {
+              transitionsBuilder:(context, animation, secondaryAnimation, child) {
                 const begin = Offset(1.0, 0.0);
                 const end = Offset.zero;
                 const curve = Curves.easeInOut;
-                var tween = Tween(begin: begin, end: end)
-                    .chain(CurveTween(curve: curve));
+                var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
                 var offsetAnimation = animation.drive(tween);
                 return SlideTransition(
                   position: offsetAnimation,
@@ -93,11 +93,8 @@ class _CommunityScreenState extends State<CommunityScreen> {
               },
             ),
           );
-          setState(() {
-            futurePostsWithUsers = fetchPosts();
-          });
         },
-        child: Icon(
+        child: const Icon(
           Icons.create_outlined,
           size: 40,
           color: Colors.white,

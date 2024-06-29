@@ -1,6 +1,8 @@
 
 import 'package:flutter/material.dart';
-import 'package:manga_application_1/model/load_data.dart';
+import 'package:manga_application_1/model/Chapter.dart';
+import 'package:manga_application_1/model/Comic.dart';
+import 'package:manga_application_1/model/Community.dart';
 import 'package:manga_application_1/view/ComicDetailScreen.dart';
 
 class ComicItem extends StatefulWidget {

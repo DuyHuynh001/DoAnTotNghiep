@@ -1,94 +1,32 @@
-import 'dart:convert';
+
 import 'package:http/http.dart' as http;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:manga_application_1/component/ChapterDetail.dart';
 import 'package:manga_application_1/component/CommentItem.dart';
-import 'package:manga_application_1/model/load_data.dart';
+import 'package:manga_application_1/model/Comic.dart';
+import 'package:manga_application_1/model/Comment.dart';
+import 'package:manga_application_1/model/comment_analyzer.dart';
+import 'package:manga_application_1/model/text_translator.dart';
 import 'package:manga_application_1/view/FullCommentScreen.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
-class DetalTab extends StatefulWidget {
+class DetailTab extends StatefulWidget {
   final String UserId;
   final Comics story;
   final List<Map<String, dynamic>> chapters;
-  const DetalTab({super.key, required this.UserId, required this.story, required this.chapters});
+  const DetailTab({super.key, required this.UserId, required this.story, required this.chapters});
 
   @override
-  State<DetalTab> createState() => _DetalTabState();
+  State<DetailTab> createState() => _DetailTabState();
 }
 
-class _DetalTabState extends State<DetalTab> {
+class _DetailTabState extends State<DetailTab> {
   final TextEditingController commentController = TextEditingController();
   @override
     void initState() {
     super.initState();
   }
-  // Google Perspective API: API này cung cấp các công cụ để phân tích 
-  // và đánh giá tính độc hại của văn bản, bao gồm phân loại những nội dung có thể gây phản cảm, thiếu văn hóa.
   
-  Future<Map<String, dynamic>> analyzeComment(String comment) async {
-    final apiKey = dotenv.env['API_KEY']; // Replace with your actual API key
-    final url = 'https://commentanalyzer.googleapis.com/v1alpha1/comments:analyze?key=$apiKey';
-    try {
-      final response = await http.post(
-        Uri.parse(url),
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: json.encode({
-          'comment': {'text': comment},
-          'requestedAttributes': {'TOXICITY': {}},
-          'languages':['en'],  // chỉ hỗ trợ tiếng anh
-        }),
-      );
-
-      if (response.statusCode == 200) {
-        return json.decode(response.body);
-      } else {
-        throw Exception('Failed to analyze comment');
-      }
-    } catch (e) {
-      throw Exception('Failed to analyze comment');
-    }
-  }
-
-  // Sử dụng api google dịch để chuyển binhf luận sang tiếng anh
-  Future<String> translateText(String textToTranslate) async {
-    final apiTranslate = dotenv.env['API_TRANSLATE'];
-    const endpoint = 'https://google-translator9.p.rapidapi.com/v2'; 
-    final url = Uri.parse(endpoint);
-
-    try {
-      final Map<String, dynamic> body = {
-        'q': textToTranslate,
-        'source': 'vi',
-        'target': 'en',
-        'format': 'text'
-      };
-
-      final response = await http.post(
-        url,
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-          'X-RapidAPI-Key': apiTranslate!,
-          'X-RapidAPI-Host': 'google-translator9.p.rapidapi.com',
-        },
-        body: json.encode(body),
-      );
-
-      if (response.statusCode == 200) {
-        final responseBody = json.decode(response.body);
-        final translatedText = responseBody['data']['translations'][0]['translatedText'];
-        return translatedText;
-      } else {  
-        throw Exception('Failed to translate text');
-      }
-      } catch (e) {
-        throw Exception('Failed to translate text');
-      }
-  }
-
+  
   Future<void> handleComment(String comment) async {
   try {
 

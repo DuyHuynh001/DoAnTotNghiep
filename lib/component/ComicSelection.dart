@@ -1,6 +1,7 @@
 
 import 'package:flutter/material.dart';
-import 'package:manga_application_1/model/load_data.dart';
+import 'package:manga_application_1/model/Comic.dart';
+import 'package:manga_application_1/model/Community.dart';
 
 class ComicSelection extends StatefulWidget {
   final Function(Comics) onComicSelected;

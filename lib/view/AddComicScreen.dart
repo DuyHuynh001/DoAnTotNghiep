@@ -2,8 +2,9 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:manga_application_1/model/Comic.dart';
 import 'package:multi_select_flutter/multi_select_flutter.dart';
-import 'package:manga_application_1/model/load_data.dart';
+import 'package:manga_application_1/model/Community.dart';
 
 class AddComicScreen extends StatefulWidget {
   const AddComicScreen({super.key});
@@ -70,7 +71,7 @@ class _AddComicScreenState extends State<AddComicScreen> {
       final response = await http.get(Uri.parse(chaptersUrl));
       if (response.statusCode == 200) {
         Map<String, dynamic> data = json.decode(response.body);
-        await saveComicAndChaptersToFirestore(name, statusValue, urlImage, description, isNew, selectedCategories, data['data']['item']);
+        await Comics.saveComicAndChaptersToFirestore(name, statusValue, urlImage, description, isNew, selectedCategories, data['data']['item']);
         
         setState(() {
           isLoading = false;

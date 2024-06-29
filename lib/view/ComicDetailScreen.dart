@@ -3,7 +3,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:manga_application_1/component/ChapterTab.dart';
 import 'package:manga_application_1/component/DetailAndCommentTab.dart';
-import 'package:manga_application_1/model/load_data.dart';
+import 'package:manga_application_1/model/Chapter.dart';
+import 'package:manga_application_1/model/Comic.dart';
+import 'package:manga_application_1/model/Community.dart';
 import 'package:manga_application_1/component/ChapterDetail.dart';
 
 class ComicDetailScreen extends StatefulWidget {
@@ -304,7 +306,7 @@ void toggleFavorite() async {
               child: TabBarView(
                 children: [
                 // Tab Thông Tin
-                DetalTab(UserId: widget.UserId, chapters: chapters,story: story),
+                DetailTab(UserId: widget.UserId, chapters: chapters,story: story),
                 // Tab Chapters
                 ChapterTab(UserId: widget.UserId, chapters: chapters, maxChap: maxChap, story: story)
                 ],

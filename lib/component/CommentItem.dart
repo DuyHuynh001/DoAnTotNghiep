@@ -1,7 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:manga_application_1/model/load_data.dart'; // Import your User model 
+import 'package:manga_application_1/model/Community.dart';
+import 'package:manga_application_1/model/User.dart'; // Import your User model 
 
 class CommentItem extends StatefulWidget {
   final String userId;
@@ -13,7 +14,7 @@ class CommentItem extends StatefulWidget {
   _CommentItemState createState() => _CommentItemState();
 }
 class _CommentItemState extends State<CommentItem> {
-  User userData= User(Id: "", Name: "", Image: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/65/No-Image-Placeholder.svg/1665px-No-Image-Placeholder.svg.png", Email: "", Status: false, Points: 0);
+  User userData= User(Id: "", Name: "", Image: "https://firebasestorage.googleapis.com/v0/b/appdoctruyentranhonline.appspot.com/o/No-Image-Placeholder.svg.webp?alt=media&token=319ebc86-9ec0-4a16-a877-b477564b212b", Email: "", Status: false, Points: 0, IsRead: 0);
   @override
   void initState() {
     super.initState();

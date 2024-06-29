@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:manga_application_1/component/ComicItem.dart';
-import 'package:manga_application_1/model/load_data.dart';
+import 'package:manga_application_1/model/Comic.dart';
+import 'package:manga_application_1/model/Community.dart';
 
 class CategoryDetailScreen extends StatefulWidget {
   final String Name;

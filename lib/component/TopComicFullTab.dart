@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:manga_application_1/component/TopItem.dart';
-import 'package:manga_application_1/model/load_data.dart';
+import 'package:manga_application_1/model/Comic.dart';
+import 'package:manga_application_1/model/Community.dart';
 
 class TopFullComic extends StatefulWidget {
   final UserId;
@@ -33,7 +34,7 @@ class _TopFullComicState extends State<TopFullComic> {
       body: Container(
         decoration: const BoxDecoration(
           image: DecorationImage(
-            image: AssetImage("assets/img/background2.jpg"),
+            image: AssetImage("assets/img/background4.jpg"),
             fit: BoxFit.cover,
           ),
         ),

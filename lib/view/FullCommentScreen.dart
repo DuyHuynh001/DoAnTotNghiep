@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:manga_application_1/component/CommentItem.dart';
-import 'package:manga_application_1/model/load_data.dart';
+import 'package:manga_application_1/model/Comment.dart';
+import 'package:manga_application_1/model/comment_analyzer.dart';
+import 'package:manga_application_1/model/Community.dart';
+import 'package:manga_application_1/model/text_translator.dart';
 
 class FullCommentsScreen extends StatefulWidget {
   final String storyId;
@@ -22,6 +25,58 @@ class _FullCommentsScreenState extends State<FullCommentsScreen> {
     super.initState();
     _loadComments();
   }
+  Future<void> handleComment(String comment) async {
+  try {
+
+    String englishComment = await translateText(comment);  
+    final analysisResult = await analyzeComment(englishComment );
+    final double toxicityScore = analysisResult['attributeScores']['TOXICITY']['summaryScore']['value'];
+
+    if (toxicityScore < 0.5) {
+      SaveComment(comment);
+    } else {
+      _showErrorDialog(context, 'Tin nhắn của bạn chứa các từ ngữ không phù hợp!');
+    }
+    } catch (e) {
+      print('Error: $e');
+      throw e;
+    }
+  }
+
+  void _showErrorDialog(BuildContext context, String message) {
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(Radius.circular(20.0)),
+        ),
+        title:Row(
+          mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              Container(
+                child:const Row(
+                  children: [
+                    Icon(Icons.notification_important_outlined,color: Colors.black,),
+                    Text("Thông báo"),
+                  ],
+                )
+              ),
+            ],
+          ),
+          content: Text(message),
+          actions: [
+            TextButton(
+              child: Text('OK'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
 
   void _loadComments() async {
       List<DocumentSnapshot> fetchedComments = await fetchCommentsByComicId(widget.storyId);
@@ -30,7 +85,7 @@ class _FullCommentsScreenState extends State<FullCommentsScreen> {
       });
   }
 
-  void _postComment(String comment) async {
+  void SaveComment(String comment) async {
     await FirebaseFirestore.instance.collection('Comments').add({
       'comicId': widget.storyId,
       'comment': comment,
@@ -105,7 +160,7 @@ class _FullCommentsScreenState extends State<FullCommentsScreen> {
                   onPressed: () {
                     String comment = commentController.text.trim();
                     if (comment.isNotEmpty) {
-                      _postComment(comment);
+                     handleComment(comment);
                     } else {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(

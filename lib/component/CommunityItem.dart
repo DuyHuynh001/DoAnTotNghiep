@@ -1,7 +1,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:manga_application_1/model/load_data.dart'; // Import your User model 
+import 'package:manga_application_1/model/Comic.dart';
+import 'package:manga_application_1/model/Community.dart';
+import 'package:manga_application_1/model/User.dart';
+import 'package:manga_application_1/view/CommunityDetailScreen.dart';
+import 'package:manga_application_1/view/ComicDetailScreen.dart' ;
 
 class CommunityItem extends StatefulWidget {
  final Community message;
@@ -14,10 +18,18 @@ class CommunityItem extends StatefulWidget {
 }
 class _CommunityItemState extends State<CommunityItem> {
   bool isLiked=false;
+  int commentCount = 0;
   @override
   void initState() {
     super.initState();
     checkLike();
+    _loadComments();
+  }
+  void _loadComments() async {
+    List<DocumentSnapshot> fetchedComments = await Community.fetchCommentsByCommunityId(widget.message.Id);
+    setState(() {
+      commentCount = fetchedComments.length; // Đếm số lượng bình luận
+    });
   }
 
   Future<void> checkLike() async {
@@ -39,19 +51,24 @@ class _CommunityItemState extends State<CommunityItem> {
   try {
     DocumentReference communityRef =FirebaseFirestore.instance.collection('Community').doc(widget.message.Id);
      DocumentReference likeRef = FirebaseFirestore.instance.collection('Community').doc(widget.message.Id) .collection('IsLike').doc(widget.user.Id);
+    DocumentSnapshot communityDoc = await communityRef.get();
+    int currentLikes = communityDoc['like'];
     if (isLiked) {
-      // Giảm số lượt yêu thích và cập nhật Firestore
-      await communityRef.update({'like': FieldValue.increment(-1),});
+      // Giảm số lượt yêu thích và cập nhật Firestore nếu giá trị hiện tại lớn hơn 0
+      if (currentLikes > 0) {
+        await communityRef.update({'like': FieldValue.increment(-1)});
+      }
       await likeRef.delete();
       setState(() {
-        isLiked=false;
+        isLiked = false;
+        widget.message.like = currentLikes > 0 ? currentLikes - 1 : 0;
       });
     } else {
       // Tăng số lượt yêu thích và cập nhật Firestore
       await communityRef.update({'like': FieldValue.increment(1),});
       await likeRef.set({
         'UserId': widget.user.Id,
-        'timestamp': Timestamp.now(),
+        'timestamp': FieldValue.serverTimestamp(),
       });
       setState(() {
         isLiked = true;
@@ -69,14 +86,45 @@ class _CommunityItemState extends State<CommunityItem> {
     DateTime dateTime = timestamp.toDate();
     return DateFormat('dd-MM-yyyy HH:mm:ss').format(dateTime); // Định dạng thời gian
   }
+
   @override
   Widget build(BuildContext context) {
-    return Padding(
+    return GestureDetector(
+      onTap: () async {
+      bool? shouldReload = await Navigator.push(
+          context,
+            PageRouteBuilder(
+            pageBuilder: (context, animation, secondaryAnimation) => CommunityDetailScreen(
+              message: widget.message,
+              user: widget.user,
+              comic: widget.comic,
+              IsLike: isLiked,
+              
+            ),
+            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+              const begin = Offset(1.0, 0.0);
+              const end = Offset.zero;
+              const curve = Curves.easeInOut;
+              var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+              var offsetAnimation = animation.drive(tween);
+              return SlideTransition(
+                position: offsetAnimation,
+                child: child,
+              );
+            },
+          ),
+        );
+        if (shouldReload == true) {
+          _loadComments();
+        }
+      },
+      child: Padding(
       padding: EdgeInsets.fromLTRB(5, 5, 5, 15),
       child: Container( 
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(5),
-          color: Colors.lightBlue[50]
+          color: Colors.lightBlue[50],
+          border: Border.all(color: Colors.grey, width: 0.5)
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -118,8 +166,31 @@ class _CommunityItemState extends State<CommunityItem> {
               ),
             ),
             if (widget.comic != null)
-              Container(
-                padding: EdgeInsets.all(5),
+               GestureDetector(
+                onTap: () {
+                 Navigator.push(
+                  context,
+                  PageRouteBuilder(
+                    pageBuilder: (context, animation, secondaryAnimation) => ComicDetailScreen(
+                      storyId: widget.comic!.id,
+                      UserId: widget.user.Id,
+                    ),
+                    transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                      const begin = Offset(1.0, 0.0);
+                      const end = Offset.zero;
+                      const curve = Curves.easeInOut;
+                      var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+                      var offsetAnimation = animation.drive(tween);
+                      return SlideTransition(
+                        position: offsetAnimation,
+                        child: child,
+                      );
+                    },
+                  ),
+                );
+              },
+              child:Container(
+                padding: EdgeInsets.all(2),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(5),
                   color: Colors.blue[100],
@@ -130,8 +201,8 @@ class _CommunityItemState extends State<CommunityItem> {
                     ClipRRect(
                       child: Image.network(
                         widget.comic!.image,
-                        width: 60,
-                        height: 100,
+                        width: 50,
+                        height: 90,
                         fit: BoxFit.cover,
                       ),
                     ),
@@ -145,6 +216,7 @@ class _CommunityItemState extends State<CommunityItem> {
                   ],
                 ),
               ),
+            ),
             if (widget.message.imageUrl != "")
               Padding(
                 padding: EdgeInsets.all(10),
@@ -152,8 +224,8 @@ class _CommunityItemState extends State<CommunityItem> {
                   borderRadius: BorderRadius.circular(10),
                   child: Image.network(
                     widget.message.imageUrl,
-                    width: 200,
-                    height: 200,
+                    width: 180,
+                    height: 180,
                     fit: BoxFit.cover,
                   ),
                 ),
@@ -181,28 +253,52 @@ class _CommunityItemState extends State<CommunityItem> {
                     ),
                   ),
                   GestureDetector(
-                    onTap: () {
-                      // Xử lý sự kiện bình luận
-                      // Navigator.push(
-                      //   context,
-                      //   MaterialPageRoute(
-                      //     builder: (context) => CommentDetailScreen(),
-                      //   ),
-                      // );
+                    onTap: () async {
+                      bool? shouldReload = await Navigator.push(
+                      context,
+                        PageRouteBuilder(
+                        pageBuilder: (context, animation, secondaryAnimation) => CommunityDetailScreen(
+                          message: widget.message,
+                          user: widget.user,
+                          comic: widget.comic,
+                          IsLike: isLiked,
+                          
+                        ),
+                        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                          const begin = Offset(1.0, 0.0);
+                          const end = Offset.zero;
+                          const curve = Curves.easeInOut;
+                          var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+                          var offsetAnimation = animation.drive(tween);
+                          return SlideTransition(
+                            position: offsetAnimation,
+                            child: child,
+                          );
+                        },
+                      ),
+                    );
+                    if (shouldReload == true) {
+                      _loadComments();
+                    }
                     },
                     child: Row(
                       children: [
-                        Icon(Icons.comment, color: Colors.blue,size: 30,),
+                        const Icon(
+                          Icons.comment,
+                          color: Colors.blue,
+                          size: 30,
+                        ),
                         SizedBox(width: 8.0),
-                        Text('0 Bình luận'),
+                        Text('$commentCount Bình luận'),
                       ],
-                    ),
+                    )
                   ),
                 ],
               ),
             ),
           ],
         ),
+      ),
       ),
     );
   }

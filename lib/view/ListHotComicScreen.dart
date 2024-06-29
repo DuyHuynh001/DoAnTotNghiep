@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:manga_application_1/component/ComicItem.dart';
-import 'package:manga_application_1/model/load_data.dart';
+import 'package:manga_application_1/model/Comic.dart';
+import 'package:manga_application_1/model/Community.dart';
 
 class ListHotComicScreen extends StatefulWidget {
   final String UserId; // Thay đổi UserId thành userId để tuân thủ conventions
@@ -110,23 +111,23 @@ class _ListHotComicScreenState extends State<ListHotComicScreen> {
           isLoading
             ? Center(child: CircularProgressIndicator())
             : hotComicsList.isEmpty
-                ? Center(
-                    child: Text('Không có truyện theo trạng thái này'),
-                  )
-                : Expanded(
-                    child: ListView.builder(
-                      shrinkWrap: true,
-                      physics: AlwaysScrollableScrollPhysics(),
-                      itemCount: hotComicsList.length,
-                      itemBuilder: (context, index) {
-                        Comics comic = hotComicsList[index];
-                        return ComicItem(
-                          comic: comic,
-                          UserId: widget.UserId,
-                        );
-                      },
-                    ),
-                  ),
+            ? Center(
+                child: Text('Không có truyện theo trạng thái này'),
+              )
+            : Expanded(
+                child: ListView.builder(
+                  shrinkWrap: true,
+                  physics: AlwaysScrollableScrollPhysics(),
+                  itemCount: hotComicsList.length,
+                  itemBuilder: (context, index) {
+                    Comics comic = hotComicsList[index];
+                    return ComicItem(
+                      comic: comic,
+                      UserId: widget.UserId,
+                    );
+                  },
+                ),
+                ),
         ],
       ),
     );

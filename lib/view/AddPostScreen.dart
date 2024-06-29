@@ -4,7 +4,9 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:manga_application_1/component/ComicSelection.dart';
-import 'package:manga_application_1/model/load_data.dart';
+import 'package:manga_application_1/model/Comic.dart';
+import 'package:manga_application_1/model/comment_analyzer.dart';
+import 'package:manga_application_1/model/text_translator.dart';
 
 class AddPost extends StatefulWidget {
   final String UserId;
@@ -39,8 +41,7 @@ class _AddPostState extends State<AddPost> {
         pageBuilder: (context, animation, secondaryAnimation) => ComicSelection(
           onComicSelected: (selectedComic) {
             setState(() {
-              _selectedComic = selectedComic;
-              print(_selectedComic);
+              _selectedComic = selectedComic ;
             });
             Navigator.of(context).pop(); 
           },
@@ -70,6 +71,61 @@ class _AddPostState extends State<AddPost> {
     }
   }
 
+  Future<void> handleComment(String comment) async {
+  try {
+
+    String englishComment = await translateText(comment);  
+    final analysisResult = await analyzeComment(englishComment );
+    final double toxicityScore = analysisResult['attributeScores']['TOXICITY']['summaryScore']['value'];
+
+    if (toxicityScore < 0.5) {
+      _uploadPost();
+    } else {
+      
+      _showErrorDialog(context, 'Tin nhắn của bạn chứa các từ ngữ không phù hợp!');
+    }
+    } catch (e) {
+      print('Error: $e');
+      throw e;
+    }
+  }
+
+  void _showErrorDialog(BuildContext context, String message) {
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(Radius.circular(20.0)),
+        ),
+        title:Row(
+          mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              Container(
+                child:const Row(
+                  children: [
+                    Icon(Icons.notification_important_outlined,color: Colors.black,),
+                    Text("Thông báo"),
+                  ],
+                )
+              ),
+            ],
+          ),
+          content: Text(message),
+          actions: [
+            TextButton(
+              child: Text('OK'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+
   Future<void> _uploadPost() async {
   try {
     Map<String, dynamic> postData = {
@@ -77,7 +133,6 @@ class _AddPostState extends State<AddPost> {
       'userId': widget.UserId,
       'timestamp': FieldValue.serverTimestamp(),
       'like': 0,
-
     };
 
     if (_image != null) {
@@ -141,7 +196,14 @@ class _AddPostState extends State<AddPost> {
                 TextButton(
                   child: Text('Đăng',style: TextStyle(color: Colors.white, fontSize: 16), ),
                   onPressed: () {
-                    _uploadPost();
+                    if(_postContentController.text.trim().isNotEmpty)
+                      handleComment(_postContentController.text.trim());
+                    else
+                    {
+                     ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Vui lòng nhập bình luận'), duration: Duration(seconds: 1), ),
+                      );
+                    }
                   },
                 ),
               ],

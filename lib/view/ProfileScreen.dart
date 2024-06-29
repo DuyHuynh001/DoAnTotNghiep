@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:manga_application_1/model/load_data.dart';
+import 'package:manga_application_1/model/Community.dart';
+import 'package:manga_application_1/model/User.dart';
 import 'package:manga_application_1/view/AddCategoryScreen.dart';
 import 'package:manga_application_1/view/LoginScreen.dart';
 import 'package:manga_application_1/view/tam.dart';
@@ -61,10 +62,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
     _calculateLevel();
-
     return Scaffold(
-      appBar: AppBar(
-        title: Text("Màn Hình cá nhân"),
+      appBar: AppBar( 
         actions: [
           IconButton(
             icon: const Icon(Icons.logout, color: Colors.black),
@@ -88,98 +87,139 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
         ],
       ),
-      body: _user != null
-          ? Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  CircleAvatar(
-                    backgroundImage: AssetImage('assets/img/hinh1.jpg'),
-                    radius: 50,
-                  ),
-                  SizedBox(height: 20),
-                  Text(
-                    'Username: ${_user!.Name}',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                  SizedBox(height: 10),
-                  Text(
-                    'Email: ${_user!.Email}',
-                    style: TextStyle(fontSize: 16),
-                  ),
-                  SizedBox(height: 20),
-                  Container(
-                    padding: EdgeInsets.all(5),
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [Colors.blueAccent, Colors.lightBlueAccent],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                      border: Border.all(color: Colors.blueAccent, width: 2),
-                      borderRadius: BorderRadius.circular(15),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.blueAccent.withOpacity(0.1),
-                          spreadRadius: 3,
-                          blurRadius: 7,
-                        
-                        ),
-                      ],
-                    ),
-                    child: Text(
-                      'Level: $userLevel',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                        shadows: [
-                          Shadow(
-                            blurRadius: 10.0,
-                            color: Colors.black45,
-                            offset: Offset(2.0, 2.0),
+      body: SingleChildScrollView(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+           Container(
+            decoration:  BoxDecoration(
+              image: DecorationImage(
+                image: AssetImage('assets/img/background5.jpg'),
+                fit: BoxFit.cover,
+              ),
+              border: Border.all(color: Colors.grey.shade400, width: 1),
+            ),
+            child: Column(
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      padding: EdgeInsets.all(10),
+                      child: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          Container(
+                            width: 100,
+                            height: 100,
+                            decoration: const BoxDecoration(
+                              shape: BoxShape.circle,
+                              image: DecorationImage(
+                                image: AssetImage('assets/img/khungavt.png'),
+                                fit: BoxFit.cover,
+                              ),
+                            ),
+                          ),
+                          CircleAvatar(
+                            backgroundImage: NetworkImage(_user!.Image),
+                            radius: 35,
                           ),
                         ],
                       ),
                     ),
-                  ),
-                  SizedBox(height: 20),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: Column(
+                    Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          'Tiến độ đọc:',
-                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                        Row(
+                          children: [
+                            Text('${_user!.Name}',style: const TextStyle( fontSize: 20,   fontWeight: FontWeight.bold, ),),
+                          ],
                         ),
-                        Padding(
-                          padding: const EdgeInsets.all(15.0),
-                          child: LinearPercentIndicator(
-                            width: MediaQuery.of(context).size.width - 100,
-                            animation: true,
-                            lineHeight: 20.0,
-                            animationDuration: 2000,
-                            percent: progressPercentage,
-                            center: Text(
-                              "${(progressPercentage * 100).toStringAsFixed(1)}%",
-                              style: TextStyle(color: Colors.white),
+                        SizedBox(height: 17),
+                        Row(
+                          children: [
+                            LinearPercentIndicator(
+                              width: MediaQuery.of(context).size.width / 1.8,
+                              animation: true,
+                              lineHeight: 20.0,
+                              animationDuration: 2000,
+                              percent: progressPercentage,
+                              center: Text(
+                                "${(progressPercentage * 100).toStringAsFixed(1)}%",
+                                style: TextStyle(color: Colors.white),
+                              ),
+                              linearStrokeCap: LinearStrokeCap.roundAll,
+                              progressColor: Color.fromARGB(255, 58, 144, 255),
+                              backgroundColor: Colors.grey,
                             ),
-                            linearStrokeCap: LinearStrokeCap.roundAll,
-                            progressColor: Colors.greenAccent,
-                            backgroundColor: Colors.grey,
-                          ),
+                          ],
                         ),
-                        Header()
                       ],
                     ),
+                  ],
+                ),
+                Padding(
+                  padding: EdgeInsets.only(top: 10, left: 40, right: 40, bottom: 10),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Container(
+                        padding: EdgeInsets.all(5),
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [Colors.blueAccent, Colors.lightBlueAccent],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          border: Border.all(color: Colors.blueAccent, width: 2),
+                          borderRadius: BorderRadius.circular(15),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.blueAccent.withOpacity(0.1),
+                              spreadRadius: 3,
+                              blurRadius: 7,
+                            ),
+                          ],
+                        ),
+                        child: Text(
+                          'Level: $userLevel',
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                            shadows: [
+                              Shadow(
+                                blurRadius: 10.0,
+                                color: Colors.black45,
+                                offset: Offset(2.0, 2.0),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const Column(
+                        children: [
+                          Text(
+                            "300",
+                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                          ),
+                          Text(
+                            "Xu của tôi",
+                            style: TextStyle(fontSize: 16),
+                          )
+                        ],
+                      ),
+                    ],
                   ),
-                ],
-              ),
-            )
-          : Center(
-              child: CircularProgressIndicator(),
+                ),
+              ],
             ),
+          ),
+          // Divider(color: Colors.grey, thickness: 1),
+          Header()
+          ],
+        
+        ),
+      ),
     );
   }
 }
