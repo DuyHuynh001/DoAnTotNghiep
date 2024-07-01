@@ -9,8 +9,9 @@ import 'package:manga_application_1/model/text_translator.dart';
 class FullCommentsScreen extends StatefulWidget {
   final String storyId;
   final String UserId;
+  final String Name;
 
-  const FullCommentsScreen({Key? key, required this.storyId, required this.UserId}) : super(key: key);
+  const FullCommentsScreen({Key? key, required this.storyId, required this.UserId, required this.Name}) : super(key: key);
 
   @override
   _FullCommentsScreenState createState() => _FullCommentsScreenState();
@@ -90,7 +91,8 @@ class _FullCommentsScreenState extends State<FullCommentsScreen> {
       'comicId': widget.storyId,
       'comment': comment,
       'times': FieldValue.serverTimestamp(),
-      'UserId': widget.UserId
+      'UserId': widget.UserId,
+      'comicName':widget.Name
     });
     setState(() {});
     commentController.clear();

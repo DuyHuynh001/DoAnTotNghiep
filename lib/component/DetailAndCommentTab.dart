@@ -87,7 +87,8 @@ class _DetailTabState extends State<DetailTab> {
       'comicId': widget.story.id,
       'comment': comment,
       'times': FieldValue.serverTimestamp(),
-      'UserId': widget.UserId
+      'UserId': widget.UserId,
+      'comicName':widget.story.name
     });
     setState(() {});
     // Xóa nội dung trong TextField sau khi gửi comment thành công
@@ -275,7 +276,7 @@ class _DetailTabState extends State<DetailTab> {
                               Navigator.push(
                                 context,
                                 PageRouteBuilder(
-                                  pageBuilder: (context, animation, secondaryAnimation) => FullCommentsScreen(storyId:widget.story.id, UserId: widget.UserId),
+                                  pageBuilder: (context, animation, secondaryAnimation) => FullCommentsScreen(storyId:widget.story.id, UserId: widget.UserId, Name: widget.story.name,),
                                   transitionsBuilder: (context, animation, secondaryAnimation, child) {
                                     const begin = Offset(1.0, 0.0);
                                     const end = Offset.zero;

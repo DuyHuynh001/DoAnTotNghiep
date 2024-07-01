@@ -31,7 +31,7 @@ class User {
     );
   }
 
-  static Future<User> fetchUserById(String id) async {
+   static Future<User> fetchUserById(String id) async {
     try {
       DocumentSnapshot doc = await FirebaseFirestore.instance
           .collection('User')
@@ -48,7 +48,21 @@ class User {
       throw Exception('Lỗi khi tải thông tin người dùng theo id: $e');
     }
   }
+
+  static Stream<User> getUserStream(String id) {
+    return FirebaseFirestore.instance
+        .collection('User')
+        .doc(id)
+        .snapshots()
+        .map((snapshot) {
+      if (!snapshot.exists) {
+        throw Exception('Không tìm thấy người dùng với id: $id');
+      }
+      return User.fromJson(snapshot.id, snapshot.data() as Map<String, dynamic>);
+    });
+  }
 }
+  
 
 
 

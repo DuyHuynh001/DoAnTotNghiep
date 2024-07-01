@@ -63,6 +63,46 @@ class Community {
       throw e; 
     }
   }
+  static Future<List<Map<String, dynamic>>> fetchCommunityPostsWithUsersId(String UserId) async {
+    try {
+      List<Map<String, dynamic>> postsWithUsersAndComics = [];
+      QuerySnapshot snapshot = await FirebaseFirestore.instance
+          .collection('Community')
+          .where('userId',isEqualTo: UserId)
+          .orderBy('timestamp', descending: true)
+          .get();
+
+      for (var doc in snapshot.docs) {
+        Community post = Community.fromJson(doc.id, doc.data() as Map<String, dynamic>);
+        DocumentSnapshot userSnapshot = await FirebaseFirestore.instance
+            .collection('User')
+            .doc(post.UserId)
+            .get();
+        User user = User.fromJson(userSnapshot.id, userSnapshot.data() as Map<String, dynamic>);
+        Comics? comic;
+        if (post.ComicId.isNotEmpty) {
+          DocumentSnapshot comicSnapshot = await FirebaseFirestore.instance
+              .collection('Comics')
+              .doc(post.ComicId)
+              .get();
+
+          if (comicSnapshot.exists) {
+            comic = Comics.fromJson(comicSnapshot.id, comicSnapshot.data() as Map<String, dynamic>);
+          }
+        }
+        Map<String, dynamic> postWithUserAndComic = {
+          'post': post,
+          'user': user,
+          'comic': comic,
+        };
+        postsWithUsersAndComics.add(postWithUserAndComic);
+      }
+      return postsWithUsersAndComics;
+    } catch (e) {
+      print('Error fetching posts: $e');
+      throw e; 
+    }
+  }
 
   static  Future<List<DocumentSnapshot>> fetchCommentsByCommunityId(String communityId) async {
     try {
