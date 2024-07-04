@@ -1,9 +1,13 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:http/http.dart' as http;
+import 'package:manga_application_1/model/Comic.dart';
+import 'package:manga_application_1/view/ManagerComics.dart';
 
 class EditComics extends StatefulWidget {
   final String name;
@@ -24,10 +28,11 @@ class _EditProfileState extends State<EditComics> {
   File? _imageFile;
   String? _imageUrl;
   bool _isLoading = false;
-
+  List<Comics> comicsList = [];
   @override
   void initState() {
     super.initState();
+    loadComicsFromFirestore();
     _nameController.text = widget.name;
     _descriptionController.text = widget.description;
   }
@@ -41,6 +46,26 @@ class _EditProfileState extends State<EditComics> {
         _imageUrl = null;
       }
     });
+  }
+
+  void loadComicsFromFirestore() async {
+    try {
+      Query query = FirebaseFirestore.instance.collection('Comics');
+      QuerySnapshot querySnapshot = await query.get();
+      List<Comics> comics = querySnapshot.docs.map((doc) {
+        Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+        return Comics.fromJson(doc.id, data);
+      }).toList();
+      setState(() {
+        comicsList = comics;
+        _isLoading = false;
+      });
+    } catch (e) {
+      print('Error getting documents: $e');
+      setState(() {
+        _isLoading = false;
+      });
+    }
   }
 
   // lưu ảnh vào stogare và firestore
@@ -94,7 +119,7 @@ class _EditProfileState extends State<EditComics> {
     }
   }
 
-  void _saveComics() {
+  void _saveComics() async {
     if (_nameController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Vui lòng nhập tên truyện trước khi lưu')),
@@ -114,12 +139,12 @@ class _EditProfileState extends State<EditComics> {
     } else {
       _saveComicsToFirestore(_imageUrl ?? '');
     }
-    // Navigator.of(context).pop(true);
+    Navigator.of(context).pop();
   }
 
   void deleteComic(String docId) async {
     try {
-      await FirebaseFirestore.instance.collection('Comics').doc(docId).delete();
+      await FirebaseFirestore.instance.collection("Comics").doc(docId).delete();
       print('Xóa tài liệu thành công');
     } catch (e) {
       print('Lỗi khi xóa tài liệu: $e');
@@ -137,73 +162,45 @@ class _EditProfileState extends State<EditComics> {
                 fontWeight: FontWeight.bold, color: Colors.black, fontSize: 20),
           ),
           contentPadding: const EdgeInsets.only(top: 10.0),
-          content: Column(
-            children: [
-              const Text("Bạn có muốn xóa không?"),
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: <Widget>[
-                  Container(
-                    width: double.infinity,
-                    child: TextButton(
-                      onPressed: () {
-                        deleteComic(widget.id);
-                        Navigator.of(context).pop();
-                      },
-                      child: const Text(
-                        'Xác nhận',
-                        style: TextStyle(color: Colors.blue),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Padding(
+                  padding: EdgeInsets.all(8.0),
+                  child: Text("Bạn có muốn xóa không?"),
+                ),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: <Widget>[
+                    Expanded(
+                      child: TextButton(
+                        onPressed: () {
+                          deleteComic(widget.id);
+                          Navigator.of(context).pop();
+                        },
+                        child: const Text(
+                          'Xác nhận',
+                          style: TextStyle(color: Colors.blue),
+                        ),
                       ),
                     ),
-                  ),
-                  Container(
-                    width: double.infinity,
-                    child: TextButton(
-                      onPressed: () {
-                        // Thực hiện hành động xóa
-                        Navigator.of(context).pop();
-                      },
-                      child: Text(
-                        'Đóng',
-                        style: TextStyle(color: Colors.red),
+                    const SizedBox(width: 8), // Khoảng cách giữa hai nút
+                    Expanded(
+                      child: TextButton(
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                        },
+                        child: const Text(
+                          'Đóng',
+                          style: TextStyle(color: Colors.red),
+                        ),
                       ),
                     ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  void _showImageSourceDialog() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Chọn nguồn ảnh'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ListTile(
-                leading: Icon(Icons.photo_library),
-                title: Text('Chọn từ máy'),
-                onTap: () {
-                  Navigator.of(context).pop();
-                  _pickImageFromGallery();
-                },
-              ),
-              ListTile(
-                leading: Icon(Icons.link),
-                title: Text('Nhập URL ảnh'),
-                onTap: () {
-                  Navigator.of(context).pop();
-                  _showImageUrlDialog();
-                },
-              ),
-            ],
+                  ],
+                ),
+              ],
+            ),
           ),
         );
       },
