@@ -1,5 +1,7 @@
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:manga_application_1/model/Chapter.dart';
 import 'package:manga_application_1/model/Comic.dart';
 import 'package:manga_application_1/model/Community.dart';
@@ -29,6 +31,11 @@ class _ComicItemState extends State<ComicItem> {
     setState(() {
       chapters = fetchedChapters;
     });
+  }
+  
+  String formatTimestamp(Timestamp timestamp) {
+    DateTime dateTime = timestamp.toDate();
+    return DateFormat('dd-MM-yyyy HH:mm:ss').format(dateTime);
   }
 
   @override
@@ -75,6 +82,8 @@ class _ComicItemState extends State<ComicItem> {
                 Text(widget.comic.name,style: const TextStyle(fontSize: 18.0, fontWeight: FontWeight.bold),),
                 SizedBox(height: 7),
                 Text('Chương: $maxChap',style:const TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),),
+                SizedBox(height: 7),
+                Text(formatTimestamp(widget.comic.addtime),style:const TextStyle(fontSize: 16.0),),
                 SizedBox(height: 7),
                 Text(widget.comic.genre.join(' - '),style: TextStyle(fontSize: 14.0, color: Colors.grey[600]),maxLines: 2,overflow: TextOverflow.ellipsis,),
                 SizedBox(height: 5),

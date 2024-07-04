@@ -2,10 +2,12 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:manga_application_1/model/User.dart';
 import 'package:manga_application_1/component/EditProfile.dart';
+import 'package:manga_application_1/view/ChangePasswordScreen.dart';
 import 'package:manga_application_1/view/HistoryScreen.dart';
 import 'package:manga_application_1/view/IntroduceScreen.dart';
 import 'package:manga_application_1/view/LoginScreen.dart';
 import 'package:manga_application_1/view/MyCommentScreen.dart';
+import 'package:manga_application_1/view/UsedTimeScreen.dart';
 import 'package:manga_application_1/view/tam1.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:percent_indicator/percent_indicator.dart';
@@ -20,7 +22,6 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  int currentIsRead =0;
   int requiredIsRead = 0;
   double progressPercentage = 0;
   int userLevel = 1;
@@ -37,12 +38,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
     if (user != null) {
       setState(() {
         _user = user;
+        _calculateLevel(_user.IsRead);
+        _calculateProgress(_user.IsRead);
       });
+      _checkAttendanceStatus(); 
     }
-    currentIsRead=_user.IsRead;
-    _checkAttendanceStatus(); 
-    _calculateLevel();
-    _calculateProgress();
   }
 
   Future<void> _checkAttendanceStatus() async {
@@ -69,15 +69,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
-  void _calculateProgress() {
-    setState(() {
+  void _calculateProgress(int currentIsRead) {
+    // setState(() {
       progressPercentage = currentIsRead / requiredIsRead;
-    });
+    // });
   }
 
   Future<void> _markAttendance() async {
     if (_isMarked) return;
-
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
 
@@ -94,7 +93,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
         _isMarked = true;
       });
     } catch (e) {
-      // Handle error if needed
     }
   }
 
@@ -118,39 +116,38 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );  
   }
 
-  void _calculateLevel() {
-    setState(() {
+  void _calculateLevel(int currentIsRead) {
       if (currentIsRead>0 && currentIsRead <= 100) {
         userLevel = 1;
-        requiredIsRead = 500;
+        requiredIsRead = 100;
       } else if (currentIsRead <= 500) {
         userLevel = 2;
-        requiredIsRead = 1000;
+        requiredIsRead = 500;
       } else if (currentIsRead <= 1000) {
         userLevel = 3;
-        requiredIsRead = 2000;
+        requiredIsRead = 1000;
       }else if (currentIsRead <= 2000) {
         userLevel = 4;
-        requiredIsRead = 5000;
+        requiredIsRead = 2000;
       } else if (currentIsRead <= 5000) {
         userLevel = 5;
-        requiredIsRead = 10000;
+        requiredIsRead = 5000;
       } else if (currentIsRead <= 10000) {
         userLevel = 6;
-        requiredIsRead = 20000;
+        requiredIsRead = 10000;
       } else if (currentIsRead <= 20000) {
         userLevel = 7;
-        requiredIsRead = 30000;
-      } else if (currentIsRead <= 30000) {
+        requiredIsRead = 20000;
+      } else if (currentIsRead <= 50000) {
         userLevel = 8;
         requiredIsRead = 50000;
-      } else if (currentIsRead <= 50000) {
+      } else if (currentIsRead <= 100000) {
         userLevel = 9;
+        requiredIsRead=100000;
       } else {
         userLevel = 10;
         requiredIsRead = 999999;
-      }
-    });
+      } 
   }
   
   @override
@@ -168,6 +165,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   return CircularProgressIndicator();
                 } else {
                 _user = snapshot.data!;
+                _calculateLevel(_user.IsRead);
+                _calculateProgress(_user.IsRead);
                 return Container(
                   decoration:  BoxDecoration(
                     image: const DecorationImage(
@@ -221,7 +220,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                       animationDuration: 2000,
                                       percent: progressPercentage,
                                       center: Text(
-                                        "${currentIsRead}/${requiredIsRead}",
+                                        "${_user.IsRead}/${requiredIsRead}",
                                         style: TextStyle(color: Colors.white),
                                       ),
                                       linearStrokeCap: LinearStrokeCap.roundAll,
@@ -512,13 +511,36 @@ class _ProfileScreenState extends State<ProfileScreen> {
               },
             ),
             _buildFunctionButton(
-              icon: Icons.messenger,
+              icon: Icons.comment,
               label: "Bình luận của tôi",
               onPressed: () {
                 Navigator.push(
                   context,
                   PageRouteBuilder(
                   pageBuilder: (context, animation, secondaryAnimation) => MyCommentScreen(UserId:widget.userId),
+                  transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                    const begin = Offset(1.0, 0.0);
+                    const end = Offset.zero;
+                    const curve = Curves.easeInOut;
+                    var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+                    var offsetAnimation = animation.drive(tween);
+                    return SlideTransition(
+                      position: offsetAnimation,
+                      child: child,
+                    );
+                  },
+                ),
+                );
+              },
+            ),
+             _buildFunctionButton(
+              icon: Icons.bar_chart_outlined,
+              label: "Thời gian hoạt động",
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  PageRouteBuilder(
+                  pageBuilder: (context, animation, secondaryAnimation) => UsedTimeScreen(UserId:widget.userId),
                   transitionsBuilder: (context, animation, secondaryAnimation, child) {
                     const begin = Offset(1.0, 0.0);
                     const end = Offset.zero;
@@ -598,7 +620,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           children: [
             _buildFunctionButton(
               icon: Icons.error_outline_rounded,
-              label: "Giới thiệu sản phẩm",
+              label: "Giới thiệu",
               onPressed: () {
                 Navigator.push(
                   context,
@@ -613,6 +635,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
               icon: Icons.vpn_key,
               label: "Đổi mật khẩu",
               onPressed: () {
+                Navigator.push(
+                  context,
+                  PageRouteBuilder(
+                  pageBuilder: (context, animation, secondaryAnimation) => ChangePasswordScreen(email:_user.Email),
+                  transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                    const begin = Offset(1.0, 0.0);
+                    const end = Offset.zero;
+                    const curve = Curves.easeInOut;
+                    var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+                    var offsetAnimation = animation.drive(tween);
+                    return SlideTransition(
+                      position: offsetAnimation,
+                      child: child,
+                    );
+                  },
+                ),
+                );
                 
               },
             ),

@@ -23,18 +23,17 @@ class _ComicDetailScreenState extends State<ComicDetailScreen> {
   bool isFavorited = false;
   bool isView = false;
   List<Map<String, dynamic>> chapters = [];
- 
-  
-  Comics story= Comics(id: "", name: '', description: "", genre: [], image: "https://firebasestorage.googleapis.com/v0/b/appdoctruyentranhonline.appspot.com/o/No-Image-Placeholder.svg.webp?alt=media&token=319ebc86-9ec0-4a16-a877-b477564b212b", source: "", status: "", chapters: [],favorites:0, view:0);
+  Comics story= Comics(id: "", name: '', description: "", genre: [], image: "https://firebasestorage.googleapis.com/v0/b/appdoctruyentranhonline.appspot.com/o/No-Image-Placeholder.svg.webp?alt=media&token=319ebc86-9ec0-4a16-a877-b477564b212b", source: "", status: "", chapters: [],favorites:0, view:0, addtime:Timestamp.now());
  
  @override
   void initState() {
     super.initState();
-   _loadComic();
-   _loadChapters(); 
+    _loadComic();
+    _loadChapters(); ;
     checkFavoriteStatus();
     checkViewStatus();
   }
+
   void _loadComic() async {
     Comics fetchedComic = await Comics.fetchComicsById(widget.storyId);
     setState(() { story = fetchedComic; });
@@ -44,7 +43,7 @@ class _ComicDetailScreenState extends State<ComicDetailScreen> {
     setState(() {
       chapters = fetchedChapters;
       if (chapters.isNotEmpty) {
-        // Sắp xếp bằng cách chuyển 'id' thành kiểu double để so sánh
+
         chapters.sort((a, b) {
           double idA = double.tryParse(a['id'].toString()) ?? double.negativeInfinity;
           double idB = double.tryParse(b['id'].toString()) ?? double.negativeInfinity;
@@ -111,55 +110,55 @@ void toggleFavorite() async {
       });
     }
     _loadComic();
-  } catch (e) {
-    print('Lỗi khi cập nhật số lượt yêu thích: $e');
-  }
-}
-  void toggleView() async {
-  try {
-    DocumentReference comicRef =FirebaseFirestore.instance.collection('Comics').doc(widget.storyId);
-    DocumentReference viewRef = FirebaseFirestore.instance .collection('User').doc(widget.UserId).collection('ViewList').doc(widget.storyId);
-    if (isView) {
-      await comicRef.update({'view': FieldValue.increment(-1),});
-      // Xóa khỏi danh sách theo dõi
-      await viewRef.delete();
-      setState(() {
-        isView = false;
-        isButtonView = false;
-      });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Bạn đã bỏ theo dõi truyện ' + story.name),
-          duration: Duration(seconds: 2),
-        ),
-      );
-    } else {
-      await comicRef.update({'view': FieldValue.increment(1),});
-      // Thêm vào danh sách theo dõi
-      await viewRef.set({
-        'comicId': widget.storyId,
-        'timestamp': Timestamp.now(),
-        'name': story.name,
-        'image':story.image
-      });
-     
-      setState(() {
-        isView = true;
-        isButtonView = true;
-      });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Đã theo dõi truyện ' + story.name),
-          duration: Duration(seconds:2),
-          elevation: 4.0,
-        ),
-      );
+    } catch (e) {
+      print('Lỗi khi cập nhật số lượt yêu thích: $e');
     }
-     _loadComic();
-  } catch (e) {
-    print('Lỗi khi cập nhật danh sách theo dõi: $e');
   }
-}
+  void toggleView() async {
+    try {
+      DocumentReference comicRef =FirebaseFirestore.instance.collection('Comics').doc(widget.storyId);
+      DocumentReference viewRef = FirebaseFirestore.instance .collection('User').doc(widget.UserId).collection('ViewList').doc(widget.storyId);
+      if (isView) {
+        await comicRef.update({'view': FieldValue.increment(-1),});
+        // Xóa khỏi danh sách theo dõi
+        await viewRef.delete();
+        setState(() {
+          isView = false;
+          isButtonView = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Bạn đã bỏ theo dõi truyện ' + story.name),
+            duration: Duration(seconds: 2),
+          ),
+        );
+      } else {
+        await comicRef.update({'view': FieldValue.increment(1),});
+        // Thêm vào danh sách theo dõi
+        await viewRef.set({
+          'comicId': widget.storyId,
+          'timestamp': Timestamp.now(),
+          'name': story.name,
+          'image':story.image
+        });
+      
+        setState(() {
+          isView = true;
+          isButtonView = true;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Đã theo dõi truyện ' + story.name),
+            duration: Duration(seconds:2),
+            elevation: 4.0,
+          ),
+        );
+      }
+      _loadComic();
+    } catch (e) {
+      print('Lỗi khi cập nhật danh sách theo dõi: $e');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -305,9 +304,7 @@ void toggleFavorite() async {
             Expanded(
               child: TabBarView(
                 children: [
-                // Tab Thông Tin
                 DetailTab(UserId: widget.UserId, chapters: chapters,story: story),
-                // Tab Chapters
                 ChapterTab(UserId: widget.UserId, chapters: chapters, maxChap: maxChap, story: story)
                 ],
               ),

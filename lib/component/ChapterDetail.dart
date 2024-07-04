@@ -1,11 +1,19 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:manga_application_1/model/Comic.dart';
 import 'package:manga_application_1/model/Community.dart';
 import 'package:http/http.dart' as http;
+import 'package:flutter_windowmanager/flutter_windowmanager.dart';
+import 'package:manga_application_1/view/ProfileScreen.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:google_ml_kit/google_ml_kit.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_tts/flutter_tts.dart';
+
 
 class ChapterDetail extends StatefulWidget {
   final String chapterId;
@@ -21,6 +29,8 @@ class ChapterDetail extends StatefulWidget {
 
 class _ChapterDetailState extends State<ChapterDetail> {
   late Timer readTimer;    // thời gian đọc
+  int totalReadingSeconds=0;
+  late DateTime fullreadTimer;    // thời gian đọc
   late DateTime startTime;  // tg bắt đầu đọc
   late String chapterId = widget.chapterId;
   late Map<String, dynamic> currentChapter;
@@ -34,6 +44,10 @@ class _ChapterDetailState extends State<ChapterDetail> {
   Timer? autoPlayTimer;
   List<String> imageUrls = [];
   ScrollController scrollController = ScrollController();
+  final TextRecognizer textRecognizer = GoogleMlKit.vision.textRecognizer();
+  FlutterTts flutterTts = FlutterTts();
+  List<String> recognizedTexts = [];
+  bool isTTSPlaying = false;
 
   @override
   void initState() {
@@ -45,18 +59,32 @@ class _ChapterDetailState extends State<ChapterDetail> {
     getCurrentChapter();
     autoUnlockVipChapter();
   }
-  
+
   @override
   void dispose() {
     autoPlayTimer?.cancel();
     scrollController.dispose();
-    readTimer.cancel(); // Hủy bỏ timer khi widget bị dispose
+    readTimer.cancel();
+    unsecureScreen();
     super.dispose();
+    updateReadingTime();
+    flutterTts.stop();
+    textRecognizer.close();
   }
+  // không cho chụp màn hình
+  Future<void> secureScreen() async {
+    await FlutterWindowManager.addFlags(FlutterWindowManager.FLAG_SECURE);
+  }
+  // cho phép dc chụp màn hình
+  Future<void> unsecureScreen() async {
+    await FlutterWindowManager.clearFlags(FlutterWindowManager.FLAG_SECURE);
+  }
+
   Future<void> fetchDataChapterFromFirestore(String comicId, String chapterId) async {
     setState(() {
       isLoading = true;
       imageUrls = [];
+      recognizedTexts = [];
     });
 
     try {
@@ -67,13 +95,15 @@ class _ChapterDetailState extends State<ChapterDetail> {
       }
 
       Map<String, dynamic> data = chapterSnapshot.data() as Map<String, dynamic>;
-      bool isVipChapter = data['vip'];
+      isVipChapter = data['vip'];
 
       if (!isVipChapter) {
-         setState(() { canRead = true; });
-         await fetchData(data['chapterApiData']);
-      }
-      else{
+        setState(() {
+          canRead = true;
+        });
+        await unsecureScreen();
+        await fetchData(data['chapterApiData']);
+      } else {
         DocumentSnapshot unlockedChapterSnapshot = await FirebaseFirestore.instance.collection('User').doc(widget.UserId).collection('UnlockedChapters').doc(comicId + chapterId).get();
 
         if (unlockedChapterSnapshot.exists) {
@@ -82,43 +112,141 @@ class _ChapterDetailState extends State<ChapterDetail> {
           DateTime now = DateTime.now();
 
           if (unlockedChapterSnapshot['chapterId'] == chapterId && now.difference(unlockedAtDate).inHours < 24) {
-            setState(() { canRead = true; });
+            setState(() {
+              canRead = true;
+            });
+            await secureScreen();
             await fetchData(data['chapterApiData']);
+            // startTTS();
           } else {
-            setState(() { canRead = false; });
+            setState(() {
+              canRead = false;
+            });
+            await unsecureScreen();
           }
         } else {
-          setState(() { canRead = false; });
+          setState(() {
+            canRead = false;
+          });
+          await unsecureScreen();
         }
-      } 
+      }
     } catch (e) {
       print('Error fetching chapter data: $e');
     } finally {
-      setState(() { isLoading = false; });
-    }
-  }
-
-  Future<void> fetchData(String apiUrl) async {
-    try {
-      final response = await http.get(Uri.parse(apiUrl));
-      if (response.statusCode == 200) {
-        Map<String, dynamic> data = json.decode(response.body);
-        List<dynamic> images = data['data']['item']['chapter_image'];
-        List<String> urls = images.map((image) => '${data['data']['domain_cdn']}/${data['data']['item']['chapter_path']}/${image['image_file']}').toList();
-        setState(() {
-          imageUrls = urls;
-          isLoading = false;
-          startReadingTimer(); 
-        });
-      } else {
-        throw Exception('Failed to load images');
-      }
-    } catch (e) {
-      print('Error fetching images: $e');
       setState(() {
         isLoading = false;
       });
     }
+  }
+ 
+Future<void> fetchData(String apiUrl) async {
+  try {
+    final response = await http.get(Uri.parse(apiUrl));
+    if (response.statusCode == 200) {
+      Map<String, dynamic> data = json.decode(response.body);
+      List<dynamic> images = data['data']['item']['chapter_image'];
+      List<String> urls = images.map((image) => '${data['data']['domain_cdn']}/${data['data']['item']['chapter_path']}/${image['image_file']}').toList();
+
+      urls.sort((a, b) {
+        int pageNumberA = int.parse(a.split('/').last.split('_').last.split('.').first);
+        int pageNumberB = int.parse(b.split('/').last.split('_').last.split('.').first);
+        return pageNumberA.compareTo(pageNumberB);
+      });
+
+      if (urls.length > 2) {
+        urls = urls.sublist(2);
+      }
+      setState(() {
+        recognizedTexts.clear();
+        imageUrls = urls;
+        isLoading = false;
+        startReadingTimer();
+        fullreadTimer = DateTime.now();
+      });
+      for( int i =0; i< imageUrls.length; i++)
+      {
+         await extractTextFromImage(imageUrls[i]);
+      }
+    } else {
+      throw Exception('Failed to load images');
+    }
+  } catch (e) {
+    print('Error fetching images: $e');
+    setState(() {
+      isLoading = true;
+    });
+  }
+}
+
+Future<void> extractTextFromImage(String imageUrl) async {
+  try {
+    var response = await http.get(Uri.parse(imageUrl));
+    var imageData = response.bodyBytes;
+    final tempDir = await getTemporaryDirectory();
+    final tempImagePath = '${tempDir.path}/temp_image.jpg';
+    final file = await File(tempImagePath).writeAsBytes(imageData);
+    final inputImage = InputImage.fromFilePath(file.path);
+    final RecognizedText recognizedText = await textRecognizer.processImage(inputImage);
+    setState(() {
+      recognizedTexts.add(recognizedText.text);
+    });
+
+    await deleteTemporaryImage(tempImagePath);
+    await textRecognizer.close();
+  } catch (e) {
+    print('Error extracting text from image: $e');
+  }
+}
+  Future<void> deleteTemporaryImage(String imagePath) async {
+    final file = File(imagePath);
+    if (await file.exists()) {
+      await file.delete();
+    } else {
+      print('Temporary image file does not exist: $imagePath');
+    }
+  }
+
+  void startTTS() async {
+    await flutterTts.setLanguage("vi-VN");
+    await flutterTts.setPitch(1.0);
+    String fullText = recognizedTexts.join(' ');
+    await flutterTts.speak(fullText);
+
+    flutterTts.setErrorHandler((error) {
+      setState(() {
+        isTTSPlaying = false; // Khi gặp lỗi, cập nhật trạng thái về false
+      });
+    });
+    flutterTts.setCompletionHandler(() {
+      setState(() {
+        isTTSPlaying = false; // Khi hoàn thành, cập nhật trạng thái về false
+      });
+    });
+  }
+
+  void toggleTTS(bool newTTSState) {
+    setState(() {
+      isTTSPlaying = newTTSState; 
+    });
+    if (newTTSState) {
+      startTTS(); 
+    } else {
+      flutterTts.stop(); // Dừng TTS
+    }
+  }
+
+  void toggleAutoPlay(bool value) {  
+    setState(() {
+      isSwitched = value;
+      if (isSwitched) {
+          autoPlayTimer = Timer.periodic(Duration(milliseconds: 30), (timer) {
+          autoScroll();
+        });
+      } else {
+        autoPlayTimer?.cancel();
+      }
+    });
   }
 
   void sortChapters() {
@@ -132,19 +260,6 @@ class _ChapterDetailState extends State<ChapterDetail> {
   void toggleSettings() {
     setState(() {
       showSettings = !showSettings;
-    });
-  }
-
-  void toggleAutoPlay(bool value) {  
-    setState(() {
-      isSwitched = value;
-      if (isSwitched) {
-          autoPlayTimer = Timer.periodic(Duration(milliseconds: 30), (timer) {
-          autoScroll();
-        });
-      } else {
-        autoPlayTimer?.cancel();
-      }
     });
   }
 
@@ -165,11 +280,41 @@ class _ChapterDetailState extends State<ChapterDetail> {
     readTimer = Timer.periodic(Duration(seconds: 1), (timer) {
       if (DateTime.now().difference(startTime).inSeconds >= 30) {
         updateIsRead();
-        timer.cancel(); // Hủy bỏ định kỳ
+        timer.cancel(); 
       }
     });
   }
-  
+   
+  void updateReadingTime() async {
+    try {
+      int _current = DateTime.now().difference(fullreadTimer).inSeconds;
+      FirebaseFirestore firestore = FirebaseFirestore.instance;
+      CollectionReference readRef = firestore.collection('AppUsage').doc(widget.UserId).collection("DailyReading");
+      DateTime now = DateTime.now();
+      String dateKey= '${now.year}-${now.month}-${now.day}';
+
+      // Tạo một document dựa trên ngày hiện tại nếu chưa tồn tại
+       DocumentReference docRef = readRef.doc(dateKey);
+      bool docExists = (await docRef.get()).exists;
+
+      if (docExists) {
+        await docRef.update({
+          'totalReadingTime': FieldValue.increment(_current),
+        });
+      } else {
+        // Nếu chưa có, tạo tài liệu mới
+        await docRef.set({
+          'totalReadingTime': _current,
+          'user': widget.UserId,
+          'date':FieldValue.serverTimestamp(),
+        });
+      }
+
+    } catch (e) {
+      print('Error updating reading time: $e');
+    }
+  }
+
   void updateIsRead() async {
     try {
       final CollectionReference usersCollection = FirebaseFirestore.instance.collection('User');
@@ -219,6 +364,7 @@ class _ChapterDetailState extends State<ChapterDetail> {
     }
   }
   Future<void> fetchAndScrollToNextChapter() async {
+    updateReadingTime();
     setState(() {
       currentChapter = getNextChapter() ?? {};
       chapterId = currentChapter['id'];
@@ -250,7 +396,6 @@ class _ChapterDetailState extends State<ChapterDetail> {
           'timestamp': Timestamp.now(),
           'image':widget.comic.image,
           'name':widget.comic.name
-
         });
       }
     } else {
@@ -326,11 +471,9 @@ class _ChapterDetailState extends State<ChapterDetail> {
     try {
       final CollectionReference usersCollection = FirebaseFirestore.instance.collection('User');
       DocumentReference userRef = usersCollection.doc(userId);
-    
       await userRef.update({
         'Points': FieldValue.increment(points),
       });
-
       // Lưu trữ thông tin về chương đã mở khóa
       await userRef.collection('UnlockedChapters').doc(widget.comic.id + chapterId).set({
         'unlockedAt': FieldValue.serverTimestamp(),
@@ -366,7 +509,6 @@ class _ChapterDetailState extends State<ChapterDetail> {
     int currentIndex = widget.chapters.indexWhere((chapter) => chapter['id'] == currentChapter['id']);
     if (currentIndex != -1 && currentIndex < widget.chapters.length - 1) {
       return widget.chapters[currentIndex + 1];
-      
     }
     return null;
   }
@@ -450,7 +592,7 @@ class _ChapterDetailState extends State<ChapterDetail> {
                                       },
                                       style: ElevatedButton.styleFrom(
                                         shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(30.0), // Độ cong của góc
+                                          borderRadius: BorderRadius.circular(30.0), 
                                         ),
                                         primary: Colors.blue,
                                         side: const BorderSide(color: Colors.black),
@@ -484,10 +626,28 @@ class _ChapterDetailState extends State<ChapterDetail> {
                                 children: [
                                   Expanded(
                                     child: ElevatedButton.icon(
-                                      onPressed: () {},
+                                      onPressed: () {
+                                         Navigator.push(
+                                          context,
+                                          PageRouteBuilder(
+                                            pageBuilder: (context, animation, secondaryAnimation) =>  ProfileScreen(userId: widget.UserId ),
+                                            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                                              const begin = Offset(1.0, 0.0);
+                                              const end = Offset.zero;
+                                              const curve = Curves.easeInOut;
+                                              var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+                                              var offsetAnimation = animation.drive(tween);
+                                              return SlideTransition(
+                                                position: offsetAnimation,
+                                                child: child,
+                                              );
+                                            },
+                                          ),
+                                        );
+                                      },
                                       style: ElevatedButton.styleFrom(
                                         shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(10.0), // Độ cong của góc
+                                          borderRadius: BorderRadius.circular(10.0), 
                                         ),
                                         primary: Colors.blue,
                                         side: const BorderSide(color: Colors.black),
@@ -519,11 +679,15 @@ class _ChapterDetailState extends State<ChapterDetail> {
                   ElevatedButton(
                     onPressed: canNavigatePrevious? () {
                       setState(() {
+                        updateReadingTime();
                         currentChapter = getPreviousChapter() ?? {};
                         chapterId = currentChapter['id'];
                         fetchDataChapterFromFirestore(widget.comic.id, chapterId);
                         saveReadingHistory(widget.UserId, widget.comic.id, chapterId);
-                         autoUnlockVipChapter();
+                        autoUnlockVipChapter();
+                        flutterTts.stop();
+                        textRecognizer.close();
+
                       });
                     }: null,
                     style: ElevatedButton.styleFrom(
@@ -592,47 +756,48 @@ class _ChapterDetailState extends State<ChapterDetail> {
                                     ),
                                   ),
                                   ],
+                                 ),
+                                 SizedBox(height: 10,),
+                                 Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text('Nghe đọc truyện', style: TextStyle(fontSize: 16),),
+                                    GestureDetector(
+                                      onTap: () {
+                                        setState(() {
+                                          toggleTTS(!isTTSPlaying); 
+                                          Navigator.of(context).pop();
+                                        });
+                                      },
+                                      child: Container(
+                                        width: 60,
+                                        height: 30,
+                                        decoration: BoxDecoration(
+                                          borderRadius: BorderRadius.circular(20),
+                                          color: isTTSPlaying ? Colors.green : Colors.grey,
+                                        ),
+                                        child: Row(
+                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Expanded(
+                                              child: Container(
+                                                alignment: isTTSPlaying ? Alignment.centerRight : Alignment.centerLeft,
+                                                child: Container(
+                                                  width: 30,
+                                                  height: 30,
+                                                  decoration: const BoxDecoration(
+                                                    shape: BoxShape.circle,
+                                                    color: Colors.white,
+                                                  ),
+                                                  child: isTTSPlaying ? Icon(Icons.check, color: Colors.green): Icon(Icons.close, color: Colors.grey),),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                    ),
+                                  ),
+                                  ],
                                 ),
-                                // Row(
-                                //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                //   children: [
-                                //     Text('Tự động mở chương', style: TextStyle(fontSize: 16),),
-                                //     GestureDetector(
-                                //       onTap: () {
-                                //         setState(() {
-                                //          toggleAutoUnlock(!isAutoUnlockEnabled);
-                                //           Navigator.of(context).pop();
-                                //         });
-                                //       },
-                                //       child: Container(
-                                //         width: 60,
-                                //         height: 30,
-                                //         decoration: BoxDecoration(
-                                //           borderRadius: BorderRadius.circular(20),
-                                //           color:isAutoUnlockEnabled ? Colors.green : Colors.grey,
-                                //         ),
-                                //         child: Row(
-                                //           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                //           children: [
-                                //             Expanded(
-                                //               child: Container(
-                                //                 alignment: isAutoUnlockEnabled ? Alignment.centerRight : Alignment.centerLeft,
-                                //                 child: Container(
-                                //                   width: 30,
-                                //                   height: 30,
-                                //                   decoration: const BoxDecoration(
-                                //                     shape: BoxShape.circle,
-                                //                     color: Colors.white,
-                                //                   ),
-                                //                   child: isAutoUnlockEnabled ? Icon(Icons.check, color: Colors.green): Icon(Icons.close, color: Colors.grey),),
-                                //               ),
-                                //             ),
-                                //           ],
-                                //         ),
-                                //     ),
-                                //   ),
-                                //   ],
-                                // ),
                               ],
                             ),
                           );
@@ -645,15 +810,17 @@ class _ChapterDetailState extends State<ChapterDetail> {
                   ElevatedButton(
                     onPressed: canNavigateNext? () {
                       setState(() {
+                        updateReadingTime();
                         currentChapter = getNextChapter() ?? {};
                         chapterId = currentChapter['id'];
                         fetchDataChapterFromFirestore(widget.comic.id, chapterId);
                         saveReadingHistory(widget.UserId, widget.comic.id, chapterId);
                         autoUnlockVipChapter();
+                        flutterTts.stop();
+                        textRecognizer.close();
                       });
                     }: null,
                     style: ElevatedButton.styleFrom(
-
                       padding: EdgeInsets.all(7),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8.0),

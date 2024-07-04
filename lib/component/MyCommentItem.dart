@@ -29,8 +29,7 @@ class MyCommentItem extends StatefulWidget {
 }
 
 class _MyCommentItemState extends State<MyCommentItem> {
-  User userData =
-      User(Id: "", Name: "", Image: "https://firebasestorage.googleapis.com/v0/b/appdoctruyentranhonline.appspot.com/o/No-Image-Placeholder.svg.webp?alt=media&token=319ebc86-9ec0-4a16-a877-b477564b212b", Email: "", Status: false, Points: 0, IsRead: 0);
+  User userData = User(Id: "", Name: "", Image: "https://firebasestorage.googleapis.com/v0/b/appdoctruyentranhonline.appspot.com/o/No-Image-Placeholder.svg.webp?alt=media&token=319ebc86-9ec0-4a16-a877-b477564b212b", Email: "", Status: false, Points: 0, IsRead: 0);
 
   @override
   void initState() {
@@ -51,10 +50,9 @@ class _MyCommentItemState extends State<MyCommentItem> {
 
   void deleteComment() async {
     try {
-      DocumentReference commentRef =
-          FirebaseFirestore.instance.collection('Comments').doc(widget.CommentId);
+      DocumentReference commentRef = FirebaseFirestore.instance.collection('Comments').doc(widget.CommentId);
       await commentRef.delete();
-      widget.onDelete(); // Notify parent widget to update the comment list
+      widget.onDelete(); 
     } catch (e) {
       print('Error deleting comment: $e');
     }
@@ -156,11 +154,11 @@ class _MyCommentItemState extends State<MyCommentItem> {
                       ],
                     ),
                     SizedBox(height: 5),
-                    Text(widget.commentText),
+                    Text(widget.commentText, style: const TextStyle(fontSize: 16), ),
                     SizedBox(height: 5),
                     Text(
                       "Truyện tranh: " + widget.Name,
-                      style: const TextStyle(fontSize: 16, color: Colors.blue),
+                      style: const TextStyle(fontSize: 13, color: Colors.blue),
                     ),
                     SizedBox(height: 5),
                     Align(

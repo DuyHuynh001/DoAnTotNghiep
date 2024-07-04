@@ -26,61 +26,59 @@ class _CommunityScreenState extends State<CommunityScreen> {
     return await Community.fetchCommunityPostsWithUsers();
   }
 
+  Future<void> _refreshPosts() async {
+    setState(() {
+      futurePostsWithUsers = fetchPosts();
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: FutureBuilder<List<Map<String, dynamic>>>(
-        future: futurePostsWithUsers,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
-          }
-          else {
-            List<Map<String, dynamic>> postsWithUsers = snapshot.data!;
-            return SingleChildScrollView(
-              child: Column(
-                children: [
-                  ListView.builder(
-                    physics: NeverScrollableScrollPhysics(),
-                    shrinkWrap: true,
-                    itemCount: postsWithUsers.length,
-                    itemBuilder: (context, index) {
-                      var postWithUser = postsWithUsers[index];
-                      Community post = postWithUser['post'];
-                      User user = postWithUser['user'];
-                      Comics? comic = postWithUser['comic'];
-                      if (comic == null || post.ComicId.isEmpty) {
-                        comic = null; // Gán comic là null nếu không có thông tin truyện
-                      }
-                      return CommunityItem(
-                        message: post,
-                        user: user,
-                        comic: comic,
-                      );
-                    },
-                  ),
-                  SizedBox(height: 70),
-                ],
-              ),
-            );
-          }
-        },
+      body: RefreshIndicator(
+        onRefresh: _refreshPosts,
+        child: FutureBuilder<List<Map<String, dynamic>>>(
+          future: futurePostsWithUsers,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return Center(child: CircularProgressIndicator());
+            } else if (snapshot.hasError) {
+              return Center(child: Text('Error: ${snapshot.error}'));
+            } else {
+              List<Map<String, dynamic>> postsWithUsers = snapshot.data!;
+              return ListView.builder(
+                itemCount: postsWithUsers.length,
+                itemBuilder: (context, index) {
+                  var postWithUser = postsWithUsers[index];
+                  Community post = postWithUser['post'];
+                  User user = postWithUser['user'];
+                  Comics? comic = postWithUser['comic'];
+                  if (comic == null || post.ComicId.isEmpty) {
+                    comic = null;
+                  }
+                  return CommunityItem(
+                    message: post,
+                    user: user,
+                    comic: comic,
+                  );
+                },
+              );
+            }
+          },
+        ),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
           await Navigator.push(
             context,
             PageRouteBuilder(
-              pageBuilder: (context, animation, secondaryAnimation) =>
-              AddPost(
+              pageBuilder: (context, animation, secondaryAnimation) => AddPost(
                 UserId: widget.UserId,
                 onPostAdded: () {
-                  setState(() {
-                    futurePostsWithUsers = fetchPosts();
-                  });
+                  _refreshPosts();
                 },
               ),
-              transitionsBuilder:(context, animation, secondaryAnimation, child) {
+              transitionsBuilder: (context, animation, secondaryAnimation, child) {
                 const begin = Offset(1.0, 0.0);
                 const end = Offset.zero;
                 const curve = Curves.easeInOut;

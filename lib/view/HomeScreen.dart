@@ -12,6 +12,7 @@ import 'package:manga_application_1/view/CategoryScreen.dart';
 import 'package:manga_application_1/view/ListFullComicScreen.dart';
 import 'package:manga_application_1/view/ListHotComicScreen.dart';
 import 'package:manga_application_1/view/NewComicScreen.dart';
+import 'package:manga_application_1/view/ProfileScreen.dart';
 import 'package:manga_application_1/view/SearchScreen.dart';
 import 'package:manga_application_1/view/TopComicScreen.dart';
 
@@ -167,7 +168,7 @@ class _MyHomeScreen extends State<HomeScreen> {
                          Navigator.push(
                           context,
                           PageRouteBuilder(
-                            pageBuilder: (context, animation, secondaryAnimation) => NewTruyenScreen(),
+                            pageBuilder: (context, animation, secondaryAnimation) => ListNewComicScreen(UserId: widget.UserId,),
                             transitionsBuilder: (context, animation, secondaryAnimation, child) {
                               const begin = Offset(1.0, 0.0);
                               const end = Offset.zero;
@@ -187,23 +188,23 @@ class _MyHomeScreen extends State<HomeScreen> {
                       image: "assets/img/reward.png", 
                       text: "Điểm Của Tôi",
                       onTap: () {
-                        //  Navigator.push(
-                        //   context,
-                        //   PageRouteBuilder(
-                        //     pageBuilder: (context, animation, secondaryAnimation) => CategoryScreen(UserId: widget.UserId,),
-                        //     transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                        //       const begin = Offset(1.0, 0.0);
-                        //       const end = Offset.zero;
-                        //       const curve = Curves.easeInOut;
-                        //       var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
-                        //       var offsetAnimation = animation.drive(tween);
-                        //       return SlideTransition(
-                        //         position: offsetAnimation,
-                        //         child: child,
-                        //       );
-                        //     },
-                        //   ),
-                        // );
+                         Navigator.push(
+                          context,
+                          PageRouteBuilder(
+                            pageBuilder: (context, animation, secondaryAnimation) => ProfileScreen(userId: widget.UserId,),
+                            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                              const begin = Offset(1.0, 0.0);
+                              const end = Offset.zero;
+                              const curve = Curves.easeInOut;
+                              var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+                              var offsetAnimation = animation.drive(tween);
+                              return SlideTransition(
+                                position: offsetAnimation,
+                                child: child,
+                              );
+                            },
+                          ),
+                        );
                       },),
                   ],
                 ),

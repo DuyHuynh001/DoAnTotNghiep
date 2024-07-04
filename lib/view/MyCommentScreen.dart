@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:manga_application_1/view/MyCommentTab.dart';
-import 'package:manga_application_1/view/MyPostTab.dart';
+import 'package:manga_application_1/component/MyCommentTab.dart';
+import 'package:manga_application_1/component/MyPostTab.dart';
 
 class MyCommentScreen extends StatefulWidget {
   final String UserId;

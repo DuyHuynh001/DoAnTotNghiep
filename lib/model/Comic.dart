@@ -13,6 +13,7 @@ class Comics {
   List<Chapters> chapters;
   int favorites;
   int view;
+  Timestamp addtime;
 
 
   Comics({
@@ -25,7 +26,8 @@ class Comics {
     required this.status,
     required this.chapters,
     required this.favorites,
-    required this.view
+    required this.view,
+    required this.addtime
   });
 
   factory Comics.fromJson(String id,Map<String, dynamic> json) {
@@ -48,25 +50,39 @@ class Comics {
       status: json['status'],
       favorites:json['favorites'],
       view:json['view'],
+      addtime: json['addtime'],
       chapters: chaptersList,
     );
   }
 
   static FirebaseFirestore _db = FirebaseFirestore.instance;
-   // lấy danh sách truyện hành động
-  static Future<List<Comics>> fetchActionComicsList() async {
-    try {
-      QuerySnapshot querySnapshot = await _db.collection('Comics').where('recommend', isEqualTo: true).get();
 
-      return querySnapshot.docs.map((doc) {
+  static Future<List<Comics>?> fetchNewComicsList(String status) async {
+    try {
+      Query query = _db.collection('Comics');
+
+      if (status != "Tất cả") {
+        query = query.where('status', isEqualTo: status);
+      }
+
+      QuerySnapshot querySnapshot = await query.orderBy('addtime', descending: true).get();
+
+      if (querySnapshot.docs.isEmpty) {
+        return null;
+      }
+
+      List<Comics> comicsList = querySnapshot.docs.map((doc) {
         Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
         return Comics.fromJson(doc.id, data);
       }).toList();
+
+      return comicsList; 
     } catch (e) {
       print("Error fetching comics list: $e");
-      return [];
+      return []; 
     }
   }
+
   // lấy danh sách truyện full
   static Future<List<Comics>> fetchFullComicsList() async {
     try {
@@ -143,7 +159,6 @@ class Comics {
       if (status != "Tất cả") {
         query = query.where('status', isEqualTo: status);
       }
-
       QuerySnapshot querySnapshot = await query.get();
       if (querySnapshot.docs.isEmpty) {
         return null;
@@ -253,7 +268,8 @@ class Comics {
         'genre': categories,
         'new':IsNew,
         'favorites':0,
-        'view':0
+        'view':0,
+        'addtime':FieldValue.serverTimestamp()
       };
       // Add comic details to 'comics' collection
       DocumentReference comicDoc = await comicsCollection.add(comicDetails);

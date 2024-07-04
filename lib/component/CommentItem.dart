@@ -36,16 +36,23 @@ class _CommentItemState extends State<CommentItem> {
     DateTime dateTime = timestamp.toDate();
     return DateFormat('dd-MM-yyyy HH:mm:ss').format(dateTime); // Định dạng thời gian
   }
- 
+
+  void replyComment() {
+    // Xử lý logic khi người dùng chọn trả lời bình luận
+    print('Reply to comment');
+    // Có thể thêm đoạn mã để mở màn hình trả lời bình luận ở đây
+  }
+
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.all(5),
+      padding: const EdgeInsets.all(6),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           CircleAvatar(
-            backgroundImage:NetworkImage(userData.Image),radius:30,
+            backgroundImage: NetworkImage(userData.Image),
+            radius: 30,
           ),
           SizedBox(width: 10),
           Expanded(
@@ -58,13 +65,33 @@ class _CommentItemState extends State<CommentItem> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(userData.Name ,style: const TextStyle(fontWeight: FontWeight.bold),),
+                  Text(
+                    userData.Name,
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
                   SizedBox(height: 5),
                   Text(widget.commentText),
-                  SizedBox(height: 5),
-                  Align(
-                    alignment: Alignment.bottomRight,
-                    child: Text(formatTimestamp(widget.time),style: const TextStyle(color: Colors.grey, fontSize: 12),),
+                  SizedBox(height: 10),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        formatTimestamp(widget.time),
+                        style: TextStyle(color: Colors.grey, fontSize: 12),
+                      ),
+                      GestureDetector(
+                        onTap: () {
+                         
+                        },
+                        child: const Text(
+                          'Trả lời',
+                          style: TextStyle(
+                            color: Colors.blue,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),

@@ -66,7 +66,6 @@ class _AddComicScreenState extends State<AddComicScreen> {
     final String urlImage = _urlImage.text;
     final String description = _description.text;
     final String chaptersUrl = _chapterUrl.text;
-    
     try {
       final response = await http.get(Uri.parse(chaptersUrl));
       if (response.statusCode == 200) {
@@ -124,7 +123,7 @@ class _AddComicScreenState extends State<AddComicScreen> {
       SnackBar(
         content: Text(message, style: TextStyle(fontSize: 16),),
         duration: Duration(seconds: 2),
-        backgroundColor: Colors.red,
+        backgroundColor: Colors.black,
       ),
     );
   }
@@ -155,17 +154,20 @@ class _AddComicScreenState extends State<AddComicScreen> {
                   Row(
                     children: [
                       Expanded(
-                        flex: 1,
-                        child: TextField(
-                          controller: TextEditingController(text: selectedCategories.join(',')),
-                          decoration: const InputDecoration(labelText: 'Thể loại'),
-                          readOnly: true,
+                        flex: 5,
+                        child: Padding(
+                          padding: EdgeInsets.only(top: 15),
+                          child: TextField(
+                            controller: TextEditingController(text: selectedCategories.join(',')),
+                            decoration: const InputDecoration(labelText: 'Thể loại'),
+                            readOnly: true,
+                          ),
                         ),
                       ),
-                      Padding(
-                        padding: EdgeInsets.only(top: 15),
-                        child: Expanded(
-                          flex: 0,
+                      Expanded(
+                        flex: 1,
+                        child: Padding(
+                          padding: EdgeInsets.only(top: 30, left: 8.0), // Add padding as needed
                           child: MultiSelectDialogField(
                             items: categories.map((e) => MultiSelectItem(e, e)).toList(),
                             title: Text('Thể loại'),
@@ -180,7 +182,6 @@ class _AddComicScreenState extends State<AddComicScreen> {
                           ),
                         ),
                       ),
-                      
                     ],
                   ),
                   SizedBox(height: 5),
@@ -242,20 +243,20 @@ class _AddComicScreenState extends State<AddComicScreen> {
                           icon: const Icon(
                             Icons.save_as_sharp,
                             size: 25,
-                            color: Colors.black,
+                            color: Colors.white,
                           ),
                           style: ElevatedButton.styleFrom(
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(10.0), // Độ cong của góc
                             ),
                             primary: Colors.blue,
-                            side: const BorderSide(color: Colors.black),
+                            side: const BorderSide(color: Colors.blue),
                             padding: const EdgeInsets.symmetric(vertical: 15),
                           ),
                           label: const Text(
                             "Lưu Truyện",
                             style: TextStyle(
-                              color: Colors.black,
+                              color: Colors.white,
                               fontWeight: FontWeight.bold,
                               fontSize: 20),
                           ),

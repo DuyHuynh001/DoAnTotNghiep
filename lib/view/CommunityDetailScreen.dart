@@ -110,9 +110,10 @@ class CommunityDetailScreenState extends State<CommunityDetailScreen> {
       'time': FieldValue.serverTimestamp(),
       'userId': widget.user.Id,
     });
+    _loadComments();
     commentController.clear();
     FocusScope.of(context).unfocus(); // Đóng bàn phím
-    _loadComments(); // Hàm để tải lại bình luận
+     // Hàm để tải lại bình luận
   }
 
   @override
@@ -339,10 +340,11 @@ class CommunityDetailScreenState extends State<CommunityDetailScreen> {
                   ),
                   SizedBox(width: 8.0),
                   ElevatedButton(
-                    onPressed: () {
+                    onPressed: () async{
                       String comment = commentController.text.trim();
                       if (comment.isNotEmpty) {
-                        handleComment(comment);
+                      await  handleComment(comment);
+                      FocusScope.of(context).unfocus(); 
                       } else {
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(

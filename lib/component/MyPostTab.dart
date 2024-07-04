@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:manga_application_1/component/CommunityItem.dart';
+import 'package:manga_application_1/component/MyCommunityItem.dart';
 import 'package:manga_application_1/model/Comic.dart';
 import 'package:manga_application_1/model/Community.dart';
 import 'package:manga_application_1/model/User.dart';
@@ -47,13 +48,19 @@ class _MyPostTabState extends State<MyPostTab> {
                       Community post = postWithUser['post'];
                       User user = postWithUser['user'];
                       Comics? comic = postWithUser['comic'];
+                      
                       if (comic == null || post.ComicId.isEmpty) {
                         comic = null; // Gán comic là null nếu không có thông tin truyện
                       }
-                      return CommunityItem(
+                      return MyCommunityItem(
                         message: post,
                         user: user,
                         comic: comic,
+                        onDelete: () {
+                         setState(() {
+                          PostsWithUserId = fetchPosts();
+                        });
+                       },
                       );
                     },
                   ),

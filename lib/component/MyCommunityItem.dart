@@ -7,16 +7,17 @@ import 'package:manga_application_1/model/User.dart';
 import 'package:manga_application_1/view/CommunityDetailScreen.dart';
 import 'package:manga_application_1/view/ComicDetailScreen.dart' ;
 
-class CommunityItem extends StatefulWidget {
+class MyCommunityItem extends StatefulWidget {
  final Community message;
  final User user;
  final Comics? comic;
+ final VoidCallback onDelete;
 
-  const CommunityItem({Key? key,required this.message, required this.user, required this.comic}) : super(key: key);
+  const MyCommunityItem({Key? key,required this.message, required this.user, required this.comic, required this.onDelete}) : super(key: key);
   @override
-  _CommunityItemState createState() => _CommunityItemState();
+  _MyCommunityItemState createState() => _MyCommunityItemState();
 }
-class _CommunityItemState extends State<CommunityItem> {
+class _MyCommunityItemState extends State<MyCommunityItem> {
   bool isLiked=false;
   int commentCount = 0;
   @override
@@ -31,10 +32,19 @@ class _CommunityItemState extends State<CommunityItem> {
       commentCount = fetchedComments.length; // Đếm số lượng bình luận
     });
   }
-
+  void deleteCommunity() async {
+    try {
+      DocumentReference communityRef = FirebaseFirestore.instance.collection('Community').doc(widget.message.Id);
+      await communityRef.delete();
+      widget.onDelete(); 
+    } catch (e) {
+      print('Error deleting community: $e');
+    }
+  }
   Future<void> checkLike() async {
     try {
       DocumentReference likeRef = FirebaseFirestore.instance.collection('Community').doc(widget.message.Id) .collection('IsLike').doc(widget.user.Id);
+
       DocumentSnapshot doc = await likeRef.get();
       if (doc.exists) {
         setState(() {
@@ -44,6 +54,34 @@ class _CommunityItemState extends State<CommunityItem> {
     } catch (e) {
       print('Lỗi khi kiểm tra trạng thái yêu thích: $e');
     }
+  }
+   void showDeleteConfirmationDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text("Xác nhận xóa bài viết"),
+          content: Text("Bạn có chắc chắn muốn xóa bài viết này không?"),
+          actions: [
+            TextButton(
+              child: Text("Hủy"),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: Text("Xóa"),
+              onPressed: () {
+                setState(() {
+                  deleteCommunity();
+                  Navigator.of(context).pop();
+                });
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 
   void toggleLike() async {
@@ -153,6 +191,15 @@ class _CommunityItemState extends State<CommunityItem> {
                     ),
                   ],
                 ),
+                Padding(
+                  padding:EdgeInsets.only(left: 130),
+                  child:IconButton(
+                  onPressed: () {
+                    showDeleteConfirmationDialog();
+                  },
+                  icon: Icon(Icons.delete, color: Colors.red),
+                ) ,
+                )
               ],
             ),
             Padding(
@@ -260,6 +307,7 @@ class _CommunityItemState extends State<CommunityItem> {
                           user: widget.user,
                           comic: widget.comic,
                           IsLike: isLiked,
+                          
                         ),
                         transitionsBuilder: (context, animation, secondaryAnimation, child) {
                           const begin = Offset(1.0, 0.0);

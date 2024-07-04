@@ -13,7 +13,7 @@ class DetailTab extends StatefulWidget {
   final String UserId;
   final Comics story;
   final List<Map<String, dynamic>> chapters;
-  const DetailTab({super.key, required this.UserId, required this.story, required this.chapters});
+  const DetailTab({super.key, required this.UserId, required this.story, required this.chapters,});
 
   @override
   State<DetailTab> createState() => _DetailTabState();
@@ -21,29 +21,45 @@ class DetailTab extends StatefulWidget {
 
 class _DetailTabState extends State<DetailTab> {
   final TextEditingController commentController = TextEditingController();
+  String? lastReadChapterId;
+  Future<String?> _lastReadChapterFuture = Future.value(null);
+
   @override
-    void initState() {
+  void initState() {
     super.initState();
+    _lastReadChapterFuture = _fetchLastReadChapter();
   }
-  
-  
+
   Future<void> handleComment(String comment) async {
   try {
-
     String englishComment = await translateText(comment);  
     final analysisResult = await analyzeComment(englishComment );
     final double toxicityScore = analysisResult['attributeScores']['TOXICITY']['summaryScore']['value'];
-
     if (toxicityScore < 0.5) {
       SaveComment(comment);
     } else {
-      // Bình luận không hợp lệ, thông báo cho người dùng
       _showErrorDialog(context, 'Tin nhắn của bạn chứa các từ ngữ không phù hợp!');
     }
     } catch (e) {
-      // Xử lý lỗi
       print('Error: $e');
       throw e;
+    }
+  }
+  @override
+  void didUpdateWidget(covariant DetailTab oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.story.id != widget.story.id) {
+      setState(() {
+        _lastReadChapterFuture = _fetchLastReadChapter();
+      });
+    }
+  }
+  Future<String?> _fetchLastReadChapter() async {
+    try {
+      DocumentSnapshot userDoc = await FirebaseFirestore.instance.collection('User').doc(widget.UserId).collection("History").doc(widget.story.id).get();
+      return userDoc['chapterId'];
+      } catch (e) {
+      return null;
     }
   }
 
@@ -91,24 +107,31 @@ class _DetailTabState extends State<DetailTab> {
       'comicName':widget.story.name
     });
     setState(() {});
-    // Xóa nội dung trong TextField sau khi gửi comment thành công
     commentController.clear();
   }
+  
   @override
   Widget build(BuildContext context) {
-    return  Padding(
+    return  FutureBuilder<String?>(
+      future: _lastReadChapterFuture,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Center(child: CircularProgressIndicator());
+        } else {
+        final lastReadChapterId = snapshot.data;
+        return Padding(
         padding: const EdgeInsets.all(8.0),
         child: SingleChildScrollView(
-          physics: AlwaysScrollableScrollPhysics(), // Đảm bảo luôn có thể scroll
+          physics: AlwaysScrollableScrollPhysics(), 
           child: Container(
             padding: EdgeInsets.all(8.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 SizedBox(height: 8.0),
-                Text(
-                  widget.story.description,
-                  style: TextStyle(fontSize: 16.0),
+                ExpandableText(
+                 text: widget.story.description,
+                 style: TextStyle(fontSize: 16.0),
                 ),
                 SizedBox(height: 8.0),
                 Container(
@@ -122,17 +145,15 @@ class _DetailTabState extends State<DetailTab> {
                     children: [
                       Expanded(
                         child: ElevatedButton.icon(
-                          onPressed: () {
-                            Navigator.push(
+                          onPressed: () async{
+                          await Navigator.push(
                               context,
                               PageRouteBuilder(
-                                pageBuilder: (context, animation, secondaryAnimation) => 
-                                ChapterDetail(
-                                  chapterId: widget.chapters.first['id'],
-                                  chapters:widget.chapters,
+                                pageBuilder: (context, animation, secondaryAnimation) => ChapterDetail(
+                                  chapterId: lastReadChapterId ?? widget.chapters.first['id'],
+                                  chapters: widget.chapters,
                                   comic: widget.story,
                                   UserId: widget.UserId,
-                                
                                 ),
                                 transitionsBuilder: (context, animation, secondaryAnimation, child) {
                                   const begin = Offset(1.0, 0.0);
@@ -147,18 +168,23 @@ class _DetailTabState extends State<DetailTab> {
                                 },
                               ),
                             );
+                            setState(() {
+                              _lastReadChapterFuture = _fetchLastReadChapter();
+                            });
                           },
                           icon: Icon(Icons.auto_stories, size: 25, color: Colors.white),
                           style: ElevatedButton.styleFrom(
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(30.0), // Độ cong của góc
+                              borderRadius: BorderRadius.circular(30.0),
                             ),
                             primary: Colors.blue,
                             side: const BorderSide(color: Colors.black),
                             padding: const EdgeInsets.symmetric(vertical: 15),
                           ),
                           label: Text(
-                            "Bắt đầu xem",
+                            lastReadChapterId != null
+                                ? "Đọc tiếp chương ${lastReadChapterId}"
+                                : "Bắt đầu xem",
                             style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 20),
                           ),
                         ),
@@ -254,9 +280,8 @@ class _DetailTabState extends State<DetailTab> {
                           child: Text("Chưa có bình luận")
                         )
                         else
-
                         ListView.builder(
-                          physics: NeverScrollableScrollPhysics(), // Tắt scroll của ListView trong SingleChildScrollView
+                          physics: NeverScrollableScrollPhysics(), 
                           shrinkWrap: true,
                           itemCount: comments.length <=4? comments.length : 4,
                           itemBuilder: (context, index) {
@@ -303,5 +328,62 @@ class _DetailTabState extends State<DetailTab> {
           ),
         ),
       );
+     }
+     },
+    );
+  }
+}
+class ExpandableText extends StatefulWidget {
+  final String text;
+  final TextStyle style;
+  final int maxLines;
+
+  ExpandableText({
+    required this.text,
+    this.style = const TextStyle(),
+    this.maxLines = 4,
+  });
+
+  @override
+  _ExpandableTextState createState() => _ExpandableTextState();
+}
+
+class _ExpandableTextState extends State<ExpandableText> {
+  bool _isExpanded = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final span = TextSpan(text: widget.text, style: widget.style);
+        final tp = TextPainter(
+          text: span,
+          maxLines: widget.maxLines,
+          textDirection: TextDirection.ltr,
+        );
+        tp.layout(maxWidth: constraints.maxWidth);
+        final isOverflowing = tp.didExceedMaxLines;
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              widget.text,
+              style: widget.style,
+              maxLines: _isExpanded ? null : widget.maxLines,
+              overflow: TextOverflow.fade,
+            ),
+            if (isOverflowing)
+              TextButton(
+                onPressed: () {
+                  setState(() {
+                    _isExpanded = !_isExpanded;
+                  });
+                },
+                child: Text(_isExpanded ? 'Thu gọn' : 'Xem thêm'),
+              ),
+          ],
+        );
+      },
+    );
   }
 }
