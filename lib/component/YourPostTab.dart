@@ -1,20 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:manga_application_1/component/CommunityItem.dart';
-import 'package:manga_application_1/component/MyCommunityItem.dart';
 import 'package:manga_application_1/model/Comic.dart';
 import 'package:manga_application_1/model/Community.dart';
 import 'package:manga_application_1/model/User.dart';
 import 'package:manga_application_1/view/AddPostScreen.dart';
 
-class MyPostTab extends StatefulWidget {
+class YourPostTab extends StatefulWidget {
   final String UserId;
-  const MyPostTab({super.key, required this.UserId});
+  final String CurrentUserId;
+  const YourPostTab({super.key, required this.UserId, required this.CurrentUserId});
 
   @override
-  State<MyPostTab> createState() => _MyPostTabState();
+  State<YourPostTab> createState() => _YourPostTabState();
 }
 
-class _MyPostTabState extends State<MyPostTab> {
+class _YourPostTabState extends State<YourPostTab> {
   late Future<List<Map<String, dynamic>>> PostsWithUserId;
   
   @override
@@ -49,18 +49,13 @@ class _MyPostTabState extends State<MyPostTab> {
                       User user = postWithUser['user'];
                       Comics? comic = postWithUser['comic'];
                       if (comic == null || post.ComicId.isEmpty) {
-                        comic = null; // Gán comic là null nếu không có thông tin truyện
+                        comic = null; 
                       }
-                      return MyCommunityItem(
+                      return CommunityItem(
                         message: post,
                         user: user,
                         comic: comic,
-                        UserId:widget.UserId,
-                        onDelete: () {
-                         setState(() {
-                          PostsWithUserId = fetchPosts();
-                        });
-                       },
+                        UserId:widget.CurrentUserId,
                       );
                     },
                   ),
@@ -71,7 +66,8 @@ class _MyPostTabState extends State<MyPostTab> {
           }
         },
       ),
-      floatingActionButton:  FloatingActionButton(
+      floatingActionButton: widget.UserId == widget.CurrentUserId
+        ? FloatingActionButton(
         onPressed: () async {
           await Navigator.push(
             context,
@@ -85,13 +81,11 @@ class _MyPostTabState extends State<MyPostTab> {
                   });
                 },
               ),
-              transitionsBuilder:
-                  (context, animation, secondaryAnimation, child) {
+              transitionsBuilder:(context, animation, secondaryAnimation, child) {
                 const begin = Offset(1.0, 0.0);
                 const end = Offset.zero;
                 const curve = Curves.easeInOut;
-                var tween = Tween(begin: begin, end: end)
-                    .chain(CurveTween(curve: curve));
+                var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
                 var offsetAnimation = animation.drive(tween);
                 return SlideTransition(
                   position: offsetAnimation,
@@ -106,7 +100,7 @@ class _MyPostTabState extends State<MyPostTab> {
           size: 40,
           color: Colors.white,
         ),
-      ),
+      ):null
     );
   }
 }

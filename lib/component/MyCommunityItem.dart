@@ -11,9 +11,10 @@ class MyCommunityItem extends StatefulWidget {
  final Community message;
  final User user;
  final Comics? comic;
+ final UserId;
  final VoidCallback onDelete;
 
-  const MyCommunityItem({Key? key,required this.message, required this.user, required this.comic, required this.onDelete}) : super(key: key);
+  const MyCommunityItem({Key? key,required this.message, required this.user, required this.comic, required this.onDelete, required this.UserId}) : super(key: key);
   @override
   _MyCommunityItemState createState() => _MyCommunityItemState();
 }
@@ -87,7 +88,7 @@ class _MyCommunityItemState extends State<MyCommunityItem> {
   void toggleLike() async {
   try {
     DocumentReference communityRef =FirebaseFirestore.instance.collection('Community').doc(widget.message.Id);
-     DocumentReference likeRef = FirebaseFirestore.instance.collection('Community').doc(widget.message.Id) .collection('IsLike').doc(widget.user.Id);
+     DocumentReference likeRef = FirebaseFirestore.instance.collection('Community').doc(widget.message.Id) .collection('IsLike').doc(widget.UserId);
     DocumentSnapshot communityDoc = await communityRef.get();
     int currentLikes = communityDoc['like'];
     if (isLiked) {
@@ -104,7 +105,7 @@ class _MyCommunityItemState extends State<MyCommunityItem> {
       // Tăng số lượt yêu thích và cập nhật Firestore
       await communityRef.update({'like': FieldValue.increment(1),});
       await likeRef.set({
-        'UserId': widget.user.Id,
+        'UserId': widget.UserId,
         'timestamp': FieldValue.serverTimestamp(),
       });
       setState(() {
@@ -136,7 +137,7 @@ class _MyCommunityItemState extends State<MyCommunityItem> {
               user: widget.user,
               comic: widget.comic,
               IsLike: isLiked,
-              UserId: widget.user.Id,
+              UserId: widget.UserId,
             ),
             transitionsBuilder: (context, animation, secondaryAnimation, child) {
               const begin = Offset(1.0, 0.0);
@@ -308,7 +309,7 @@ class _MyCommunityItemState extends State<MyCommunityItem> {
                           user: widget.user,
                           comic: widget.comic,
                           IsLike: isLiked,
-                          UserId: widget.user.Id,
+                          UserId: widget.UserId,
                           
                         ),
                         transitionsBuilder: (context, animation, secondaryAnimation, child) {

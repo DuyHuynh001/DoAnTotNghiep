@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:manga_application_1/component/MyCommentTab.dart';
 import 'package:manga_application_1/component/MyPostTab.dart';
+import 'package:manga_application_1/component/YourPostTab.dart';
 
 class MyCommentScreen extends StatefulWidget {
   final String UserId;
-
+  
   const MyCommentScreen({Key? key, required this.UserId}) : super(key: key);
 
  @override
@@ -49,7 +50,7 @@ class _MyCommentScreenState extends State<MyCommentScreen> {
             Expanded(
               child: TabBarView(
                 children: [
-                  MyPostTab(UserId: widget.UserId),
+                  YourPostTab(UserId: widget.UserId, CurrentUserId:widget.UserId),
                   MyCommentTab(UserId: widget.UserId),       
                 ],
               ),

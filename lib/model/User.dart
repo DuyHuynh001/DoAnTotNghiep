@@ -8,6 +8,7 @@ class User {
   final String Email;
   final int Points;
   final int IsRead;
+  final String Gender;
 
   User({
     required this.Id,
@@ -16,7 +17,8 @@ class User {
     required this.Email,
     required this.Status,
     required this.Points,
-    required this.IsRead
+    required this.IsRead,
+    required this.Gender
   });
 
   factory User.fromJson(String Id, Map<String, dynamic> json) {
@@ -27,7 +29,8 @@ class User {
       Status: json['Status'],
       Image: json['Image'],
       Points: json['Points'],
-      IsRead: json['IsRead']
+      IsRead: json['IsRead'],
+      Gender: json['Gender']
     );
   }
 

@@ -296,6 +296,7 @@ class CommunityDetailScreenState extends State<CommunityDetailScreen> {
                           userId: comment['userId'],
                           commentText: comment['comment'],
                           time: comment['time'],
+                          currentId: widget.UserId,
                         );
                       },
                     ),

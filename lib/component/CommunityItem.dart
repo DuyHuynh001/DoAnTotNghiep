@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:manga_application_1/component/ShowUser.dart';
 import 'package:manga_application_1/model/Comic.dart';
 import 'package:manga_application_1/model/Community.dart';
 import 'package:manga_application_1/model/User.dart';
@@ -132,9 +133,30 @@ class _CommunityItemState extends State<CommunityItem> {
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                CircleAvatar(
-                  backgroundImage: NetworkImage(widget.user.Image),
-                  radius: 30,
+                GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      PageRouteBuilder(
+                        pageBuilder: (context, animation, secondaryAnimation) => Show(UserId:widget.user.Id, currentId: widget.UserId),
+                        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                          const begin = Offset(1.0, 0.0);
+                          const end = Offset.zero;
+                          const curve = Curves.easeInOut;
+                          var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+                          var offsetAnimation = animation.drive(tween);
+                          return SlideTransition(
+                            position: offsetAnimation,
+                            child: child,
+                          );
+                        },
+                      ),
+                    );
+                  },
+                  child: CircleAvatar(
+                    backgroundImage: NetworkImage(widget.user.Image),
+                    radius: 30,
+                  ),
                 ),
                 SizedBox(width: 10),
                 Column(

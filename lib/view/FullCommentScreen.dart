@@ -118,6 +118,7 @@ class _FullCommentsScreenState extends State<FullCommentsScreen> {
                   userId: comment['UserId'],
                   commentText: comment['comment'],
                   time: comment['times'],
+                  currentId: widget.UserId,
                 );
               },
             ),

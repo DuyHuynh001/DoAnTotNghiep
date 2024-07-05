@@ -4,16 +4,16 @@ import 'package:intl/intl.dart';
 import 'package:manga_application_1/model/User.dart';
 import 'package:manga_application_1/view/ComicDetailScreen.dart';
 
-class MyCommentItem extends StatefulWidget {
+class YourCommentItem extends StatefulWidget {
   final String CommentId;
   final String UserId;
   final String commentText;
   final Timestamp time;
   final String ComicId;
   final String Name;
-  final VoidCallback onDelete;
+  final String CurrentUserId;
 
-  const MyCommentItem({
+  const YourCommentItem({
     Key? key,
     required this.CommentId,
     required this.UserId,
@@ -21,14 +21,14 @@ class MyCommentItem extends StatefulWidget {
     required this.time,
     required this.ComicId,
     required this.Name,
-    required this.onDelete,
+    required this.CurrentUserId
   }) : super(key: key);
 
   @override
-  _MyCommentItemState createState() => _MyCommentItemState();
+  _YourCommentItemState createState() => _YourCommentItemState();
 }
 
-class _MyCommentItemState extends State<MyCommentItem> {
+class _YourCommentItemState extends State<YourCommentItem> {
   User userData = User(Id: "", Name: "", Image: "https://firebasestorage.googleapis.com/v0/b/appdoctruyentranhonline.appspot.com/o/No-Image-Placeholder.svg.webp?alt=media&token=319ebc86-9ec0-4a16-a877-b477564b212b", Email: "", Status: false, Points: 0, IsRead: 0,Gender: "Không được đặt");
 
   @override
@@ -48,45 +48,7 @@ class _MyCommentItemState extends State<MyCommentItem> {
     }
   }
 
-  void deleteComment() async {
-    try {
-      DocumentReference commentRef = FirebaseFirestore.instance.collection('Comments').doc(widget.CommentId);
-      await commentRef.delete();
-      widget.onDelete(); 
-    } catch (e) {
-      print('Error deleting comment: $e');
-    }
-  }
-
-  void showDeleteConfirmationDialog() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text("Xác nhận xóa bình luận"),
-          content: Text("Bạn có chắc chắn muốn xóa bình luận này không?"),
-          actions: [
-            TextButton(
-              child: Text("Hủy"),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-            TextButton(
-              child: Text("Xóa"),
-              onPressed: () {
-                setState(() {
-                  deleteComment();
-                  Navigator.of(context).pop();
-                });
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
-
+  
   String formatTimestamp(Timestamp timestamp) {
     DateTime dateTime = timestamp.toDate();
     return DateFormat('dd-MM-yyyy HH:mm:ss').format(dateTime);
@@ -111,9 +73,9 @@ class _MyCommentItemState extends State<MyCommentItem> {
                   context,
                   PageRouteBuilder(
                     pageBuilder: (context, animation, secondaryAnimation) =>
-                        ComicDetailScreen(
+                    ComicDetailScreen(
                       storyId: widget.ComicId,
-                      UserId: widget.UserId,
+                      UserId: widget.CurrentUserId,
                     ),
                     transitionsBuilder: (context, animation, secondaryAnimation, child) {
                       const begin = Offset(1.0, 0.0);
@@ -144,13 +106,7 @@ class _MyCommentItemState extends State<MyCommentItem> {
                         Text(
                           userData.Name,
                           style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                        ),
-                        IconButton(
-                          onPressed: () {
-                            showDeleteConfirmationDialog();
-                          },
-                          icon: Icon(Icons.delete, color: Colors.red),
-                        )
+                        ),            
                       ],
                     ),
                     SizedBox(height: 5),

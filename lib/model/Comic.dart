@@ -14,6 +14,7 @@ class Comics {
   int favorites;
   int view;
   Timestamp addtime;
+  String api;
 
 
   Comics({
@@ -27,7 +28,8 @@ class Comics {
     required this.chapters,
     required this.favorites,
     required this.view,
-    required this.addtime
+    required this.addtime,
+    required this.api
   });
 
   factory Comics.fromJson(String id,Map<String, dynamic> json) {
@@ -51,6 +53,7 @@ class Comics {
       favorites:json['favorites'],
       view:json['view'],
       addtime: json['addtime'],
+      api: json['api'],
       chapters: chaptersList,
     );
   }
@@ -254,7 +257,7 @@ class Comics {
     }
   }
 
-  static Future<void> saveComicAndChaptersToFirestore(String name, String status, String urlImage, String content ,bool IsNew,List<String> categories, Map<String, dynamic> comicData) 
+  static Future<void> saveComicAndChaptersToFirestore(String name, String status, String urlImage, String content ,List<String> categories, Map<String, dynamic> comicData,String api) 
    async {
     
     try {
@@ -266,9 +269,9 @@ class Comics {
         'description': content,
         'source': 'otruyen', 
         'genre': categories,
-        'new':IsNew,
         'favorites':0,
         'view':0,
+        'api':api,
         'addtime':FieldValue.serverTimestamp()
       };
       // Add comic details to 'comics' collection

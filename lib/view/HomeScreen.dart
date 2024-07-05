@@ -6,7 +6,6 @@ import 'package:manga_application_1/component/FullComic.dart';
 import 'package:manga_application_1/component/HotComic.dart';
 import 'package:manga_application_1/component/AdventureComic.dart';
 import 'package:manga_application_1/component/ToolItem.dart';
-import 'package:manga_application_1/view/AddComicScreen.dart';
 import 'package:manga_application_1/view/CategoryDetailScreen.dart';
 import 'package:manga_application_1/view/CategoryScreen.dart';
 import 'package:manga_application_1/view/ListFullComicScreen.dart';
@@ -25,6 +24,10 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _MyHomeScreen extends State<HomeScreen> {
+ @override
+  void initState() {
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -38,7 +41,7 @@ class _MyHomeScreen extends State<HomeScreen> {
                 Navigator.push(
                   context,
                   PageRouteBuilder(
-                    pageBuilder: (context, animation, secondaryAnimation) => const SearchScreen(),
+                    pageBuilder: (context, animation, secondaryAnimation) => SearchScreen(UserId: widget.UserId),
                     transitionsBuilder: (context, animation, secondaryAnimation, child) {
                       const begin = Offset(1.0, 0.0);
                       const end = Offset.zero;
@@ -75,15 +78,8 @@ class _MyHomeScreen extends State<HomeScreen> {
             ),
             actions: [
               IconButton(
-                icon: const Icon(Icons.settings, color: Colors.black),
-                onPressed: ()  {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) =>AddComicScreen(),
-                    ),
-                  );
-                },
+                icon: const Icon(Icons.notifications, color: Colors.black),
+                onPressed: ()  {},
               ),
             ], 
           ),

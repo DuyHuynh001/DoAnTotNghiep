@@ -23,7 +23,7 @@ class _ComicDetailScreenState extends State<ComicDetailScreen> {
   bool isFavorited = false;
   bool isView = false;
   List<Map<String, dynamic>> chapters = [];
-  Comics story= Comics(id: "", name: '', description: "", genre: [], image: "https://firebasestorage.googleapis.com/v0/b/appdoctruyentranhonline.appspot.com/o/No-Image-Placeholder.svg.webp?alt=media&token=319ebc86-9ec0-4a16-a877-b477564b212b", source: "", status: "", chapters: [],favorites:0, view:0, addtime:Timestamp.now());
+  Comics story= Comics(id: "", name: '', description: "", genre: [], image: "https://firebasestorage.googleapis.com/v0/b/appdoctruyentranhonline.appspot.com/o/No-Image-Placeholder.svg.webp?alt=media&token=319ebc86-9ec0-4a16-a877-b477564b212b", source: "", status: "", chapters: [],favorites:0, view:0, addtime:Timestamp.now(),api: "");
  
  @override
   void initState() {

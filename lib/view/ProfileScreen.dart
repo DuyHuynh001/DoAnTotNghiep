@@ -1,15 +1,17 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:manga_application_1/model/User.dart';
 import 'package:manga_application_1/component/EditProfile.dart';
 import 'package:manga_application_1/view/ChangePasswordScreen.dart';
 import 'package:manga_application_1/view/HistoryScreen.dart';
-import 'package:manga_application_1/view/IntroduceScreen.dart';
 import 'package:manga_application_1/view/LoginScreen.dart';
+import 'package:manga_application_1/view/ManagerComics.dart';
 import 'package:manga_application_1/view/MyCommentScreen.dart';
 import 'package:manga_application_1/view/UsedTimeScreen.dart';
 import 'package:manga_application_1/view/tam1.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:percent_indicator/percent_indicator.dart';
 import 'package:percent_indicator/percent_indicator.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -26,7 +28,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   double progressPercentage = 0;
   int userLevel = 1;
   bool _isMarked= false ;
-  User _user = User(Id: "", Name: "", Image: "https://firebasestorage.googleapis.com/v0/b/appdoctruyentranhonline.appspot.com/o/No-Image-Placeholder.svg.webp?alt=media&token=319ebc86-9ec0-4a16-a877-b477564b212b", Email: "", Status: false, Points: 0, IsRead: 0);
+  User _user = User(Id: "", Name: "", Image: "https://firebasestorage.googleapis.com/v0/b/appdoctruyentranhonline.appspot.com/o/No-Image-Placeholder.svg.webp?alt=media&token=319ebc86-9ec0-4a16-a877-b477564b212b", Email: "", Status: false, Points: 0, IsRead: 0, Gender: "Không được đặt");
   @override
   void initState() {
     super.initState();
@@ -346,17 +348,37 @@ class _ProfileScreenState extends State<ProfileScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _buildFunctionButton(
-              icon: Icons.today,
+              icon: Icons.menu_book,
               label: "Quản lý truyện",
               onPressed: () {
+                Navigator.push(
+                  context,
+                  PageRouteBuilder(
+                    pageBuilder: (context, animation, secondaryAnimation) =>
+                        Managercomics(),
+                    transitionsBuilder:
+                        (context, animation, secondaryAnimation, child) {
+                      const begin = Offset(1.0, 0.0);
+                      const end = Offset.zero;
+                      const curve = Curves.easeInOut;
+                      var tween = Tween(begin: begin, end: end)
+                          .chain(CurveTween(curve: curve));
+                      var offsetAnimation = animation.drive(tween);
+                      return SlideTransition(
+                        position: offsetAnimation,
+                        child: child,
+                      );
+                    },
+                  ),
+                );
+
               },
             ),
             const SizedBox(height: 2),
             _buildFunctionButton(
-              icon: Icons.favorite_border,
+              icon: Icons.category,
               label: "Quản lý thể loại",
-              onPressed: () {
-                
+              onPressed: () { 
               },
             ),
           ],
@@ -469,7 +491,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 final result = await  Navigator.push(
                  context,
                   PageRouteBuilder(
-                  pageBuilder: (context, animation, secondaryAnimation) =>EditProfile(name: _user.Name,image: _user.Image,id:widget.userId),
+                  pageBuilder: (context, animation, secondaryAnimation) =>EditProfile(name: _user.Name,image: _user.Image,id:widget.userId, gender: _user.Gender),
                   transitionsBuilder: (context, animation, secondaryAnimation, child) {
                     const begin = Offset(1.0, 0.0);
                     const end = Offset.zero;
@@ -557,41 +579,27 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 );
               },
             ),
-            _buildFunctionButton(
-              icon: Icons.attractions,
-              label: "Vòng quay may mắn",
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  PageRouteBuilder(
-                  pageBuilder: (context, animation, secondaryAnimation) => SpinWheelPage(),
-                  transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                    const begin = Offset(1.0, 0.0);
-                    const end = Offset.zero;
-                    const curve = Curves.easeInOut;
-                    var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
-                    var offsetAnimation = animation.drive(tween);
-                    return SlideTransition(
-                      position: offsetAnimation,
-                      child: child,
-                    );
-                  },
-                ),
-                );
-              },
-            ),
             // _buildFunctionButton(
-            //   icon: Icons.account_box_sharp,
-            //   label: "Khung avatar của tôi",
+            //   icon: Icons.attractions,
+            //   label: "Vòng quay may mắn",
             //   onPressed: () {
-               
-            //   },
-            // ),
-            // _buildFunctionButton(
-            //   icon: Icons.accessibility,
-            //   label: "Level của tôi",
-            //   onPressed: () {
-               
+            //     Navigator.push(
+            //       context,
+            //       PageRouteBuilder(
+            //       pageBuilder: (context, animation, secondaryAnimation) => SpinWheelPage(),
+            //       transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            //         const begin = Offset(1.0, 0.0);
+            //         const end = Offset.zero;
+            //         const curve = Curves.easeInOut;
+            //         var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+            //         var offsetAnimation = animation.drive(tween);
+            //         return SlideTransition(
+            //           position: offsetAnimation,
+            //           child: child,
+            //         );
+            //       },
+            //     ),
+            //     );
             //   },
             // ),
           ],
@@ -619,19 +627,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildFunctionButton(
-              icon: Icons.error_outline_rounded,
-              label: "Giới thiệu",
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const IntroduceScreen(),
-                  ),
-                );
-              },
-            ),
-            const SizedBox(height: 2),
+           
             _buildFunctionButton(
               icon: Icons.vpn_key,
               label: "Đổi mật khẩu",

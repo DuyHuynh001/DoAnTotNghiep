@@ -1,22 +1,24 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:manga_application_1/component/show.dart';
+import 'package:manga_application_1/component/ShowUser.dart';
 import 'package:manga_application_1/model/Community.dart';
-import 'package:manga_application_1/model/User.dart'; // Import your User model 
+import 'package:manga_application_1/model/User.dart'; 
 
 class CommentItem extends StatefulWidget {
   final String userId;
   final String commentText;
   final Timestamp time;
+  final String currentId;
 
-  const CommentItem({Key? key,required this.userId,required this.commentText,required this.time}) : super(key: key);
+  const CommentItem({Key? key,required this.userId,required this.commentText,required this.time, required this.currentId}) : super(key: key);
   @override
   _CommentItemState createState() => _CommentItemState();
 }
+
 class _CommentItemState extends State<CommentItem> {
  
-  User userData= User(Id: "", Name: "", Image: "https://firebasestorage.googleapis.com/v0/b/appdoctruyentranhonline.appspot.com/o/No-Image-Placeholder.svg.webp?alt=media&token=319ebc86-9ec0-4a16-a877-b477564b212b", Email: "", Status: false, Points: 0, IsRead: 0);
+  User userData= User(Id: "", Name: "", Image: "https://firebasestorage.googleapis.com/v0/b/appdoctruyentranhonline.appspot.com/o/No-Image-Placeholder.svg.webp?alt=media&token=319ebc86-9ec0-4a16-a877-b477564b212b", Email: "", Status: false, Points: 0, IsRead: 0, Gender: "Không được đặt");
   @override
   void initState() {
     super.initState();
@@ -35,7 +37,8 @@ class _CommentItemState extends State<CommentItem> {
 
   String formatTimestamp(Timestamp timestamp) {
     DateTime dateTime = timestamp.toDate();
-    return DateFormat('dd-MM-yyyy HH:mm:ss').format(dateTime); // Định dạng thời gian
+    return DateFormat('dd-MM-yyyy HH:mm:ss')
+        .format(dateTime); // Định dạng thời gian
   }
 
   @override
@@ -49,8 +52,19 @@ class _CommentItemState extends State<CommentItem> {
             onTap: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(
-                  builder: (context) => Show(UserId: widget.userId),
+                PageRouteBuilder(
+                  pageBuilder: (context, animation, secondaryAnimation) => Show(UserId:widget.userId, currentId: widget.currentId),
+                  transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                    const begin = Offset(1.0, 0.0);
+                    const end = Offset.zero;
+                    const curve = Curves.easeInOut;
+                    var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+                    var offsetAnimation = animation.drive(tween);
+                    return SlideTransition(
+                      position: offsetAnimation,
+                      child: child,
+                    );
+                  },
                 ),
               );
             },

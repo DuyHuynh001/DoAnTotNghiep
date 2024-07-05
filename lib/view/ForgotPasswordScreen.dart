@@ -18,8 +18,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Link đặt lại mật khẩu đã được gửi đến bạn! Kiểm tra Email của bạn.')),
       );
-      // Sau khi gửi email thành công, quay về màn hình đăng nhập
-      Navigator.pop(context); // Quay về màn hình trước đó (đã được đăng nhập)
+      Navigator.pop(context);
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Lỗi: ' + e.toString())),

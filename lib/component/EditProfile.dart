@@ -9,8 +9,9 @@ class EditProfile extends StatefulWidget {
   final String name;
   final String image;
   final String id;
+  final String gender;
 
-  EditProfile({required this.name, required this.image, required this.id});
+  EditProfile({required this.name, required this.image, required this.id, required this.gender});
 
   @override
   _EditProfileState createState() => _EditProfileState();
@@ -19,16 +20,18 @@ class EditProfile extends StatefulWidget {
 class _EditProfileState extends State<EditProfile> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _imageUrlController = TextEditingController();
-   final ImagePicker _picker = ImagePicker();
+  final ImagePicker _picker = ImagePicker();
   File? _imageFile;
   String? _imageUrl;
   bool _isLoading = false;
+  String? _gender; // Biến để lưu giới tính đã chọn
 
   @override
   void initState() {
     super.initState();
     _nameController.text = widget.name;
     _imageUrl = widget.image;
+    _gender = widget.gender;
   }
   
   // lấy ảnh từ máy cá nhân
@@ -68,6 +71,7 @@ class _EditProfileState extends State<EditProfile> {
     await FirebaseFirestore.instance.collection('User').doc(widget.id).update({
       'Name': _nameController.text,
       'Image': imageUrl,
+      'Gender': _gender, // Cập nhật giới tính vào Firestore
     });
     setState(() {
       _imageUrl = imageUrl;
@@ -109,37 +113,41 @@ class _EditProfileState extends State<EditProfile> {
     Navigator.of(context).pop(true);
   }
 
-  void _showImageSourceDialog() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Chọn nguồn ảnh'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ListTile(
-                leading: Icon(Icons.photo_library),
-                title: Text('Chọn từ máy'),
-                onTap: () {
-                  Navigator.of(context).pop();
-                  _pickImageFromGallery();
-                },
-              ),
-              ListTile(
-                leading: Icon(Icons.link),
-                title: Text('Nhập URL ảnh'),
-                onTap: () {
-                  Navigator.of(context).pop();
-                  _showImageUrlDialog();
-                },
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
+  void _showImageSourceBottomSheet() {
+  showModalBottomSheet(
+    context: context,
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(20.0)),
+    ),
+    builder: (BuildContext context) {
+      return Container(
+        padding: EdgeInsets.all(16.0),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: Icon(Icons.photo_library),
+              title: Text('Chọn từ máy'),
+              onTap: () {
+                Navigator.of(context).pop();
+                _pickImageFromGallery();
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.link),
+              title: Text('Nhập URL ảnh'),
+              onTap: () {
+                Navigator.of(context).pop();
+                _showImageUrlDialog();
+              },
+            ),
+          ],
+        ),
+      );
+    },
+  );
+}
+
 
   void _showImageUrlDialog() {
     showDialog(
@@ -166,6 +174,8 @@ class _EditProfileState extends State<EditProfile> {
               child: Text('Xác nhận'),
               onPressed: () {
                 _setImageFromUrl(_imageUrlController.text);
+                _imageUrl=_imageUrlController.text;
+                setState(() {});
                 Navigator.of(context).pop();
               },
             ),
@@ -188,7 +198,7 @@ class _EditProfileState extends State<EditProfile> {
             ListTile(
               title: Text('Ảnh đại diện'),
               trailing: GestureDetector(
-                onTap: _showImageSourceDialog,
+                onTap: _showImageSourceBottomSheet,
                 child: Column(
                   children: [
                     Container(
@@ -211,6 +221,24 @@ class _EditProfileState extends State<EditProfile> {
               title: Text('Biệt danh'),
               subtitle: TextField(
                 controller: _nameController,
+              ),
+            ),
+            ListTile(
+              title: Text('Giới tính'),
+              trailing: DropdownButton<String>(
+                value: _gender,
+                
+                onChanged: (String? value) {
+                  setState(() {
+                    _gender = value;
+                  });
+                },
+                items: <String>['Nam', 'Nữ', 'Không được đặt'].map((String value) {
+                  return DropdownMenuItem<String>(
+                    value: value,
+                    child: Text(value),
+                  );
+                }).toList(),
               ),
             ),
             ListTile(

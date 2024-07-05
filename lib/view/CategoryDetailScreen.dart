@@ -7,11 +7,16 @@ class CategoryDetailScreen extends StatefulWidget {
   final String Name;
   final String Title;
   final String UserId;
-  CategoryDetailScreen({super.key, required this.Name, required this.Title, required this.UserId});
+  CategoryDetailScreen(
+      {super.key,
+      required this.Name,
+      required this.Title,
+      required this.UserId});
 
   @override
   State<CategoryDetailScreen> createState() => _CategoryDetailScreenState();
 }
+
 class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
   String selectedFilter = 'Tất cả';
   List<Comics> comicsList = [];
@@ -26,7 +31,8 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
   void fetchData() async {
     setState(() { isLoading = true;});
     try {
-      List<Comics>? fetchedComics = await Comics.fetchComicsByCategoryAndStatus(widget.Name, selectedFilter);
+      List<Comics>? fetchedComics = await Comics.fetchComicsByCategoryAndStatus(
+          widget.Name, selectedFilter);
       setState(() {
         comicsList = fetchedComics!;
       });
@@ -50,7 +56,7 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.Name),
-        leading: Icon( Icons.close),
+        leading: Icon(Icons.close),
       ),
       body: Container(
         child: Column(
@@ -80,11 +86,21 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
                   Expanded(
                     child: OutlinedButton(
                       onPressed: () => onFilterChanged('Tất cả'),
-                      child: Text('Tất cả',style: TextStyle(fontSize: 14),),
+                      child: Text(
+                        'Tất cả',
+                        style: TextStyle(fontSize: 14),
+                      ),
                       style: OutlinedButton.styleFrom(
-                        backgroundColor: selectedFilter == 'Tất cả' ? Colors.blue : Colors.white,
-                        primary: selectedFilter == 'Tất cả' ? Colors.white : Colors.black,
-                        side: BorderSide(color: selectedFilter == 'Tất cả' ? Colors.blue : Colors.black),
+                        foregroundColor: selectedFilter == 'Tất cả'
+                            ? Colors.white
+                            : Colors.black,
+                        backgroundColor: selectedFilter == 'Tất cả'
+                            ? Colors.blue
+                            : Colors.white,
+                        side: BorderSide(
+                            color: selectedFilter == 'Tất cả'
+                                ? Colors.blue
+                                : Colors.black),
                       ),
                     ),
                   ),
@@ -92,11 +108,18 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
                   Expanded(
                     child: OutlinedButton(
                       onPressed: () => onFilterChanged('Hoàn thành'),
-                      child: Text('Hoàn thành',style: TextStyle(fontSize: 14)),
+                      child: Text('Hoàn thành', style: TextStyle(fontSize: 14)),
                       style: OutlinedButton.styleFrom(
-                        backgroundColor: selectedFilter == 'Hoàn thành' ? Colors.blue : Colors.white,
-                        primary: selectedFilter == 'Hoàn thành' ? Colors.white : Colors.black,
-                        side: BorderSide(color: selectedFilter == 'Hoàn thành' ? Colors.blue : Colors.black),
+                        foregroundColor: selectedFilter == 'Hoàn thành'
+                            ? Colors.white
+                            : Colors.black,
+                        backgroundColor: selectedFilter == 'Hoàn thành'
+                            ? Colors.blue
+                            : Colors.white,
+                        side: BorderSide(
+                            color: selectedFilter == 'Hoàn thành'
+                                ? Colors.blue
+                                : Colors.black),
                       ),
                     ),
                   ),
@@ -104,11 +127,19 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
                   Expanded(
                     child: OutlinedButton(
                       onPressed: () => onFilterChanged('Đang cập nhật'),
-                      child: Text('Đang cập nhật',style: TextStyle(fontSize: 14)),
+                      child:
+                          Text('Đang cập nhật', style: TextStyle(fontSize: 14)),
                       style: OutlinedButton.styleFrom(
-                        backgroundColor: selectedFilter == 'Đang cập nhật' ? Colors.blue : Colors.white,
-                        primary: selectedFilter == 'Đang cập nhật' ? Colors.white : Colors.black,
-                        side: BorderSide(color: selectedFilter == 'Đang cập nhật' ? Colors.blue : Colors.black),
+                        foregroundColor: selectedFilter == 'Đang cập nhật'
+                            ? Colors.white
+                            : Colors.black,
+                        backgroundColor: selectedFilter == 'Đang cập nhật'
+                            ? Colors.blue
+                            : Colors.white,
+                        side: BorderSide(
+                            color: selectedFilter == 'Đang cập nhật'
+                                ? Colors.blue
+                                : Colors.black),
                       ),
                     ),
                   ),
@@ -119,25 +150,26 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
               color: Colors.black,
               thickness: 1,
             ),
-            isLoading? const Center(
-              child: CircularProgressIndicator())
-              : comicsList == null || comicsList.isEmpty? 
-              const Center(
-                child: Text('Không có truyện theo thể loại và trạng thái này'))
-              : Expanded( 
-                  child :ListView.builder(
-                    shrinkWrap: true,
-                    physics: const AlwaysScrollableScrollPhysics(),
-                    itemCount: comicsList.length,
-                    itemBuilder: (context, index) {
-                      Comics comic = comicsList[index];
-                      return ComicItem( 
-                        comic: comic,
-                         UserId: widget.UserId,
-                      );
-                    },
-                  ),
-                ),       
+            isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : comicsList == null || comicsList.isEmpty
+                    ? const Center(
+                        child: Text(
+                            'Không có truyện theo thể loại và trạng thái này'))
+                    : Expanded(
+                        child: ListView.builder(
+                          shrinkWrap: true,
+                          physics: const AlwaysScrollableScrollPhysics(),
+                          itemCount: comicsList.length,
+                          itemBuilder: (context, index) {
+                            Comics comic = comicsList[index];
+                            return ComicItem(
+                              comic: comic,
+                              UserId: widget.UserId,
+                            );
+                          },
+                        ),
+                      ),
           ],
         ),
       ),

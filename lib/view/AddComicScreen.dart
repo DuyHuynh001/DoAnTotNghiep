@@ -21,8 +21,6 @@ class _AddComicScreenState extends State<AddComicScreen> {
 
   String statusValue = 'Đang cập nhật';
   bool isLoading = false;
-  bool isNew = false;
-
   List<String> categories = [];
   List<String> selectedCategories = [];
 
@@ -50,31 +48,41 @@ class _AddComicScreenState extends State<AddComicScreen> {
     });
   }
 
-  Future<void> _saveComic() async {
-    if (_name.text.trim().isEmpty ||  _description.text.trim().isEmpty || selectedCategories.isEmpty || _chapterUrl.text.trim().isEmpty) {
-      _showErrorDialog("Vui lòng nhập đầy đủ thông tin");
-      return;
-    }
-    setState(() {
-      isLoading = true;
-    });
-    if(_urlImage.text.trim().isEmpty)
-    {
-      _urlImage.text="https://firebasestorage.googleapis.com/v0/b/appdoctruyentranhonline.appspot.com/o/No-Image-Placeholder.svg.webp?alt=media&token=319ebc86-9ec0-4a16-a877-b477564b212b";
-    }
-    final String name = _name.text;
-    final String urlImage = _urlImage.text;
-    final String description = _description.text;
-    final String chaptersUrl = _chapterUrl.text;
+ Future<void> _saveComic() async {
+  if (_name.text.trim().isEmpty || _description.text.trim().isEmpty || selectedCategories.isEmpty || _chapterUrl.text.trim().isEmpty) {
+    _showErrorDialog("Vui lòng nhập đầy đủ thông tin");
+    return;
+  }
+  showDialog(
+    context: context,
+    barrierDismissible: false,
+    builder: (BuildContext context) {
+      return Center(
+        child: CircularProgressIndicator(),
+      );
+    },
+  );
+
+  if (_urlImage.text.trim().isEmpty) {
+    _urlImage.text = "https://firebasestorage.googleapis.com/v0/b/appdoctruyentranhonline.appspot.com/o/No-Image-Placeholder.svg.webp?alt=media&token=319ebc86-9ec0-4a16-a877-b477564b212b";
+  }
+
+  final String name = _name.text;
+  final String urlImage = _urlImage.text;
+  final String description = _description.text;
+  final String chaptersUrl = _chapterUrl.text;
+
+  bool isCompleted = false;
+  
+  while (!isCompleted) {
     try {
       final response = await http.get(Uri.parse(chaptersUrl));
       if (response.statusCode == 200) {
         Map<String, dynamic> data = json.decode(response.body);
-        await Comics.saveComicAndChaptersToFirestore(name, statusValue, urlImage, description, isNew, selectedCategories, data['data']['item']);
-        
+        await Comics.saveComicAndChaptersToFirestore(name, statusValue, urlImage, description, selectedCategories, data['data']['item'],chaptersUrl);
+        Navigator.of(context).pop(); // Dismiss the progress dialog
         setState(() {
           isLoading = false;
-          isNew = false;
           _name.clear();
           _urlImage.clear();
           _description.clear();
@@ -83,16 +91,21 @@ class _AddComicScreenState extends State<AddComicScreen> {
           statusValue = 'Đang cập nhật';
         });
         showSnackBar('Thêm truyện thành công');
+        Navigator.of(context).pop(true);
+        
+        isCompleted = true; 
       } else {
         throw Exception('Failed to load data');
       }
     } catch (e) {
       print('Error fetching data: $e');
+      Navigator.of(context).pop(); 
       setState(() {
         isLoading = false;
       });
       showSnackBar('Đã xảy ra lỗi khi thêm truyện');
     }
+  }
   }
 
   void _showErrorDialog(String message) {
@@ -131,7 +144,7 @@ class _AddComicScreenState extends State<AddComicScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Add Comic'),
+        title: Text('Thêm truyện'),
       ),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -150,6 +163,7 @@ class _AddComicScreenState extends State<AddComicScreen> {
                   TextField(
                     controller: _description,
                     decoration: const InputDecoration(labelText: 'Giới thiệu'),
+                    maxLines: null,
                   ),
                   Row(
                     children: [
@@ -208,28 +222,6 @@ class _AddComicScreenState extends State<AddComicScreen> {
                           ),
                           Text('Hoàn Thành'),
                         ],
-                      ),
-                    ],
-                  ),
-                  const Divider(color: Colors.grey, thickness: 1),
-                  Row(
-                    children: [
-                      const Text("Truyện Mới: ",style: TextStyle(fontSize: 16)),
-                      Expanded(
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
-                            Checkbox(
-                              value: isNew,
-                              onChanged: (bool? newValue) {
-                                setState(() {
-                                  isNew = newValue ?? false;
-                                });
-                              },
-                              checkColor: Colors.white,
-                            ),
-                          ],
-                        ),
                       ),
                     ],
                   ),

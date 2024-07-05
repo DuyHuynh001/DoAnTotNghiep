@@ -29,7 +29,7 @@ class ChapterDetail extends StatefulWidget {
 }
 
 class _ChapterDetailState extends State<ChapterDetail> {
-  late Timer readTimer;    // thời gian đọc
+  Timer readTimer = Timer(Duration.zero, () {});    // thời gian đọc
   int totalReadingSeconds=0;
   late DateTime fullreadTimer;    // thời gian đọc
   late DateTime startTime;  // tg bắt đầu đọc
@@ -50,7 +50,7 @@ class _ChapterDetailState extends State<ChapterDetail> {
   List<String> recognizedTexts = [];
   bool isTTSPlaying = false;
   int userLevel = 1;
-  User _user = User(Id: "", Name: "", Image: "https://firebasestorage.googleapis.com/v0/b/appdoctruyentranhonline.appspot.com/o/No-Image-Placeholder.svg.webp?alt=media&token=319ebc86-9ec0-4a16-a877-b477564b212b", Email: "", Status: false, Points: 0, IsRead: 0);
+  User _user = User(Id: "", Name: "", Image: "https://firebasestorage.googleapis.com/v0/b/appdoctruyentranhonline.appspot.com/o/No-Image-Placeholder.svg.webp?alt=media&token=319ebc86-9ec0-4a16-a877-b477564b212b", Email: "", Status: false, Points: 0, IsRead: 0, Gender: "Không được đặt");
 
   @override
   void initState() {

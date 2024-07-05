@@ -290,14 +290,14 @@ class _DetailTabState extends State<DetailTab> {
                               userId: comment['UserId'],
                               commentText: comment['comment'],
                               time: comment['times']!,
+                              currentId: widget.UserId,
                             );
                           },
                         ),
                         if (comments.length >= 4)
                           Center(
                             child: TextButton(
-                              onPressed: ()
-                              {
+                              onPressed: (){
                               Navigator.push(
                                 context,
                                 PageRouteBuilder(

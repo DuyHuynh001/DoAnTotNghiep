@@ -71,7 +71,7 @@ class TopComicItem extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(8.0),
         child: Container(
-          color: Colors.lightBlue[50],
+          color: Colors.white,
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
