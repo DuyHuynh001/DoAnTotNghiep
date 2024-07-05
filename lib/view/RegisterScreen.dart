@@ -201,7 +201,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   text: TextSpan(
                     text: 'Đã có tài khoản? ',
                     style: TextStyle(color: Colors.black, fontSize: 16),
-                    children: <TextSpan>[
+                    children: [
                       TextSpan(
                         text: 'Đăng nhập ngay',
                         style: const TextStyle(
