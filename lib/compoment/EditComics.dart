@@ -6,7 +6,7 @@ import 'dart:io';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:http/http.dart' as http;
-import 'package:manga_application_1/model/Comic.dart';
+import 'package:manga_application_1/model/load_data.dart';
 import 'package:manga_application_1/view/ManagerComics.dart';
 
 class EditComics extends StatefulWidget {
