@@ -136,6 +136,7 @@ class _MyCommunityItemState extends State<MyCommunityItem> {
               user: widget.user,
               comic: widget.comic,
               IsLike: isLiked,
+              UserId: widget.user.Id,
             ),
             transitionsBuilder: (context, animation, secondaryAnimation, child) {
               const begin = Offset(1.0, 0.0);
@@ -307,6 +308,7 @@ class _MyCommunityItemState extends State<MyCommunityItem> {
                           user: widget.user,
                           comic: widget.comic,
                           IsLike: isLiked,
+                          UserId: widget.user.Id,
                           
                         ),
                         transitionsBuilder: (context, animation, secondaryAnimation, child) {

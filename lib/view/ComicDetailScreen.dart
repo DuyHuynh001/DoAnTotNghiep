@@ -243,7 +243,7 @@ void toggleFavorite() async {
                                     style: TextStyle(color: Colors.black, fontSize: 16),
                                   ),
                                   style: ElevatedButton.styleFrom(
-                                      primary: isButtonView ? Colors.blue[300] : Colors.grey[200], // Thay đổi màu nền của nút
+                                      primary: isButtonView ? Colors.blue[300] : Colors.grey[200], 
                                       side: BorderSide(color: Colors.black),
                                       padding: EdgeInsets.symmetric(vertical: 9),
                                     ),

@@ -373,14 +373,14 @@ class _ExpandableTextState extends State<ExpandableText> {
               overflow: TextOverflow.fade,
             ),
             if (isOverflowing)
-              TextButton(
-                onPressed: () {
-                  setState(() {
-                    _isExpanded = !_isExpanded;
-                  });
-                },
-                child: Text(_isExpanded ? 'Thu gọn' : 'Xem thêm'),
-              ),
+            GestureDetector(
+              onTap: () {
+                setState(() {
+                  _isExpanded = !_isExpanded;
+                });
+              },
+              child: Text(_isExpanded ? 'Thu gọn' : 'Xem thêm', style: TextStyle(color: Colors.blue, fontSize: 16),),
+            ),
           ],
         );
       },

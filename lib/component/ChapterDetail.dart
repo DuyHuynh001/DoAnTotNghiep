@@ -8,6 +8,7 @@ import 'package:manga_application_1/model/Comic.dart';
 import 'package:manga_application_1/model/Community.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_windowmanager/flutter_windowmanager.dart';
+import 'package:manga_application_1/model/User.dart';
 import 'package:manga_application_1/view/ProfileScreen.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:google_ml_kit/google_ml_kit.dart';
@@ -48,6 +49,8 @@ class _ChapterDetailState extends State<ChapterDetail> {
   FlutterTts flutterTts = FlutterTts();
   List<String> recognizedTexts = [];
   bool isTTSPlaying = false;
+  int userLevel = 1;
+  User _user = User(Id: "", Name: "", Image: "https://firebasestorage.googleapis.com/v0/b/appdoctruyentranhonline.appspot.com/o/No-Image-Placeholder.svg.webp?alt=media&token=319ebc86-9ec0-4a16-a877-b477564b212b", Email: "", Status: false, Points: 0, IsRead: 0);
 
   @override
   void initState() {
@@ -58,6 +61,7 @@ class _ChapterDetailState extends State<ChapterDetail> {
     setCurrentChapter();
     getCurrentChapter();
     autoUnlockVipChapter();
+    _fetchUserData();
   }
 
   @override
@@ -78,6 +82,39 @@ class _ChapterDetailState extends State<ChapterDetail> {
   // cho phép dc chụp màn hình
   Future<void> unsecureScreen() async {
     await FlutterWindowManager.clearFlags(FlutterWindowManager.FLAG_SECURE);
+  }
+  
+   Future<void> _fetchUserData() async {
+    User user = await User.fetchUserById(widget.UserId);
+    if (user != null) {
+      setState(() {
+        _user = user;
+        _calculateLevel(_user.IsRead);
+      });
+    }
+  }
+  void _calculateLevel(int currentIsRead) {
+      if (currentIsRead>0 && currentIsRead <= 100) {
+        userLevel = 1;
+      } else if (currentIsRead <= 500) {
+        userLevel = 2;
+      } else if (currentIsRead <= 1000) {
+        userLevel = 3;
+      }else if (currentIsRead <= 2000) {
+        userLevel = 4;
+      } else if (currentIsRead <= 5000) {
+        userLevel = 5;
+      } else if (currentIsRead <= 10000) {
+        userLevel = 6;
+      } else if (currentIsRead <= 20000) {
+        userLevel = 7;
+      } else if (currentIsRead <= 50000) {
+        userLevel = 8;
+      } else if (currentIsRead <= 100000) {
+        userLevel = 9;
+      } else {
+        userLevel = 10;
+      } 
   }
 
   Future<void> fetchDataChapterFromFirestore(String comicId, String chapterId) async {
@@ -687,7 +724,7 @@ Future<void> extractTextFromImage(String imageUrl) async {
                         autoUnlockVipChapter();
                         flutterTts.stop();
                         textRecognizer.close();
-
+                        isTTSPlaying=false;
                       });
                     }: null,
                     style: ElevatedButton.styleFrom(
@@ -758,7 +795,8 @@ Future<void> extractTextFromImage(String imageUrl) async {
                                   ],
                                  ),
                                  SizedBox(height: 10,),
-                                 Row(
+                                 if(userLevel>3)...[
+                                  Row(
                                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [
                                     Text('Nghe đọc truyện', style: TextStyle(fontSize: 16),),
@@ -793,11 +831,13 @@ Future<void> extractTextFromImage(String imageUrl) async {
                                               ),
                                             ),
                                           ],
+                                    
                                         ),
                                     ),
                                   ),
                                   ],
-                                ),
+                                 ),
+                                 ]
                               ],
                             ),
                           );
@@ -818,6 +858,7 @@ Future<void> extractTextFromImage(String imageUrl) async {
                         autoUnlockVipChapter();
                         flutterTts.stop();
                         textRecognizer.close();
+                        isTTSPlaying=false;
                       });
                     }: null,
                     style: ElevatedButton.styleFrom(

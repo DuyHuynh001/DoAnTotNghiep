@@ -115,15 +115,15 @@ class _FavoriteTabState extends State<FavoriteTab> {
                                   ],
                                 ),
                                 Positioned(
-                                      left: -10,
-                                      top: -10,
-                                      child: Checkbox(
-                                        value: isSelected,
-                                        onChanged: (bool? value) {
-                                          _toggleSelectComic(Favorite);
-                                        },
-                                      ),
-                                    ),
+                                  left: -10,
+                                  top: -10,
+                                  child: Checkbox(
+                                    value: isSelected,
+                                    onChanged: (bool? value) {
+                                      _toggleSelectComic(Favorite);
+                                    },
+                                  ),
+                                ),
                               ],
                             ),
                           );

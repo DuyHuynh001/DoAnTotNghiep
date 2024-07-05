@@ -11,8 +11,9 @@ class CommunityItem extends StatefulWidget {
  final Community message;
  final User user;
  final Comics? comic;
+ final String UserId;
 
-  const CommunityItem({Key? key,required this.message, required this.user, required this.comic}) : super(key: key);
+  const CommunityItem({Key? key,required this.message, required this.user, required this.comic, required this.UserId}) : super(key: key);
   @override
   _CommunityItemState createState() => _CommunityItemState();
 }
@@ -28,13 +29,13 @@ class _CommunityItemState extends State<CommunityItem> {
   void _loadComments() async {
     List<DocumentSnapshot> fetchedComments = await Community.fetchCommentsByCommunityId(widget.message.Id);
     setState(() {
-      commentCount = fetchedComments.length; // Đếm số lượng bình luận
+      commentCount = fetchedComments.length;
     });
   }
 
   Future<void> checkLike() async {
     try {
-      DocumentReference likeRef = FirebaseFirestore.instance.collection('Community').doc(widget.message.Id) .collection('IsLike').doc(widget.user.Id);
+      DocumentReference likeRef = FirebaseFirestore.instance.collection('Community').doc(widget.message.Id) .collection('IsLike').doc(widget.UserId);
       DocumentSnapshot doc = await likeRef.get();
       if (doc.exists) {
         setState(() {
@@ -49,7 +50,7 @@ class _CommunityItemState extends State<CommunityItem> {
   void toggleLike() async {
   try {
     DocumentReference communityRef =FirebaseFirestore.instance.collection('Community').doc(widget.message.Id);
-     DocumentReference likeRef = FirebaseFirestore.instance.collection('Community').doc(widget.message.Id) .collection('IsLike').doc(widget.user.Id);
+     DocumentReference likeRef = FirebaseFirestore.instance.collection('Community').doc(widget.message.Id) .collection('IsLike').doc(widget.UserId);
     DocumentSnapshot communityDoc = await communityRef.get();
     int currentLikes = communityDoc['like'];
     if (isLiked) {
@@ -66,7 +67,7 @@ class _CommunityItemState extends State<CommunityItem> {
       // Tăng số lượt yêu thích và cập nhật Firestore
       await communityRef.update({'like': FieldValue.increment(1),});
       await likeRef.set({
-        'UserId': widget.user.Id,
+        'UserId': widget.UserId,
         'timestamp': FieldValue.serverTimestamp(),
       });
       setState(() {
@@ -98,6 +99,7 @@ class _CommunityItemState extends State<CommunityItem> {
               user: widget.user,
               comic: widget.comic,
               IsLike: isLiked,
+              UserId: widget.UserId
             ),
             transitionsBuilder: (context, animation, secondaryAnimation, child) {
               const begin = Offset(1.0, 0.0);
@@ -171,7 +173,7 @@ class _CommunityItemState extends State<CommunityItem> {
                   PageRouteBuilder(
                     pageBuilder: (context, animation, secondaryAnimation) => ComicDetailScreen(
                       storyId: widget.comic!.id,
-                      UserId: widget.user.Id,
+                      UserId: widget.UserId,
                     ),
                     transitionsBuilder: (context, animation, secondaryAnimation, child) {
                       const begin = Offset(1.0, 0.0);
@@ -260,6 +262,7 @@ class _CommunityItemState extends State<CommunityItem> {
                           user: widget.user,
                           comic: widget.comic,
                           IsLike: isLiked,
+                          UserId: widget.UserId,
                         ),
                         transitionsBuilder: (context, animation, secondaryAnimation, child) {
                           const begin = Offset(1.0, 0.0);

@@ -48,7 +48,6 @@ class _MyPostTabState extends State<MyPostTab> {
                       Community post = postWithUser['post'];
                       User user = postWithUser['user'];
                       Comics? comic = postWithUser['comic'];
-                      
                       if (comic == null || post.ComicId.isEmpty) {
                         comic = null; // Gán comic là null nếu không có thông tin truyện
                       }

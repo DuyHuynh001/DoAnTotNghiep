@@ -4,6 +4,7 @@ import 'package:manga_application_1/model/Comic.dart';
 import 'package:manga_application_1/model/Community.dart';
 import 'package:manga_application_1/model/User.dart';
 import 'package:manga_application_1/view/AddPostScreen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class CommunityScreen extends StatefulWidget {
   final String UserId;
@@ -24,6 +25,7 @@ class _CommunityScreenState extends State<CommunityScreen> {
 
   Future<List<Map<String, dynamic>>> fetchPosts() async {
     return await Community.fetchCommunityPostsWithUsers();
+    
   }
 
   Future<void> _refreshPosts() async {
@@ -34,6 +36,7 @@ class _CommunityScreenState extends State<CommunityScreen> {
 
   @override
   Widget build(BuildContext context) {
+    
     return Scaffold(
       body: RefreshIndicator(
         onRefresh: _refreshPosts,
@@ -60,6 +63,7 @@ class _CommunityScreenState extends State<CommunityScreen> {
                     message: post,
                     user: user,
                     comic: comic,
+                    UserId: widget.UserId,
                   );
                 },
               );

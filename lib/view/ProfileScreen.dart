@@ -70,9 +70,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   void _calculateProgress(int currentIsRead) {
-    // setState(() {
       progressPercentage = currentIsRead / requiredIsRead;
-    // });
   }
 
   Future<void> _markAttendance() async {
@@ -117,7 +115,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   void _calculateLevel(int currentIsRead) {
-      if (currentIsRead>0 && currentIsRead <= 100) {
+      if (currentIsRead <= 0) {
+        userLevel = 1;
+        requiredIsRead = 100;
+      } else if (currentIsRead <= 100) {
         userLevel = 1;
         requiredIsRead = 100;
       } else if (currentIsRead <= 500) {
@@ -355,7 +356,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               icon: Icons.favorite_border,
               label: "Quản lý thể loại",
               onPressed: () {
-                // Implement navigation to favorites list
+                
               },
             ),
           ],
@@ -662,6 +663,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               onPressed: () async {
                 SharedPreferences prefs = await SharedPreferences.getInstance();
                 prefs.setBool('isLoggedIn', false);
+                prefs.setString('UserId', "");
                 Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(builder: (context) => const LoginScreen()),
