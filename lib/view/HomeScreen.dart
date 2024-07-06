@@ -1,19 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_image_slideshow/flutter_image_slideshow.dart';
-import 'package:manga_application_1/component/ActionComic.dart';
-import 'package:manga_application_1/component/AncientComic.dart';
-import 'package:manga_application_1/component/FullComic.dart';
-import 'package:manga_application_1/component/HotComic.dart';
-import 'package:manga_application_1/component/AdventureComic.dart';
-import 'package:manga_application_1/component/ToolItem.dart';
-import 'package:manga_application_1/view/CategoryDetailScreen.dart';
-import 'package:manga_application_1/view/CategoryScreen.dart';
-import 'package:manga_application_1/view/ListFullComicScreen.dart';
-import 'package:manga_application_1/view/ListHotComicScreen.dart';
-import 'package:manga_application_1/view/NewComicScreen.dart';
-import 'package:manga_application_1/view/ProfileScreen.dart';
-import 'package:manga_application_1/view/SearchScreen.dart';
-import 'package:manga_application_1/view/TopComicScreen.dart';
+import 'package:comicz/component/ActionComic.dart';
+import 'package:comicz/component/AncientComic.dart';
+import 'package:comicz/component/FullComic.dart';
+import 'package:comicz/component/HotComic.dart';
+import 'package:comicz/component/AdventureComic.dart';
+import 'package:comicz/component/ToolItem.dart';
+import 'package:comicz/view/CategoryDetailScreen.dart';
+import 'package:comicz/view/CategoryScreen.dart';
+import 'package:comicz/view/ListFullComicScreen.dart';
+import 'package:comicz/view/ListHotComicScreen.dart';
+import 'package:comicz/view/NewComicScreen.dart';
+import 'package:comicz/view/ProfileScreen.dart';
+import 'package:comicz/view/SearchScreen.dart';
+import 'package:comicz/view/TopComicScreen.dart';
 
 class HomeScreen extends StatefulWidget {
   final String UserId;
@@ -24,15 +24,23 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _MyHomeScreen extends State<HomeScreen> {
- @override
+  late Future<void> _refreshDataFuture;
+  @override
   void initState() {
     super.initState();
+    _refreshDataFuture = refreshData();
+  }
+  Future<void> refreshData() async {
+    await Future.delayed(Duration(seconds: 1)); 
+    setState(() {});
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: CustomScrollView(
+      body:RefreshIndicator(
+      onRefresh: refreshData,
+      child: CustomScrollView(
         slivers: [
           SliverAppBar(
             backgroundColor: Colors.transparent,
@@ -103,8 +111,7 @@ class _MyHomeScreen extends State<HomeScreen> {
                         Image.asset('assets/img/doremon.jpg', fit: BoxFit.cover),
                         Image.asset('assets/img/onepice.jpg', fit: BoxFit.cover),
                       ],
-                      onPageChanged: (value) {
-                      },
+                      onPageChanged: (value) {},
                       autoPlayInterval: 7000,
                       isLoop: true,
                     ),
@@ -182,12 +189,12 @@ class _MyHomeScreen extends State<HomeScreen> {
                     ),
                     ToolItem(
                       image: "assets/img/reward.png", 
-                      text: "Điểm Của Tôi",
+                      text: "Xu Của Tôi",
                       onTap: () {
                          Navigator.push(
                           context,
                           PageRouteBuilder(
-                            pageBuilder: (context, animation, secondaryAnimation) => ProfileScreen(userId: widget.UserId,),
+                            pageBuilder: (context, animation, secondaryAnimation) => ProfileScreen(UserId: widget.UserId,),
                             transitionsBuilder: (context, animation, secondaryAnimation, child) {
                               const begin = Offset(1.0, 0.0);
                               const end = Offset.zero;
@@ -249,6 +256,7 @@ class _MyHomeScreen extends State<HomeScreen> {
           AncientComic(UserId: widget.UserId,)
         ],
       ),
+      )
     );
   }
 }

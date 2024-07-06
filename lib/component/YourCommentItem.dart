@@ -1,8 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:manga_application_1/model/User.dart';
-import 'package:manga_application_1/view/ComicDetailScreen.dart';
+import 'package:comicz/model/User.dart';
+import 'package:comicz/view/ComicDetailScreen.dart';
 
 class YourCommentItem extends StatefulWidget {
   final String CommentId;

@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
-import 'package:manga_application_1/component/CommentItem.dart';
-import 'package:manga_application_1/model/Comic.dart';
-import 'package:manga_application_1/model/User.dart';
-import 'package:manga_application_1/model/comment_analyzer.dart';
-import 'package:manga_application_1/model/Community.dart'; 
-import 'package:manga_application_1/model/text_translator.dart';
-import 'package:manga_application_1/view/ComicDetailScreen.dart';
+import 'package:comicz/component/CommentItem.dart';
+import 'package:comicz/model/Comic.dart';
+import 'package:comicz/model/User.dart';
+import 'package:comicz/model/comment_analyzer.dart';
+import 'package:comicz/model/Community.dart'; 
+import 'package:comicz/model/text_translator.dart';
+import 'package:comicz/view/ComicDetailScreen.dart';
 
 class CommunityDetailScreen extends StatefulWidget {
   final Community message;

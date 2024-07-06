@@ -1,9 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:manga_application_1/component/CommentItem.dart';
-import 'package:manga_application_1/component/MyCommentItem.dart';
-import 'package:manga_application_1/component/YourCommentItem.dart';
-import 'package:manga_application_1/model/Comment.dart';
+import 'package:comicz/component/CommentItem.dart';
+import 'package:comicz/component/MyCommentItem.dart';
+import 'package:comicz/component/YourCommentItem.dart';
+import 'package:comicz/model/Comment.dart';
 
 class YourCommentTab extends StatefulWidget {
   final String UserId;

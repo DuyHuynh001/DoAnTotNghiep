@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:manga_application_1/component/TodayChart.dart';
-import 'package:manga_application_1/component/WeekChart.dart';
+import 'package:comicz/component/TodayChart.dart';
+import 'package:comicz/component/WeekChart.dart';
 
 class UsedTimeScreen extends StatefulWidget {
   final String UserId;

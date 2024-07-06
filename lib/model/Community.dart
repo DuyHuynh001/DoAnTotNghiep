@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:manga_application_1/model/Comic.dart';
-import 'package:manga_application_1/model/User.dart';
+import 'package:comicz/model/Comic.dart';
+import 'package:comicz/model/User.dart';
 
 class Community {
   final String Id;

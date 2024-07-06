@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:manga_application_1/model/Category.dart';
-import 'package:manga_application_1/model/Community.dart';
+import 'package:comicz/model/Category.dart';
+import 'package:comicz/model/Community.dart';
 
 class AddCategoryScreen extends StatefulWidget {
   const AddCategoryScreen({super.key});
@@ -12,7 +12,6 @@ class AddCategoryScreen extends StatefulWidget {
 class _AddCategoryScreenState extends State<AddCategoryScreen> {
   final TextEditingController _categoryName = TextEditingController();
   final TextEditingController _title = TextEditingController();
-  bool isLoading = false;
 
   Future<void> _saveCategory() async {
     final String name = _categoryName.text;
@@ -21,20 +20,12 @@ class _AddCategoryScreenState extends State<AddCategoryScreen> {
       _showErrorDialog("Vui lòng nhập đầy đủ thông tin");
       return;
     }
-    setState(() { isLoading = true; });
-    try{
-      await Category.saveCategory(name, title);
-      setState(() {
-        isLoading = false;
-        _categoryName.clear();
-        _title.clear();
-      });
-    } catch (e) {
-      print('Error fetching data: $e');
-      setState(() {
-        isLoading = false;
-      });
-    }
+    await Category.saveCategory(name, title);
+    setState(() {
+      _categoryName.clear();
+      _title.clear();
+    });
+    Navigator.of(context).pop(true);
   }
 
   void _showErrorDialog(String message) {
@@ -61,60 +52,54 @@ class _AddCategoryScreenState extends State<AddCategoryScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Add Category'),
+        title: Text('Thêm thể loại'),
       ),
-      body: isLoading
-          ? Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
+      body: SingleChildScrollView(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            children: [
+              TextField(
+                controller: _categoryName,
+                decoration: const InputDecoration(labelText: 'Tên thể loại'),
+              ),
+              TextField(
+                controller: _title,
+                decoration: const InputDecoration(labelText: 'Mô tả'),
+                maxLines: null,
+              ),
+              SizedBox(height: 40),
+              Row(
                 children: [
-                  TextField(
-                    controller: _categoryName,
-                    decoration:
-                        const InputDecoration(labelText: 'Tên thể loại'),
-                  ),
-                  TextField(
-                    controller: _title,
-                    decoration: const InputDecoration(labelText: 'Mô tả'),
-                  ),
-                  const Divider(
-                    color: Colors.grey,
-                    thickness: 1,
-                  ),
-                  SizedBox(height: 40),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: ElevatedButton.icon(
-                          onPressed: _saveCategory,
-                          icon: const Icon(
-                            Icons.save_as_sharp,
-                            size: 25,
-                            color: Colors.black,
-                          ),
-                          style: ElevatedButton.styleFrom(
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10.0),
-                            ),
-                            backgroundColor: Colors.blue,
-                            side: const BorderSide(color: Colors.black),
-                            padding: const EdgeInsets.symmetric(vertical: 15),
-                          ),
-                          label: const Text(
-                            "Lưu ",
-                            style: TextStyle(
-                                color: Colors.black,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 20),
-                          ),
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: _saveCategory,
+                      icon: const Icon(
+                        Icons.save_as_sharp,
+                        size: 25,
+                        color: Colors.white,
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10.0),
+                        ),
+                        backgroundColor: Colors.blue,
+                        side: const BorderSide(color: Colors.black),
+                        padding: const EdgeInsets.symmetric(vertical: 15),
+                      ),
+                      label: const Text("Lưu ",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 20
                         ),
                       ),
-                    ],
+                    ),
                   ),
                 ],
               ),
-            ),
+            ],
+          ),
+        ),
     );
   }
 }

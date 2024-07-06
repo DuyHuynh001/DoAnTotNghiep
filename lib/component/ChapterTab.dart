@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:manga_application_1/component/ChapterDetail.dart';
-import 'package:manga_application_1/model/Comic.dart';
-import 'package:manga_application_1/model/Community.dart';
+import 'package:comicz/component/ChapterDetail.dart';
+import 'package:comicz/model/Comic.dart';
+import 'package:comicz/model/Community.dart';
 
 class ChapterTab extends StatefulWidget {
   final String UserId;

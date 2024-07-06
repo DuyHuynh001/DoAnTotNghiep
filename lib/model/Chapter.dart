@@ -49,7 +49,7 @@ class Chapters {
         });
       return chapters;
     } catch (e) {
-      throw Exception('Failed to load chapters: $e');
+      throw Exception('lỗi khi load chapters: $e');
     }
   }
 
@@ -70,10 +70,34 @@ class Chapters {
         List<String> imageUrls = images.cast<String>();
         return imageUrls;
       } else {
-        throw Exception('Chapter not found');
+        throw Exception('Không tìm thấy chapters theo comic');
       }
     } catch (e) {
-      throw Exception('Failed to load chapter: $e');
+      throw Exception('lỗi khi load chapters: $e');
+    }
+  }
+
+  static Future<double> fetchLatestChapterNumber(String comicId) async {
+    try {
+      QuerySnapshot chaptersSnapshot = await FirebaseFirestore.instance
+          .collection('Comics')
+          .doc(comicId)
+          .collection('chapters')
+          .get();
+
+      // Tìm chương mới nhất dựa trên ID của chương
+      if (chaptersSnapshot.docs.isNotEmpty) {
+        double latestChapterNumber = chaptersSnapshot.docs
+            .map((doc) => double.tryParse(doc.id.toString()) ?? -double.infinity)
+            .reduce((a, b) => a > b ? a : b);
+
+        return latestChapterNumber;
+      } else {
+        return 0.0; 
+      }
+    } catch (e) {
+      throw Exception('Lỗi khi lấy chương mới nhất: $e');
     }
   }
 }
+

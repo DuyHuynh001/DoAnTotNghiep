@@ -2,7 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:manga_application_1/component/CheckLoginStatus.dart';
+import 'package:comicz/component/CheckLoginStatus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() async {
@@ -52,10 +52,10 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     else if
     (state ==AppLifecycleState.resumed)
     {
-        widget.myAppState.onAppResume();
+      widget.myAppState.onAppResume();
     }
   }
-
+  
   @override
   Widget build(BuildContext context) {
     return MaterialApp(

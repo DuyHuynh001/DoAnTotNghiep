@@ -3,10 +3,10 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:manga_application_1/component/ComicSelection.dart';
-import 'package:manga_application_1/model/Comic.dart';
-import 'package:manga_application_1/model/comment_analyzer.dart';
-import 'package:manga_application_1/model/text_translator.dart';
+import 'package:comicz/component/ComicSelection.dart';
+import 'package:comicz/model/Comic.dart';
+import 'package:comicz/model/comment_analyzer.dart';
+import 'package:comicz/model/text_translator.dart';
 
 class AddPost extends StatefulWidget {
   final String UserId;

@@ -47,9 +47,9 @@ class Category {
       };
      
       DocumentReference comicDoc = await comicsCollection.add(comicDetails);
-      print('Comic and chapters added to Firestore successfully!');
+      print('Thêm thể loại thành công');
     } catch (e) {
-      print('Error adding comic and chapters to Firestore: $e');
+      print('Lỗi khi thêm thể loại: $e');
     }
   }
   

@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
-import 'package:manga_application_1/model/Chapter.dart';
+import 'package:comicz/model/Chapter.dart';
 
 class Comics {
   String id;
@@ -81,10 +81,11 @@ class Comics {
 
       return comicsList; 
     } catch (e) {
-      print("Error fetching comics list: $e");
+      print(" lỗi khi load truyện mới: $e");
       return []; 
     }
   }
+  
 
   // lấy danh sách truyện full
   static Future<List<Comics>> fetchFullComicsList() async {
@@ -95,7 +96,7 @@ class Comics {
         return Comics.fromJson(doc.id, data);
       }).toList();
     } catch (e) {
-      print("Error fetching comics list: $e");
+      print("lỗi khi load truyện hoàn: $e");
       return [];
     }
   }
@@ -112,7 +113,7 @@ class Comics {
         return Comics.fromJson(doc.id, data);
       }).toList();
     } catch (e) {
-      print("Error fetching comics list: $e");
+      print("lỗi khi load truyệnfull được yêu thích nhất: $e");
       return [];
     }
   }
@@ -130,7 +131,7 @@ class Comics {
         return Comics.fromJson(doc.id, data);
       }).toList();
     } catch (e) {
-      print("Error fetching comics list: $e");
+      print("lỗi khi load truyện hot: $e");
       return [];
     }
   }
@@ -149,7 +150,7 @@ class Comics {
         return Comics.fromJson(doc.id, data);
       }).toList();
     } catch (e) {
-      print("Error fetching comics list: $e");
+      print("lỗi khi load truyện theo dõi: $e");
       return [];
     }
   }
@@ -295,9 +296,9 @@ class Comics {
           await chaptersCollection.doc(chapterId).set(chapterData);
         }
       }
-      print('Comic and chapters added to Firestore successfully!');
+      print('Đã thêm truyện vào firestore thành công');
     } catch (e) {
-      print('Error adding comic and chapters to Firestore: $e');
+      print('Lỗi khi thêm truyện: $e');
     }
   }
 }

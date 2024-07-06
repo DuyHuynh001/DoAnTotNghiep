@@ -1,9 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:manga_application_1/component/ShowUser.dart';
-import 'package:manga_application_1/model/Community.dart';
-import 'package:manga_application_1/model/User.dart'; 
+import 'package:comicz/component/ShowUser.dart';
+import 'package:comicz/model/Community.dart';
+import 'package:comicz/model/User.dart'; 
 
 class CommentItem extends StatefulWidget {
   final String userId;

@@ -4,12 +4,12 @@ import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:manga_application_1/model/Comic.dart';
-import 'package:manga_application_1/model/Community.dart';
+import 'package:comicz/model/Comic.dart';
+import 'package:comicz/model/Community.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_windowmanager/flutter_windowmanager.dart';
-import 'package:manga_application_1/model/User.dart';
-import 'package:manga_application_1/view/ProfileScreen.dart';
+import 'package:comicz/model/User.dart';
+import 'package:comicz/view/ProfileScreen.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:google_ml_kit/google_ml_kit.dart';
 import 'package:flutter/services.dart';
@@ -667,7 +667,7 @@ Future<void> extractTextFromImage(String imageUrl) async {
                                          Navigator.push(
                                           context,
                                           PageRouteBuilder(
-                                            pageBuilder: (context, animation, secondaryAnimation) =>  ProfileScreen(userId: widget.UserId ),
+                                            pageBuilder: (context, animation, secondaryAnimation) =>  ProfileScreen(UserId: widget.UserId ),
                                             transitionsBuilder: (context, animation, secondaryAnimation, child) {
                                               const begin = Offset(1.0, 0.0);
                                               const end = Offset.zero;

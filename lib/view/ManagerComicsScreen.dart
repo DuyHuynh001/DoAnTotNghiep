@@ -4,9 +4,10 @@ import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:manga_application_1/component/EditComicScreen.dart';
-import 'package:manga_application_1/model/Comic.dart';
-import 'package:manga_application_1/view/AddComicScreen.dart';
+import 'package:comicz/model/Chapter.dart';
+import 'package:comicz/view/EditComicScreen.dart';
+import 'package:comicz/model/Comic.dart';
+import 'package:comicz/view/AddComicScreen.dart';
 import 'package:http/http.dart' as http;
 
 class Managercomics extends StatefulWidget {
@@ -18,6 +19,7 @@ class Managercomics extends StatefulWidget {
 
 class _MyWidgetState extends State<Managercomics> {
   List<Comics> comicsList = [];
+  double latestChapter = 0.0;
 
   @override
   void initState() {
@@ -25,11 +27,20 @@ class _MyWidgetState extends State<Managercomics> {
     _fetchComics();
   }
 
-   Future<void> _fetchComics() async {
+  Future<void> _fetchComics() async {
     List<Comics> list = await Comics.fetchComics();
     setState(() {
      comicsList = list;
     });
+  }
+  Future<double> getLatestChapter(String comicId) async {
+    try {
+      double latestChapterNumber = await Chapters.fetchLatestChapterNumber(comicId);
+      return latestChapterNumber;
+    } catch (e) {
+      print('Error: $e');
+      return 0.0;
+    }
   }
   void _navigateToAddComicsScreen() {
      Navigator.push(
@@ -232,6 +243,7 @@ class _MyWidgetState extends State<Managercomics> {
       );
     } finally {
       Navigator.pop(context);
+      setState(() { });
     }
   }
 
@@ -242,12 +254,12 @@ class _MyWidgetState extends State<Managercomics> {
         title: const Text("Quản lý danh sách truyện"),
       ),
       body: Padding(
-        padding: EdgeInsets.only(bottom: 70),
+        padding: EdgeInsets.only(bottom: 70,),
         child:ListView.builder(
           itemCount: comicsList.length,
           itemBuilder: (context, index) {
             return Padding(
-              padding: const EdgeInsets.all(10),
+              padding: const EdgeInsets.all(10,),
               child: Container(
                 decoration: BoxDecoration(
                 color: const Color.fromARGB(255, 255, 255, 255),
@@ -295,6 +307,21 @@ class _MyWidgetState extends State<Managercomics> {
                               color: Colors.black),
                               maxLines: 1,
                               overflow:TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 5),
+                          FutureBuilder<double>(
+                            future: getLatestChapter(comicsList[index].id),
+                            builder: (context, snapshot) {
+                              return Text(
+                                'Chương mới nhất: ${snapshot.data}',
+                                style: const TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.black,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              );
+                            }
                           ),
                           Align(
                             alignment: Alignment.bottomRight,

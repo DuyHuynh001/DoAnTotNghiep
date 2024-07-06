@@ -1,12 +1,12 @@
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:manga_application_1/component/ChapterTab.dart';
-import 'package:manga_application_1/component/DetailAndCommentTab.dart';
-import 'package:manga_application_1/model/Chapter.dart';
-import 'package:manga_application_1/model/Comic.dart';
-import 'package:manga_application_1/model/Community.dart';
-import 'package:manga_application_1/component/ChapterDetail.dart';
+import 'package:comicz/component/ChapterTab.dart';
+import 'package:comicz/component/DetailAndCommentTab.dart';
+import 'package:comicz/model/Chapter.dart';
+import 'package:comicz/model/Comic.dart';
+import 'package:comicz/model/Community.dart';
+import 'package:comicz/component/ChapterDetail.dart';
 
 class ComicDetailScreen extends StatefulWidget {
   final String storyId;

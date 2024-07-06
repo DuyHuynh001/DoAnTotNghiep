@@ -29,7 +29,7 @@ class _SpinWheelPageState extends State<SpinWheelPage>
   @override
   void initState() {
     super.initState();
-    _stopIndex = points.indexOf(100); // Tìm chỉ số của ô 100
+    _stopIndex = points.indexOf(100); 
     _controller = AnimationController(
       duration: const Duration(seconds: 5),
       vsync: this,

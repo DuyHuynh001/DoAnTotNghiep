@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:manga_application_1/component/Navigation.dart';
-import 'package:manga_application_1/view/LoginScreen.dart';
+import 'package:comicz/component/Navigation.dart';
+import 'package:comicz/view/LoginScreen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 class CheckLogin extends StatefulWidget {
   @override

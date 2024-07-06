@@ -1,11 +1,11 @@
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:manga_application_1/component/MyCommentTab.dart';
-import 'package:manga_application_1/component/MyPostTab.dart';
-import 'package:manga_application_1/component/YourCommentTab.dart';
-import 'package:manga_application_1/component/YourPostTab.dart';
-import 'package:manga_application_1/model/User.dart';
+import 'package:comicz/component/MyCommentTab.dart';
+import 'package:comicz/component/MyPostTab.dart';
+import 'package:comicz/component/YourCommentTab.dart';
+import 'package:comicz/component/YourPostTab.dart';
+import 'package:comicz/model/User.dart';
 import 'package:percent_indicator/percent_indicator.dart';
 
 class Show extends StatefulWidget {

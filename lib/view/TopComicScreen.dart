@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:manga_application_1/component/TopComicFullTab.dart';
-import 'package:manga_application_1/component/TopFavoriteTab.dart';
-import 'package:manga_application_1/component/TopUser.dart';
-import 'package:manga_application_1/component/TopViewTab.dart';
+import 'package:comicz/component/TopComicFullTab.dart';
+import 'package:comicz/component/TopFavoriteTab.dart';
+import 'package:comicz/component/TopViewTab.dart';
 import 'package:percent_indicator/percent_indicator.dart';
 
 class TopTruyenScreen extends StatefulWidget {

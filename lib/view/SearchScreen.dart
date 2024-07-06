@@ -1,9 +1,10 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:manga_application_1/view/ComicDetailScreen.dart';
+import 'package:comicz/model/Chapter.dart';
+import 'package:comicz/view/ComicDetailScreen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:manga_application_1/model/Comic.dart';
+import 'package:comicz/model/Comic.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 import 'package:permission_handler/permission_handler.dart';
 
@@ -102,10 +103,14 @@ class _SearchScreenState extends State<SearchScreen> {
     }
   }
 
-  Future<int> countChapter(String docId) async {
-    Query query = FirebaseFirestore.instance.collection('Comics') .doc(docId) .collection('chapters');
-    QuerySnapshot querySnapshot = await query.get();
-    return querySnapshot.docs.length;
+  Future<double> getLatestChapter(String comicId) async {
+    try {
+      double latestChapterNumber = await Chapters.fetchLatestChapterNumber(comicId);
+      return latestChapterNumber;
+    } catch (e) {
+      print('Error: $e');
+      return 0.0;
+    }
   }
 
   void loadComicsFromFirestore() async {
@@ -249,10 +254,10 @@ class _SearchScreenState extends State<SearchScreen> {
             itemCount: searchResults.length,
             itemBuilder: (context, index) {
               Comics comic = searchResults[index];
-              return FutureBuilder<int>(
-                future: countChapter(comic.id),
+              return FutureBuilder<double>(
+                future: getLatestChapter(comic.id),
                 builder: (context, snapshot) {
-                  int chapterCount = snapshot.data ?? 0;
+                  double chapterCount = snapshot.data ?? 0.0;
                   return TextButton(
                     onPressed: () {
                       Navigator.push(
@@ -343,10 +348,10 @@ class _SearchScreenState extends State<SearchScreen> {
                   itemCount: recommendComic.length,
                   itemBuilder: (context, index) {
                     Comics comic = recommendComic[index];
-                    return FutureBuilder<int>(
-                      future: countChapter(comic.id),
+                    return FutureBuilder<double>(
+                      future: getLatestChapter(comic.id),
                       builder: (context, snapshot) {
-                        int chapterCount = snapshot.data ?? 0;
+                        double chapterCount = snapshot.data ?? 0;
                         return TextButton(
                           onPressed: () {
                             Navigator.push(

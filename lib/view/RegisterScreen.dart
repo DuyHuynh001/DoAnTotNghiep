@@ -2,7 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:manga_application_1/view/LoginScreen.dart';
+import 'package:comicz/view/LoginScreen.dart';
 
 class RegisterScreen extends StatefulWidget {
   const  RegisterScreen({super.key});

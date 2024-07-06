@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:manga_application_1/component/CommunityItem.dart';
-import 'package:manga_application_1/component/MyCommunityItem.dart';
-import 'package:manga_application_1/model/Comic.dart';
-import 'package:manga_application_1/model/Community.dart';
-import 'package:manga_application_1/model/User.dart';
-import 'package:manga_application_1/view/AddPostScreen.dart';
+import 'package:comicz/component/CommunityItem.dart';
+import 'package:comicz/component/MyCommunityItem.dart';
+import 'package:comicz/model/Comic.dart';
+import 'package:comicz/model/Community.dart';
+import 'package:comicz/model/User.dart';
+import 'package:comicz/view/AddPostScreen.dart';
 
 class MyPostTab extends StatefulWidget {
   final String UserId;

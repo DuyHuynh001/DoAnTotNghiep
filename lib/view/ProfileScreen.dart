@@ -1,23 +1,24 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:manga_application_1/model/User.dart';
-import 'package:manga_application_1/component/EditProfile.dart';
-import 'package:manga_application_1/view/ChangePasswordScreen.dart';
-import 'package:manga_application_1/view/HistoryScreen.dart';
-import 'package:manga_application_1/view/LoginScreen.dart';
-import 'package:manga_application_1/view/ManagerComics.dart';
-import 'package:manga_application_1/view/MyCommentScreen.dart';
-import 'package:manga_application_1/view/UsedTimeScreen.dart';
-import 'package:manga_application_1/view/tam1.dart';
+import 'package:comicz/model/User.dart';
+import 'package:comicz/component/EditProfile.dart';
+import 'package:comicz/view/ChangePasswordScreen.dart';
+import 'package:comicz/view/HistoryScreen.dart';
+import 'package:comicz/view/LoginScreen.dart';
+import 'package:comicz/view/ManagerCategoryScreen.dart';
+import 'package:comicz/view/ManagerComicsScreen.dart';
+import 'package:comicz/view/MyCommentScreen.dart';
+import 'package:comicz/view/UsedTimeScreen.dart';
+import 'package:comicz/view/SpinScreen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:percent_indicator/percent_indicator.dart';
 import 'package:percent_indicator/percent_indicator.dart';
 
 class ProfileScreen extends StatefulWidget {
-  final String userId;
+  final String UserId;
 
-  const ProfileScreen({Key? key, required this.userId}) : super(key: key);
+  const ProfileScreen({Key? key, required this.UserId}) : super(key: key);
 
   @override
   State<ProfileScreen> createState() => _ProfileScreenState();
@@ -36,7 +37,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
    
   }
   Future<void> _fetchUserData() async {
-    User user = await User.fetchUserById(widget.userId);
+    User user = await User.fetchUserById(widget.UserId);
     if (user != null) {
       setState(() {
         _user = user;
@@ -50,7 +51,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Future<void> _checkAttendanceStatus() async {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
-    final docId = widget.userId;
+    final docId = widget.UserId;
     try {
       final doc = await FirebaseFirestore.instance.collection('Attendance').doc(docId).get();
       if (doc.exists) {
@@ -81,12 +82,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final today = DateTime(now.year, now.month, now.day);
 
     try {
-      await FirebaseFirestore.instance.collection('Attendance').doc(widget.userId).set({
-        'userId':widget.userId,
+      await FirebaseFirestore.instance.collection('Attendance').doc(widget.UserId).set({
+        'UserId':widget.UserId,
         'date': FieldValue.serverTimestamp(),
         'status': true,
       }, SetOptions(merge: true));
-      await FirebaseFirestore.instance.collection("User").doc(widget.userId).update({
+      await FirebaseFirestore.instance.collection("User").doc(widget.UserId).update({
         'Points': FieldValue.increment(200),
       });
       setState(() {
@@ -162,7 +163,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           mainAxisAlignment: MainAxisAlignment.start,
           children: [
             StreamBuilder<User>(
-              stream: User.getUserStream(widget.userId),
+              stream: User.getUserStream(widget.UserId),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return CircularProgressIndicator();
@@ -354,15 +355,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 Navigator.push(
                   context,
                   PageRouteBuilder(
-                    pageBuilder: (context, animation, secondaryAnimation) =>
-                        Managercomics(),
-                    transitionsBuilder:
-                        (context, animation, secondaryAnimation, child) {
+                    pageBuilder: (context, animation, secondaryAnimation) =>  Managercomics(),
+                    transitionsBuilder:(context, animation, secondaryAnimation, child) {
                       const begin = Offset(1.0, 0.0);
                       const end = Offset.zero;
                       const curve = Curves.easeInOut;
                       var tween = Tween(begin: begin, end: end)
-                          .chain(CurveTween(curve: curve));
+                      .chain(CurveTween(curve: curve));
                       var offsetAnimation = animation.drive(tween);
                       return SlideTransition(
                         position: offsetAnimation,
@@ -379,6 +378,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
               icon: Icons.category,
               label: "Quản lý thể loại",
               onPressed: () { 
+                 Navigator.push(
+                  context,
+                  PageRouteBuilder(
+                    pageBuilder: (context, animation, secondaryAnimation) =>  ManagerCategory(),
+                    transitionsBuilder:(context, animation, secondaryAnimation, child) {
+                      const begin = Offset(1.0, 0.0);
+                      const end = Offset.zero;
+                      const curve = Curves.easeInOut;
+                      var tween = Tween(begin: begin, end: end)
+                      .chain(CurveTween(curve: curve));
+                      var offsetAnimation = animation.drive(tween);
+                      return SlideTransition(
+                        position: offsetAnimation,
+                        child: child,
+                      );
+                    },
+                  ),
+                );
+
               },
             ),
           ],
@@ -491,7 +509,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 final result = await  Navigator.push(
                  context,
                   PageRouteBuilder(
-                  pageBuilder: (context, animation, secondaryAnimation) =>EditProfile(name: _user.Name,image: _user.Image,id:widget.userId, gender: _user.Gender),
+                  pageBuilder: (context, animation, secondaryAnimation) =>EditProfile(name: _user.Name,image: _user.Image,id:widget.UserId, gender: _user.Gender),
                   transitionsBuilder: (context, animation, secondaryAnimation, child) {
                     const begin = Offset(1.0, 0.0);
                     const end = Offset.zero;
@@ -517,7 +535,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 Navigator.push(
                   context,
                   PageRouteBuilder(
-                  pageBuilder: (context, animation, secondaryAnimation) => HistoryScreen(UserId:widget.userId),
+                  pageBuilder: (context, animation, secondaryAnimation) => HistoryScreen(UserId:widget.UserId),
                   transitionsBuilder: (context, animation, secondaryAnimation, child) {
                     const begin = Offset(1.0, 0.0);
                     const end = Offset.zero;
@@ -540,7 +558,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 Navigator.push(
                   context,
                   PageRouteBuilder(
-                  pageBuilder: (context, animation, secondaryAnimation) => MyCommentScreen(UserId:widget.userId),
+                  pageBuilder: (context, animation, secondaryAnimation) => MyCommentScreen(UserId:widget.UserId),
                   transitionsBuilder: (context, animation, secondaryAnimation, child) {
                     const begin = Offset(1.0, 0.0);
                     const end = Offset.zero;
@@ -563,7 +581,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 Navigator.push(
                   context,
                   PageRouteBuilder(
-                  pageBuilder: (context, animation, secondaryAnimation) => UsedTimeScreen(UserId:widget.userId),
+                  pageBuilder: (context, animation, secondaryAnimation) => UsedTimeScreen(UserId:widget.UserId),
                   transitionsBuilder: (context, animation, secondaryAnimation, child) {
                     const begin = Offset(1.0, 0.0);
                     const end = Offset.zero;

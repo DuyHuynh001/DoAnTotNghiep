@@ -2,9 +2,9 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:manga_application_1/model/Comic.dart';
+import 'package:comicz/model/Comic.dart';
 import 'package:multi_select_flutter/multi_select_flutter.dart';
-import 'package:manga_application_1/model/Community.dart';
+import 'package:comicz/model/Community.dart';
 
 class AddComicScreen extends StatefulWidget {
   const AddComicScreen({super.key});
@@ -239,7 +239,7 @@ class _AddComicScreenState extends State<AddComicScreen> {
                           ),
                           style: ElevatedButton.styleFrom(
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10.0), // Độ cong của góc
+                              borderRadius: BorderRadius.circular(10.0), 
                             ),
                             primary: Colors.blue,
                             side: const BorderSide(color: Colors.blue),

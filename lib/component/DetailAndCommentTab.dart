@@ -2,13 +2,13 @@
 import 'package:http/http.dart' as http;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:manga_application_1/component/ChapterDetail.dart';
-import 'package:manga_application_1/component/CommentItem.dart';
-import 'package:manga_application_1/model/Comic.dart';
-import 'package:manga_application_1/model/Comment.dart';
-import 'package:manga_application_1/model/comment_analyzer.dart';
-import 'package:manga_application_1/model/text_translator.dart';
-import 'package:manga_application_1/view/FullCommentScreen.dart';
+import 'package:comicz/component/ChapterDetail.dart';
+import 'package:comicz/component/CommentItem.dart';
+import 'package:comicz/model/Comic.dart';
+import 'package:comicz/model/Comment.dart';
+import 'package:comicz/model/comment_analyzer.dart';
+import 'package:comicz/model/text_translator.dart';
+import 'package:comicz/view/FullCommentScreen.dart';
 class DetailTab extends StatefulWidget {
   final String UserId;
   final Comics story;
