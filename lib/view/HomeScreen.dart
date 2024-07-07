@@ -211,9 +211,10 @@ class _MyHomeScreen extends State<HomeScreen> {
                       },),
                   ],
                 ),
+                SizedBox(height: 10,),
               ],
             ),
-          ),
+          ), 
           ComicHeader(
               text: 'Truyện Hot',
               icon: Icons.local_fire_department_sharp,
@@ -253,7 +254,8 @@ class _MyHomeScreen extends State<HomeScreen> {
               name:"Cổ Đại",
               UserId: widget.UserId,
           ),
-          AncientComic(UserId: widget.UserId,)
+          AncientComic(UserId: widget.UserId,),
+         
         ],
       ),
       )

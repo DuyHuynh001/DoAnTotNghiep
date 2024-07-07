@@ -212,7 +212,7 @@ class _ShowState extends State<Show> {
                       Row(
                         children: [
                           LinearPercentIndicator(
-                            width: MediaQuery.of(context).size.width / 1.5,
+                            width: MediaQuery.of(context).size.width / 1.52,
                             animation: true,
                             lineHeight: 20.0,
                             animationDuration: 2000,

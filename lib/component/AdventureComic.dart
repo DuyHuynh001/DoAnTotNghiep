@@ -83,7 +83,7 @@ class _AdventureComicState extends State<AdventureComic> {
           crossAxisCount: 3,
           crossAxisSpacing: 8.0,
           mainAxisSpacing: 8.0,
-          childAspectRatio: 0.55,  
+          childAspectRatio: 0.53,  
         ),
       ),
     );

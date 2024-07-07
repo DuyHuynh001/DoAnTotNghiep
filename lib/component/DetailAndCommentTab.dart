@@ -174,10 +174,11 @@ class _DetailTabState extends State<DetailTab> {
                           },
                           icon: Icon(Icons.auto_stories, size: 25, color: Colors.white),
                           style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.blue,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(30.0),
                             ),
-                            primary: Colors.blue,
+                           
                             side: const BorderSide(color: Colors.black),
                             padding: const EdgeInsets.symmetric(vertical: 15),
                           ),

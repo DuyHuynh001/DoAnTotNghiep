@@ -82,7 +82,7 @@ class _ActionComicState extends State<ActionComic> {
           crossAxisCount: 3,  // số comic tối đa 1 dòng
           crossAxisSpacing: 8.0,
           mainAxisSpacing: 8.0,
-          childAspectRatio: 0.55,  
+          childAspectRatio: 0.53,  
         ),
       ),
     );

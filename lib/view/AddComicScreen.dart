@@ -241,7 +241,7 @@ class _AddComicScreenState extends State<AddComicScreen> {
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(10.0), 
                             ),
-                            primary: Colors.blue,
+                            backgroundColor: Colors.blue,
                             side: const BorderSide(color: Colors.blue),
                             padding: const EdgeInsets.symmetric(vertical: 15),
                           ),
