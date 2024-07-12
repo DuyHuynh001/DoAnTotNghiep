@@ -83,30 +83,28 @@ class _MyWidgetState extends State<Managercomics> {
 
       final QuerySnapshot usersSnapshot = await FirebaseFirestore.instance.collection('User').get();
       for (DocumentSnapshot userDoc in usersSnapshot.docs) {
-        final QuerySnapshot favoritesSnapshot = await userDoc.reference
-            .collection('FavoritesList')
-            .where('comicId', isEqualTo: comicId)
-            .get();
+        final QuerySnapshot favoritesSnapshot = await userDoc.reference .collection('FavoritesList').get();
         for (DocumentSnapshot favoriteDoc in favoritesSnapshot.docs) {
-          await favoriteDoc.reference.delete();
+          if(favoriteDoc.id==comicId)
+          {
+            await favoriteDoc.reference.delete();
+          }
         }
 
-        final QuerySnapshot historySnapshot = await userDoc.reference
-            .collection('History').get();
+        final QuerySnapshot historySnapshot = await userDoc.reference .collection('History').get();
         for (DocumentSnapshot historyDoc in historySnapshot.docs) {
           if(historyDoc.id==comicId)
           {
             await historyDoc.reference.delete();
-          }
-          
+          }    
         }
 
-        final QuerySnapshot viewListSnapshot = await userDoc.reference
-            .collection('ViewList')
-            .where('comicId', isEqualTo: comicId)
-            .get();
+        final QuerySnapshot viewListSnapshot = await userDoc.reference.collection('ViewList') .get();
         for (DocumentSnapshot viewListDoc in viewListSnapshot.docs) {
-          await viewListDoc.reference.delete();
+          if(viewListDoc.id==comicId)
+          {
+           await viewListDoc.reference.delete();
+          } 
         }
       }
 

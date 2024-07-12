@@ -50,7 +50,7 @@ class _MyCommentScreenState extends State<MyCommentScreen> {
             Expanded(
               child: TabBarView(
                 children: [
-                  YourPostTab(UserId: widget.UserId, CurrentUserId:widget.UserId),
+                  MyPostTab(UserId: widget.UserId),
                   MyCommentTab(UserId: widget.UserId),       
                 ],
               ),

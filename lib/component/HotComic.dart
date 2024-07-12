@@ -4,8 +4,9 @@ import 'package:comicz/model/Community.dart';
 import 'package:comicz/view/ComicDetailScreen.dart';
 
 class HotComic extends StatefulWidget {
-  final UserId;
-  const HotComic({super.key, required this.UserId});
+  final String UserId;
+  final bool shouldResetData;
+  const HotComic({super.key, required this.UserId, required this.shouldResetData});
   @override
   State<HotComic> createState() => _HotComicState();
 }
@@ -15,6 +16,14 @@ class _HotComicState extends State<HotComic> {
   void initState() {
     super.initState();
     _loadHotComic();
+  }
+   @override
+  void didUpdateWidget(covariant HotComic oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Kiểm tra nếu có yêu cầu reset từ HomeScreen thì tải lại dữ liệu
+    if (widget.shouldResetData) {
+      _loadHotComic();
+    }
   }
   // load danh sách comic hot
   void _loadHotComic() async {   

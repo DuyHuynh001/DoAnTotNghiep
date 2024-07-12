@@ -56,7 +56,12 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.Name),
-        leading: Icon(Icons.close),
+         leading: IconButton(
+            icon: Icon(Icons.close),
+            onPressed: () {
+              Navigator.pop(context);
+            },
+          ),
       ),
       body: Container(
         child: Column(
@@ -154,8 +159,7 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
                 ? const Center(child: CircularProgressIndicator())
                 : comicsList == null || comicsList.isEmpty
                     ? const Center(
-                        child: Text(
-                            'Không có truyện theo thể loại và trạng thái này'))
+                        child: Text('Không có truyện theo thể loại và trạng thái này'))
                     : Expanded(
                         child: ListView.builder(
                           shrinkWrap: true,

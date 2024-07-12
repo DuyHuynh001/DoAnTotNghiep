@@ -5,7 +5,8 @@ import 'package:comicz/view/ComicDetailScreen.dart';
 
 class AdventureComic extends StatefulWidget {
   final String UserId;
-  const AdventureComic({super.key, required this.UserId});
+  final bool shouldResetData;
+  const AdventureComic({super.key, required this.UserId, required this.shouldResetData});
   @override
   State<AdventureComic> createState() => _AdventureComicState();
 }
@@ -15,6 +16,13 @@ class _AdventureComicState extends State<AdventureComic> {
   void initState() {
     super.initState();
     _loadAdventureComic();
+  }
+   @override
+  void didUpdateWidget(covariant AdventureComic oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.shouldResetData) {
+      _loadAdventureComic();
+    }
   }
   // lấy danh sách truyện phiêu lưu 
   void _loadAdventureComic() async {   
@@ -69,7 +77,7 @@ class _AdventureComicState extends State<AdventureComic> {
                   SizedBox(height: 8.0),
                   Text(
                     story.name,
-                    style: TextStyle(fontSize: 14.0, fontWeight: FontWeight.bold),
+                    style: const TextStyle(fontSize: 14.0, fontWeight: FontWeight.bold),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),

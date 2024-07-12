@@ -14,6 +14,7 @@ import 'package:comicz/view/NewComicScreen.dart';
 import 'package:comicz/view/ProfileScreen.dart';
 import 'package:comicz/view/SearchScreen.dart';
 import 'package:comicz/view/TopComicScreen.dart';
+import 'package:provider/provider.dart';
 
 class HomeScreen extends StatefulWidget {
   final String UserId;
@@ -24,17 +25,28 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _MyHomeScreen extends State<HomeScreen> {
-  late Future<void> _refreshDataFuture;
+  bool _shouldResetData=false;
+
   @override
   void initState() {
     super.initState();
-    _refreshDataFuture = refreshData();
+    refreshData();
   }
-  Future<void> refreshData() async {
-    await Future.delayed(Duration(seconds: 1)); 
-    setState(() {});
+  void resetData() {
+    setState(() {
+      _shouldResetData = true;
+    });
+    Future.delayed(Duration(milliseconds: 500), () {
+      setState(() {
+        _shouldResetData = false;
+      });
+    });
   }
 
+  Future<void> refreshData() async {
+    await Future.delayed(Duration(seconds: 1));
+    resetData(); 
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -222,7 +234,7 @@ class _MyHomeScreen extends State<HomeScreen> {
               UserId: widget.UserId,
               name: "Hot"
           ),
-          HotComic(UserId: widget.UserId,),
+          HotComic(UserId: widget.UserId,shouldResetData: _shouldResetData,),
           ComicHeader(
               text: 'Truyện Hoàn',
               icon: Icons.library_add_check_rounded,
@@ -230,7 +242,7 @@ class _MyHomeScreen extends State<HomeScreen> {
               UserId: widget.UserId,
               name: "Hoàn",
           ),
-          FullComic(UserId: widget.UserId,),
+          FullComic(UserId: widget.UserId,shouldResetData: _shouldResetData,),
           ComicHeader(
               text: 'Truyện Phiêu Lưu',
               icon: Icons.add_reaction_rounded,
@@ -238,7 +250,7 @@ class _MyHomeScreen extends State<HomeScreen> {
               name: "Adventure",
               UserId: widget.UserId,
           ),
-          AdventureComic(UserId: widget.UserId,),
+          AdventureComic(UserId: widget.UserId,shouldResetData: _shouldResetData,),
           ComicHeader(
               text: 'Truyện Hành Động',
               icon: Icons.sports_gymnastics_outlined,
@@ -246,7 +258,7 @@ class _MyHomeScreen extends State<HomeScreen> {
               name: "Action",
               UserId: widget.UserId,
           ),
-          ActionComic(UserId: widget.UserId,),
+          ActionComic(UserId: widget.UserId,shouldResetData: _shouldResetData,),
           ComicHeader(
               text: 'Truyện Cổ Đại',
               icon: Icons.access_time,
@@ -254,7 +266,7 @@ class _MyHomeScreen extends State<HomeScreen> {
               name:"Cổ Đại",
               UserId: widget.UserId,
           ),
-          AncientComic(UserId: widget.UserId,),
+          AncientComic(UserId: widget.UserId,shouldResetData: _shouldResetData,),
          
         ],
       ),

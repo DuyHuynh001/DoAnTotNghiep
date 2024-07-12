@@ -127,7 +127,7 @@ class _EditProfileState extends State<EditProfile> {
   void _showImageSourceBottomSheet() {
     showModalBottomSheet(
       context: context,
-      shape: RoundedRectangleBorder(
+      shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20.0)),
       ),
       builder: (BuildContext context) {
@@ -218,7 +218,7 @@ class _EditProfileState extends State<EditProfile> {
                             image: DecorationImage(
                               fit: BoxFit.cover,
                               image: _imageFile != null ? FileImage(_imageFile!): (_imageUrl != null ? NetworkImage(_imageUrl!)
-                            : const NetworkImage('https://upload.wikimedia.org/wikipedia/commons/thumb/6/65/No-Image-Placeholder.svg/1665px-No-Image-Placeholder.svg.png')) as ImageProvider,
+                            : const NetworkImage('https://firebasestorage.googleapis.com/v0/b/appdoctruyentranhonline.appspot.com/o/No-Image-Placeholder.svg.webp?alt=media&token=319ebc86-9ec0-4a16-a877-b477564b212b')) as ImageProvider,
                             ),
                           ),
                         ),

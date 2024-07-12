@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:comicz/model/Comic.dart';
-import 'package:comicz/model/Community.dart';
 import 'package:comicz/view/ComicDetailScreen.dart';
 class ActionComic extends StatefulWidget {
   final String UserId;
-  const ActionComic({super.key, required this.UserId});
+  final bool shouldResetData;
+  const ActionComic({super.key, required this.UserId, required this.shouldResetData});
   @override
   State<ActionComic> createState() => _ActionComicState();
 }
@@ -14,6 +14,14 @@ class _ActionComicState extends State<ActionComic> {
   void initState() {
     super.initState();
     _loadActionComic();
+  }
+   @override
+  void didUpdateWidget(covariant ActionComic oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Kiểm tra nếu có yêu cầu reset từ HomeScreen thì tải lại dữ liệu
+    if (widget.shouldResetData) {
+      _loadActionComic();
+    }
   }
   // lấy danh sách truyện tranh hành động
   void _loadActionComic() async {   
@@ -48,15 +56,14 @@ class _ActionComicState extends State<ActionComic> {
                         child: child,
                       );
                     },
-                  ),
-                  
+                  ),    
                 );
               },
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Container(
-                    height: 175,  // Chiều cao cố định cho hình ảnh
+                    height: 175, 
                     decoration: BoxDecoration(
                       image: DecorationImage(
                         image: NetworkImage(story.image),
@@ -68,7 +75,7 @@ class _ActionComicState extends State<ActionComic> {
                   SizedBox(height: 8.0),
                   Text(
                     story.name,
-                    style: TextStyle(fontSize: 14.0, fontWeight: FontWeight.bold),
+                    style: const TextStyle(fontSize: 14.0, fontWeight: FontWeight.bold),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -79,7 +86,7 @@ class _ActionComicState extends State<ActionComic> {
           childCount: listActionComic.length <=6? listActionComic.length : 6,
         ),
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 3,  // số comic tối đa 1 dòng
+          crossAxisCount: 3,   // số truyện tối đa trên 1 dòng
           crossAxisSpacing: 8.0,
           mainAxisSpacing: 8.0,
           childAspectRatio: 0.53,  

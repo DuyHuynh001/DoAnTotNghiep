@@ -77,7 +77,7 @@ class _MyPostTabState extends State<MyPostTab> {
             context,
             PageRouteBuilder(
               pageBuilder: (context, animation, secondaryAnimation) =>
-                  AddPost(
+                AddPost(
                 UserId: widget.UserId,
                 onPostAdded: () {
                   setState(() {

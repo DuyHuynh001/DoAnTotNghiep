@@ -4,10 +4,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:comicz/component/CheckLoginStatus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
+import 'package:firebase_app_check/firebase_app_check.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
+  await FirebaseAppCheck.instance.activate(
+    androidProvider: AndroidProvider.debug
+  );
   String envFilePath = './.env';
   await dotenv.load(fileName: envFilePath);
   MyAppState myAppState = MyAppState();
@@ -125,3 +128,4 @@ class MyAppState extends ChangeNotifier {
     }
   }
 }
+

@@ -5,7 +5,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:comicz/model/Comic.dart';
-import 'package:comicz/model/Community.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_windowmanager/flutter_windowmanager.dart';
 import 'package:comicz/model/User.dart';
@@ -14,7 +13,6 @@ import 'package:path_provider/path_provider.dart';
 import 'package:google_ml_kit/google_ml_kit.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_tts/flutter_tts.dart';
-
 
 class ChapterDetail extends StatefulWidget {
   final String chapterId;
@@ -30,7 +28,6 @@ class ChapterDetail extends StatefulWidget {
 
 class _ChapterDetailState extends State<ChapterDetail> {
   Timer readTimer = Timer(Duration.zero, () {});    // thời gian đọc
-  int totalReadingSeconds=0;
   late DateTime fullreadTimer;    // thời gian đọc
   late DateTime startTime;  // tg bắt đầu đọc
   late String chapterId = widget.chapterId;
@@ -84,7 +81,7 @@ class _ChapterDetailState extends State<ChapterDetail> {
     await FlutterWindowManager.clearFlags(FlutterWindowManager.FLAG_SECURE);
   }
   
-   Future<void> _fetchUserData() async {
+  Future<void> _fetchUserData() async {
     User user = await User.fetchUserById(widget.UserId);
     if (user != null) {
       setState(() {
@@ -93,6 +90,7 @@ class _ChapterDetailState extends State<ChapterDetail> {
       });
     }
   }
+
   void _calculateLevel(int currentIsRead) {
       if (currentIsRead>0 && currentIsRead <= 100) {
         userLevel = 1;
@@ -123,13 +121,8 @@ class _ChapterDetailState extends State<ChapterDetail> {
       imageUrls = [];
       recognizedTexts = [];
     });
-
     try {
       DocumentSnapshot chapterSnapshot = await FirebaseFirestore.instance.collection('Comics').doc(comicId).collection('chapters').doc(chapterId).get();
-
-      if (!chapterSnapshot.exists) {
-        throw Exception('Chapter not found');
-      }
 
       Map<String, dynamic> data = chapterSnapshot.data() as Map<String, dynamic>;
       isVipChapter = data['vip'];
@@ -154,7 +147,6 @@ class _ChapterDetailState extends State<ChapterDetail> {
             });
             await secureScreen();
             await fetchData(data['chapterApiData']);
-            // startTTS();
           } else {
             setState(() {
               canRead = false;
@@ -177,7 +169,8 @@ class _ChapterDetailState extends State<ChapterDetail> {
     }
   }
  
-Future<void> fetchData(String apiUrl) async {
+  //lấy danh sách hình ảnh của 1 chương theo đường dẫn
+  Future<void> fetchData(String apiUrl) async {  
   try {
     final response = await http.get(Uri.parse(apiUrl));
     if (response.statusCode == 200) {
@@ -203,13 +196,13 @@ Future<void> fetchData(String apiUrl) async {
       });
       for( int i =0; i< imageUrls.length; i++)
       {
-         await extractTextFromImage(imageUrls[i]);
+        await extractTextFromImage(imageUrls[i]);
       }
     } else {
-      throw Exception('Failed to load images');
+      throw Exception('Không thể lấy hình ảnh');
     }
   } catch (e) {
-    print('Error fetching images: $e');
+    print('Không thể lấy hình ảnh: $e');
     setState(() {
       isLoading = true;
     });
@@ -232,15 +225,15 @@ Future<void> extractTextFromImage(String imageUrl) async {
     await deleteTemporaryImage(tempImagePath);
     await textRecognizer.close();
   } catch (e) {
-    print('Error extracting text from image: $e');
+    print('Lỗi khi lấy text từ ảnh: $e');
   }
-}
+  }
   Future<void> deleteTemporaryImage(String imagePath) async {
     final file = File(imagePath);
     if (await file.exists()) {
       await file.delete();
     } else {
-      print('Temporary image file does not exist: $imagePath');
+      print('Không tìm được file ảnh cần xóa: $imagePath');
     }
   }
 
@@ -348,7 +341,7 @@ Future<void> extractTextFromImage(String imageUrl) async {
       }
 
     } catch (e) {
-      print('Error updating reading time: $e');
+      print('Lỗi khi update thời gian đọc: $e');
     }
   }
 
@@ -379,7 +372,7 @@ Future<void> extractTextFromImage(String imageUrl) async {
           }
         }
       } catch (e) {
-        print('Error auto unlocking VIP chapter: $e');
+        print('Không thể mở khóa chương Vip: $e');
       }
     }
   }
@@ -464,7 +457,7 @@ Future<void> extractTextFromImage(String imageUrl) async {
         return false;
       }
     } catch (e) {
-      print('Error unlocking VIP chapter: $e');
+      print('Không thể mở khóa chương Vip: $e');
       return false;
     }
   }
@@ -490,7 +483,7 @@ Future<void> extractTextFromImage(String imageUrl) async {
               ),
             ],
           ),
-          content: Text('Bạn không đủ điểm để mở khóa chương VIP.'),
+          content: Text('Bạn không đủ xu để mở khóa chương VIP.'),
           actions: [
             TextButton(
               onPressed: () {
@@ -530,7 +523,7 @@ Future<void> extractTextFromImage(String imageUrl) async {
     chapterId = widget.chapterId;
   }
 
-   Map<String, dynamic>? getCurrentChapter() {
+  Map<String, dynamic>? getCurrentChapter() {
     return currentChapter;
   }
   

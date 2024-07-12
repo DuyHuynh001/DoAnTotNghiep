@@ -73,7 +73,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Xác thực thất bại. Vui lòng kiểm tra lại mật khẩu cũ'),
+          content: Text('Vui lòng kiểm tra lại mật khẩu cũ'),
           duration: Duration(seconds: 2),
         ),
       );

@@ -5,7 +5,8 @@ import 'package:comicz/view/ComicDetailScreen.dart';
 
 class AncientComic extends StatefulWidget {
   final String UserId;
-  const AncientComic({super.key, required this.UserId});
+  final bool shouldResetData;
+  const AncientComic({super.key, required this.UserId, required this.shouldResetData});
   @override
   State<AncientComic> createState() => _AncientComicState();
 }
@@ -15,6 +16,14 @@ class _AncientComicState extends State<AncientComic> {
   void initState() {
     super.initState();
     _loadAncientComic();
+  }
+   @override
+  void didUpdateWidget(covariant AncientComic oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Kiểm tra nếu có yêu cầu reset từ HomeScreen thì tải lại dữ liệu
+    if (widget.shouldResetData) {
+      _loadAncientComic();
+    }
   }
   // load danh sách cổ đại
   void _loadAncientComic() async {   
@@ -69,7 +78,7 @@ class _AncientComicState extends State<AncientComic> {
                   SizedBox(height: 8.0),
                   Text(
                     story.name,
-                    style: TextStyle(fontSize: 14.0, fontWeight: FontWeight.bold),
+                    style: const TextStyle(fontSize: 14.0, fontWeight: FontWeight.bold),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),

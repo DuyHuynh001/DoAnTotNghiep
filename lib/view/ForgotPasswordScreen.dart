@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -10,21 +11,32 @@ class ForgotPasswordScreen extends StatefulWidget {
 
 class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   final _emailController = TextEditingController();
-  final FirebaseAuth _auth = FirebaseAuth.instance;
 
-   Future<void> _resetPassword() async {
-    try {
-      await _auth.sendPasswordResetEmail(email: _emailController.text);
+ Future<void> _resetPassword() async {
+  try {
+    // Truy vấn Firestore để kiểm tra sự tồn tại của email
+    String email = _emailController.text.trim();
+    CollectionReference users = FirebaseFirestore.instance.collection('User');
+    QuerySnapshot querySnapshot = await users.where('Email', isEqualTo: email).get();
+
+    if (querySnapshot.docs.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Link đặt lại mật khẩu đã được gửi đến bạn! Kiểm tra Email của bạn.')),
+        SnackBar(content: Text('Email chưa được đăng ký. Vui lòng kiểm tra lại!')),
       );
-      Navigator.pop(context);
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Lỗi: ' + e.toString())),
-      );
+      return;
     }
+
+    await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Link đặt lại mật khẩu đã được gửi đến bạn! Kiểm tra Email của bạn.')),
+    );
+  
+  } catch (e) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Lỗi: ' + e.toString())),
+    );
   }
+}
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -65,7 +77,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                     const Row(
                       children: [
                         Icon(Icons.lock, color: Colors.grey,size: 50,),
-                        Expanded(child: Text("Vui lòng nhập email và chúng tôi sẽ gửi cho bạn một liên kết để đặt lại mật khẩu của bạn.",style: TextStyle(fontSize: 16), )
+                        Expanded(child: Text("Vui lòng nhập email đã đăng ký và chúng tôi sẽ gửi cho bạn một liên kết để đặt lại mật khẩu của bạn.",style: TextStyle(fontSize: 16), )
                       ),
                      ],
                     ),
@@ -102,10 +114,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                               borderRadius: BorderRadius.circular(12.0),
                             ),
                           ),
-                          padding: MaterialStatePropertyAll(
-                              EdgeInsets.fromLTRB(85, 14, 85, 14)),
-                          backgroundColor:
-                              MaterialStateProperty.all(Colors.lightBlue),
+                          padding: const MaterialStatePropertyAll( EdgeInsets.fromLTRB(85, 14, 85, 14)),
+                          backgroundColor: MaterialStateProperty.all(Colors.lightBlue),
                         ),
                         onPressed: _resetPassword,
                         child:const  Text("Đặt lại mật khẩu",

@@ -5,7 +5,8 @@ import 'package:comicz/view/ComicDetailScreen.dart';
 
 class FullComic extends StatefulWidget {
   final String UserId;
-  const FullComic({super.key, required this.UserId});
+  final bool shouldResetData;
+  const FullComic({super.key, required this.UserId, required this.shouldResetData});
   @override
   State<FullComic> createState() => _FullComicState();
 }
@@ -16,6 +17,14 @@ class _FullComicState extends State<FullComic> {
   void initState() {
     super.initState();
     _loadFullComic();
+  }
+   @override
+  void didUpdateWidget(covariant FullComic oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Kiểm tra nếu có yêu cầu reset từ HomeScreen thì tải lại dữ liệu
+    if (widget.shouldResetData) {
+      _loadFullComic();
+    }
   }
   void _loadFullComic() async {   
     List<Comics>list = await Comics.fetchFullComicsList();

@@ -2,7 +2,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:comicz/component/ShowUser.dart';
-import 'package:comicz/model/Community.dart';
 import 'package:comicz/model/User.dart'; 
 
 class CommentItem extends StatefulWidget {
