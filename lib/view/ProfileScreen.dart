@@ -1,5 +1,4 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:comicz/view/AttendanceScreen.dart';
 import 'package:flutter/material.dart';
 import 'package:comicz/model/User.dart';
 import 'package:comicz/component/EditProfile.dart';
@@ -10,14 +9,11 @@ import 'package:comicz/view/ManagerCategoryScreen.dart';
 import 'package:comicz/view/ManagerComicsScreen.dart';
 import 'package:comicz/view/MyCommentScreen.dart';
 import 'package:comicz/view/UsedTimeScreen.dart';
-import 'package:comicz/view/SpinScreen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:percent_indicator/percent_indicator.dart';
 import 'package:percent_indicator/percent_indicator.dart';
 
 class ProfileScreen extends StatefulWidget {
   final String UserId;
-
   const ProfileScreen({Key? key, required this.UserId}) : super(key: key);
 
   @override
@@ -28,14 +24,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
   int requiredIsRead = 0;
   double progressPercentage = 0;
   int userLevel = 1;
-  bool _isMarked= false ;
   User _user = User(Id: "", Name: "", Image: "https://firebasestorage.googleapis.com/v0/b/appdoctruyentranhonline.appspot.com/o/No-Image-Placeholder.svg.webp?alt=media&token=319ebc86-9ec0-4a16-a877-b477564b212b", Email: "", Status: false, Points: 0, IsRead: 0, Gender: "Không được đặt");
   @override
   void initState() {
     super.initState();
     _fetchUserData();
-   
   }
+
   Future<void> _fetchUserData() async {
     User user = await User.fetchUserById(widget.UserId);
     if (user != null) {
@@ -44,31 +39,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
         _calculateLevel(_user.IsRead);
         _calculateProgress(_user.IsRead);
       });
-      _checkAttendanceStatus(); 
-    }
-  }
-
-  Future<void> _checkAttendanceStatus() async {
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    final docId = widget.UserId;
-    try {
-      final doc = await FirebaseFirestore.instance.collection('Attendance').doc(docId).get();
-      if (doc.exists) {
-        final serverTimestamp = (doc['date'] as Timestamp).toDate();
-        final docDate = DateTime(serverTimestamp.year, serverTimestamp.month, serverTimestamp.day);
-        setState(() {
-          _isMarked = today == docDate;
-        });
-      } else {
-        setState(() {
-          _isMarked = false;
-        });
-      }
-    } catch (e) {
-      setState(() {
-        _isMarked = false;
-      });
     }
   }
 
@@ -76,82 +46,41 @@ class _ProfileScreenState extends State<ProfileScreen> {
       progressPercentage = currentIsRead / requiredIsRead;
   }
 
-  Future<void> _markAttendance() async {
-    if (_isMarked) return;
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-
-    try {
-      await FirebaseFirestore.instance.collection('Attendance').doc(widget.UserId).set({
-        'UserId':widget.UserId,
-        'date': FieldValue.serverTimestamp(),
-        'status': true,
-      }, SetOptions(merge: true));
-      await FirebaseFirestore.instance.collection("User").doc(widget.UserId).update({
-        'Points': FieldValue.increment(200),
-      });
-      setState(() {
-        _isMarked = true;
-      });
-    } catch (e) {
-    }
-  }
-
-  void _showNotification(String messenger) async {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Thông báo'),
-          content: Text(messenger),
-          actions: <Widget>[
-            TextButton(
-              child: Text('Đóng'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        );
-      },
-    );  
-  }
-
   void _calculateLevel(int currentIsRead) {
-      if (currentIsRead <= 0) {
-        userLevel = 1;
-        requiredIsRead = 100;
-      } else if (currentIsRead <= 100) {
-        userLevel = 1;
-        requiredIsRead = 100;
-      } else if (currentIsRead <= 500) {
-        userLevel = 2;
-        requiredIsRead = 500;
-      } else if (currentIsRead <= 1000) {
-        userLevel = 3;
-        requiredIsRead = 1000;
-      }else if (currentIsRead <= 2000) {
-        userLevel = 4;
-        requiredIsRead = 2000;
-      } else if (currentIsRead <= 5000) {
-        userLevel = 5;
-        requiredIsRead = 5000;
-      } else if (currentIsRead <= 10000) {
-        userLevel = 6;
-        requiredIsRead = 10000;
-      } else if (currentIsRead <= 20000) {
-        userLevel = 7;
-        requiredIsRead = 20000;
-      } else if (currentIsRead <= 50000) {
-        userLevel = 8;
-        requiredIsRead = 50000;
-      } else if (currentIsRead <= 100000) {
-        userLevel = 9;
-        requiredIsRead=100000;
-      } else {
-        userLevel = 10;
-        requiredIsRead = 999999;
-      } 
+    if (currentIsRead <= 0) {
+      userLevel = 1;
+      requiredIsRead = 100;
+    } else if (currentIsRead <= 100) {
+      userLevel = 1;
+      requiredIsRead = 100;
+    } else if (currentIsRead <= 500) {
+      userLevel = 2;
+      requiredIsRead = 500;
+    } else if (currentIsRead <= 1000) {
+      userLevel = 3;
+      requiredIsRead = 1000;
+    }else if (currentIsRead <= 2000) {
+      userLevel = 4;
+      requiredIsRead = 2000;
+    } else if (currentIsRead <= 5000) {
+      userLevel = 5;
+      requiredIsRead = 5000;
+    } else if (currentIsRead <= 10000) {
+      userLevel = 6;
+      requiredIsRead = 10000;
+    } else if (currentIsRead <= 20000) {
+      userLevel = 7;
+      requiredIsRead = 20000;
+    } else if (currentIsRead <= 50000) {
+      userLevel = 8;
+      requiredIsRead = 50000;
+    } else if (currentIsRead <= 100000) {
+      userLevel = 9;
+      requiredIsRead=100000;
+    } else {
+      userLevel = 10;
+      requiredIsRead = 999999;
+    } 
   }
   
   @override
@@ -278,14 +207,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               ),
                               Column(
                                 children: [
-                                  Text(
-                                    _user.Points.toString(),
-                                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, ),
-                                  ),
-                                  const Text(
-                                    "Xu của tôi",
-                                    style: TextStyle(fontSize: 16),
-                                  )
+                                  Text( _user.Points.toString(), style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, ),),
+                                  const Text( "Xu của tôi", style: TextStyle(fontSize: 16),)
                                 ],
                               ),
                             ],
@@ -447,6 +370,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       ),
     );
   }
+
   Widget _buildMenberFunctions() {
     return Container(
       color: const Color.fromARGB(255, 255, 255, 255),
@@ -469,7 +393,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       ),
     );
   }
-   Widget _buildMemberFunctionCard() {
+  Widget _buildMemberFunctionCard() {
     return Container(
       decoration: BoxDecoration(
         color: const Color.fromARGB(255, 255, 255, 255),
@@ -489,17 +413,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
           children: [
             _buildFunctionButton(
               icon: Icons.today,
-              label: _isMarked? "Đã điểm danh": "Điểm danh",
+              label: "Điểm danh",
               onPressed: (){
-                if(_isMarked)
-                {
-                  _showNotification("Bạn đã điểm danh hôm nay rồi");
-                }
-                else{
-                  _showNotification("Chúc mừng bạn nhận được 200 xu");
-                  _markAttendance();
-                }
-
+                Navigator.push(
+                  context,
+                  PageRouteBuilder(
+                  pageBuilder: (context, animation, secondaryAnimation) => CheckInScreen(userId: _user.Id),
+                  transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                    const begin = Offset(1.0, 0.0);
+                    const end = Offset.zero;
+                    const curve = Curves.easeInOut;
+                    var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+                    var offsetAnimation = animation.drive(tween);
+                    return SlideTransition(
+                      position: offsetAnimation,
+                      child: child,
+                    );
+                  },
+                ),
+                );
               }
             ),
             _buildFunctionButton( 
@@ -645,7 +577,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-           
             _buildFunctionButton(
               icon: Icons.vpn_key,
               label: "Đổi mật khẩu",

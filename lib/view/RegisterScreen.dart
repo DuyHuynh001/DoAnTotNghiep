@@ -314,6 +314,8 @@ class FirebaseAuthServiceSignUp {
     userRef.set({
       'Name': username,
       'Gender': "Không được đặt",
+      'Points':0,
+      'IsRead':0,
       'Email': email,
       'Image': "https://firebasestorage.googleapis.com/v0/b/appdoctruyentranhonline.appspot.com/o/No-Image-Placeholder.svg.webp?alt=media&token=319ebc86-9ec0-4a16-a877-b477564b212b",
       'Status': false

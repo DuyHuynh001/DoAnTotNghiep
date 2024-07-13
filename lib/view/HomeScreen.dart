@@ -14,7 +14,6 @@ import 'package:comicz/view/NewComicScreen.dart';
 import 'package:comicz/view/ProfileScreen.dart';
 import 'package:comicz/view/SearchScreen.dart';
 import 'package:comicz/view/TopComicScreen.dart';
-import 'package:provider/provider.dart';
 
 class HomeScreen extends StatefulWidget {
   final String UserId;
@@ -55,6 +54,7 @@ class _MyHomeScreen extends State<HomeScreen> {
       child: CustomScrollView(
         slivers: [
           SliverAppBar(
+            automaticallyImplyLeading: false,
             backgroundColor: Colors.transparent,
             title: InkWell(
               onTap: () {
@@ -99,7 +99,7 @@ class _MyHomeScreen extends State<HomeScreen> {
             actions: [
               IconButton(
                 icon: const Icon(Icons.notifications, color: Colors.black),
-                onPressed: ()  {},
+                onPressed: () { },
               ),
             ], 
           ),

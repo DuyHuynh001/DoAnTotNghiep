@@ -55,14 +55,12 @@ class _LoginScreenState extends State<LoginScreen> {
         String userId = user.uid;
         prefs.setString('UserId', userId);
         print("Id: $userId");
-        // saveTokenToFirestore();
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => NavigationScreen(UserId: userId)),
         );
       }
     } catch (e) {
-      // Xử lý lỗi đăng nhập
       print("Error signing in: $e");
       showSnackBar(context, 'Tài khoản hoặc mật khẩu không đúng');
     } finally {
@@ -205,7 +203,7 @@ class FirebaseAuthServiceSignIn {
    final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   
     Future<User?> signInWithEmailAndPassword(
-      String email, String password) async {
+    String email, String password) async {
     try {
       UserCredential credential = await auth.signInWithEmailAndPassword(
           email: email, password: password);
@@ -234,16 +232,3 @@ class FirebaseAuthServiceSignIn {
   }
 }
 }
-
-// Future<void> saveTokenToFirestore() async {
-//     String userId = FirebaseAuth.instance.currentUser!.uid;
-//     FirebaseMessaging messaging = FirebaseMessaging.instance;
-
-//     String? token = await messaging.getToken();
-//     if (token != null) {
-//       CollectionReference users = FirebaseFirestore.instance.collection('User');
-//       await users.doc(userId).set({
-//         'tokens': FieldValue.arrayUnion([token]),
-//       }, SetOptions(merge: true));
-//     }
-//   }
