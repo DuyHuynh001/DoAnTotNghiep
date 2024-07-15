@@ -20,7 +20,6 @@ class _CheckInScreenState extends State<CheckInScreen> {
   void initState() {
     super.initState();
     _checkAndResetWeek();
-    _loadCheckInData();
     _fetchUserData();
   }
   
@@ -39,7 +38,7 @@ class _CheckInScreenState extends State<CheckInScreen> {
     return ((days + firstDayOfYear.weekday) / 7).ceil();
   }
 
-  //lấy dử liệu điểm danh và kiểm tra xem đã điểm danh chưa
+  //lấy dử liệu điểm danh
   void _loadCheckInData() async {
     DocumentSnapshot snapshot = await _firestore.collection('Attendance').doc(widget.userId).collection('checkIn').doc('currentWeek').get();
     if (snapshot.exists) {
@@ -49,7 +48,15 @@ class _CheckInScreenState extends State<CheckInScreen> {
       });
     } else {
       setState(() {
-        checkInData = {};
+        checkInData = {
+        'day1': false,
+        'day2': false,
+        'day3': false,
+        'day4': false,
+        'day5': false,
+        'day6': false,
+        'day7': false,
+      };
         isTodayChecked = false;
       });
     }
@@ -84,29 +91,26 @@ class _CheckInScreenState extends State<CheckInScreen> {
     DateTime now = DateTime.now();
     int currentWeek = weekOfYear(now);
 
-    DocumentReference userDocRef = _firestore.collection('Attendance').doc(widget.userId);
+    DocumentReference userDocRef = _firestore.collection('Attendance').doc(widget.userId).collection("checkIn").doc("currentWeek");
     DocumentSnapshot userDoc = await userDocRef.get();
     Map<String, dynamic>? userData = userDoc.data() as Map<String, dynamic>?;
 
-    int lastWeek = userData?['lastCheckInWeek'] ?? currentWeek;
-
+    int lastWeek = userData?['lastWeek'] ?? -1;
     if (currentWeek != lastWeek) {
       await userDocRef.set({
-        'lastCheckInWeek': currentWeek,
-        'checkIn': {
-          'currentWeek': {
-            'day1': false,
-            'day2': false,
-            'day3': false,
-            'day4': false,
-            'day5': false,
-            'day6': false,
-            'day7': false,
-          }
-        }
+        'lastWeek': currentWeek,
+        'day1': false,
+        'day2': false,
+        'day3': false,
+        'day4': false,
+        'day5': false,
+        'day6': false,
+        'day7': false,
       }, SetOptions(merge: true));
     }
+     _loadCheckInData();
   }
+
 
   void _showNotification(String message) {
     showDialog(
@@ -137,13 +141,9 @@ class _CheckInScreenState extends State<CheckInScreen> {
         title: Text('Điểm Danh Hàng Tuần'),
       ),
       body: Container(
+        height: double.infinity,
         decoration:  BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Colors.orange.shade400, Colors.grey.shade200],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            stops: [0.5, 0.5],
-          ),
+          color: Colors.white
         ),
         child: SingleChildScrollView(
           child: Padding(
@@ -157,7 +157,7 @@ class _CheckInScreenState extends State<CheckInScreen> {
                       const Icon(
                         Icons.monetization_on,
                         size: 45,
-                        color: Colors.white,
+                        color: Colors.orange,
                       ),
                       SizedBox(width: 10),
                       Text(
@@ -165,7 +165,7 @@ class _CheckInScreenState extends State<CheckInScreen> {
                         style: const TextStyle(
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
-                          color: Colors.white,
+                          color: Colors.orange,
                         ),
                       ),
                     ],
@@ -174,12 +174,12 @@ class _CheckInScreenState extends State<CheckInScreen> {
                 SizedBox(height: 16.0),
                 Container(
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: Colors.grey[50],
                     borderRadius: BorderRadius.circular(10),
                     boxShadow: [
                       BoxShadow(
                         color: Colors.grey.withOpacity(0.5),
-                        spreadRadius: 2,
+                        spreadRadius: 5,
                         blurRadius: 5,
                         offset: Offset(0, 3),
                       ),
@@ -225,7 +225,7 @@ class _CheckInScreenState extends State<CheckInScreen> {
                                       SizedBox(height: 10.0),
                                       Icon(
                                         checkInData['day$day'] == true ? Icons.check_circle : Icons.monetization_on,
-                                        color: checkInData['day$day'] == true ? Colors.green : Colors.orange,
+                                        color: checkInData['day$day'] == true ? Colors.blue : Colors.orange,
                                         size: 35,
                                       ),
                                     ],
@@ -248,18 +248,18 @@ class _CheckInScreenState extends State<CheckInScreen> {
                       SizedBox(height: 16.0),
                       ElevatedButton(
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.orange,
+                          backgroundColor: Colors.blue,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(30),
                           ),
-                          padding: EdgeInsets.symmetric(horizontal: 45, vertical: 16),
+                          padding: EdgeInsets.symmetric(horizontal: 55, vertical: 16),
                         ),
                         onPressed: () {
                           _checkIn(today.weekday);
                         },
                         child: const Text('Nhận ngay 200 xu', style: TextStyle(fontSize: 16),),
                       ),
-                      SizedBox(height: 16.0),
+                      SizedBox(height: 26.0),
                     ],
                   ),
                 ),
