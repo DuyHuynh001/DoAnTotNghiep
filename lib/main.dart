@@ -65,6 +65,9 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         primaryColor: Colors.black,
+        appBarTheme: AppBarTheme(
+        color: Colors.blue, // Màu sắc AppBar
+        ),
       ),
       home: CheckLogin(),
     );

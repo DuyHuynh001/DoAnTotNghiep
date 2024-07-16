@@ -11,15 +11,15 @@ class ToolItem extends StatelessWidget {
       onTap: onTap,
       child: Container(
         width: MediaQuery.of(context).size.width / 4.5,
-        height: 70,
+        height: 75,
         margin: const EdgeInsets.all(5),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Image.asset(
               image,
-              width: 51,
-              height: 51,
+              width: 50,
+              height: 50,
               fit: BoxFit.cover,
             ),
             const SizedBox(height: 5),

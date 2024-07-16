@@ -225,7 +225,7 @@ class _MyHomeScreen extends State<HomeScreen> {
                       },),
                   ],
                 ),
-                SizedBox(height: 10,),
+                SizedBox(height: 13,),
               ],
             ),
           ), 
@@ -346,8 +346,7 @@ class ComicHeader extends StatelessWidget {
         break;
       case 'Đề Cử':
         destinationWidget = ListRecommendComicScreen(UserId: UserId);
-        break;
-        
+        break; 
       default:
        destinationWidget = CategoryDetailScreen(Name: name, Title: "", UserId: UserId);
         break;
