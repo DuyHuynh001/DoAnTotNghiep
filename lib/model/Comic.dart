@@ -215,6 +215,18 @@ class Comics {
       throw Exception('Lỗi khi tải thông tin truyện theo thể loại $e');
     }
   }
+
+  static Future<List<Comics>> fetchComicsByListCategories(List<String> categories) async {
+    List<Comics> comics = [];
+
+    for (var category in categories) {
+      List<Comics> categoryComics = await fetchComicsByCategory(category);
+      comics.addAll(categoryComics);
+    }
+
+    return comics;
+  }
+
   //lấy danh sách comic theo thể loại và trạng thái truyện
   static Future<List<Comics>?> fetchComicsByCategoryAndStatus(String name, String status) async {
     try {

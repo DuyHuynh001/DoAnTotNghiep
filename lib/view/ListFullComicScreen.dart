@@ -26,8 +26,7 @@ class _ListfullComicScreenState extends State<ListFullComicScreen> {
       isLoading = true;
     });
     try {
-      List<Comics>? fetchedComics =
-          await Comics.fetchFullComicsList();
+      List<Comics>? fetchedComics =await Comics.fetchFullComicsList();
       setState(() {
         fullComicsList = fetchedComics ?? [];
       });

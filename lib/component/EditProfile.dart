@@ -1,3 +1,4 @@
+import 'package:comicz/model/Category.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
@@ -25,13 +26,18 @@ class _EditProfileState extends State<EditProfile> {
   String? _imageUrl;
   bool _isLoading = false;
   String? _gender;
-
+  List<Category> listCategory=[];
+  List<String> _selectedCategories = []; 
+  
+ 
   @override
   void initState() {
     super.initState();
     _nameController.text = widget.name;
     _imageUrl = widget.image;
     _gender = widget.gender;
+    loadCategorydata();
+    fetchUserCategories(); 
   }
 
   @override
@@ -39,6 +45,37 @@ class _EditProfileState extends State<EditProfile> {
     _nameController.dispose();
     _imageUrlController.dispose();
     super.dispose();
+  }
+
+  void loadCategorydata() async {
+    List<Category> category = await Category.fetchAllCategories();
+    if (category != null) {
+      setState(() {
+        listCategory = category;
+      });
+    } else {
+      print("Không có danh sách thể loại");
+    }
+  }
+  void _toggleCategory(String category) {
+    setState(() {
+      if (_selectedCategories.contains(category)) {
+        _selectedCategories.remove(category);
+      } else {
+        _selectedCategories.add(category);
+      }
+    });
+  }
+  
+  Future<void> fetchUserCategories() async {
+    try {
+      DocumentSnapshot userSnapshot = await FirebaseFirestore.instance.collection('User').doc(widget.id).get();
+      setState(() {
+        _selectedCategories = List<String>.from(userSnapshot.get('Category'));
+      });
+    } catch (e) {
+      print('Lỗi khi lấy thể loại người dùng: $e');
+    }
   }
 
   Future<void> _pickImageFromGallery() async {
@@ -82,6 +119,7 @@ class _EditProfileState extends State<EditProfile> {
       'Name': _nameController.text,
       'Image': imageUrl,
       'Gender': _gender,
+      'Category': _selectedCategories
     });
     if (mounted) {
       setState(() {
@@ -250,16 +288,59 @@ class _EditProfileState extends State<EditProfile> {
                     }).toList(),
                   ),
                 ),
+                const Divider(color: Colors.grey, thickness: 1),
                 ListTile(
-                  title: Text('ID'),
-                  subtitle: Text(widget.id),
+                  title: Text('Thể loại bạn yêu thích và hệ thống sẽ đề cử truyện dựa theo thể loại bạn chọn'),
+                   subtitle: Padding(
+                    padding: EdgeInsets.only(top: 8.0),
+                    child: Wrap(
+                      spacing: 8.0,
+                      runSpacing: 8.0,
+                      children: List.generate(
+                        listCategory.length,
+                        (index) => GestureDetector(
+                          onTap: () => _toggleCategory(listCategory[index].categoryName),
+                          child: CategoryItems(
+                            category: listCategory[index],
+                            isSelected: _selectedCategories.contains(listCategory[index].categoryName),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
                 ),
+                const Divider(color: Colors.grey, thickness: 1),
                 ElevatedButton(
                   onPressed: _saveProfile,
-                  child: Text('Lưu'),
+                  child: Text('Lưu', style: TextStyle(fontSize: 16),),
                 ),
               ],
             ),
     );
   }
 }
+class CategoryItems extends StatelessWidget {
+  final Category category;
+  final bool isSelected;
+
+  CategoryItems({required this.category, required this.isSelected});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.symmetric(vertical: 8.0, horizontal: 12.0),
+      decoration: BoxDecoration(
+        color: isSelected ? Colors.blue : Colors.grey.shade300,
+        borderRadius: BorderRadius.circular(8.0),
+      ),
+      child: Text(
+        category.categoryName,
+        style: TextStyle(
+          color: isSelected ? Colors.white : Colors.black,
+          fontSize: 13.0,
+        ),
+      ),
+    );
+  }
+}
+

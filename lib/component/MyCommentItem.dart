@@ -29,7 +29,7 @@ class MyCommentItem extends StatefulWidget {
 }
 
 class _MyCommentItemState extends State<MyCommentItem> {
-  User userData = User(Id: "", Name: "", Image: "https://firebasestorage.googleapis.com/v0/b/appdoctruyentranhonline.appspot.com/o/No-Image-Placeholder.svg.webp?alt=media&token=319ebc86-9ec0-4a16-a877-b477564b212b", Email: "", Status: false, Points: 0, IsRead: 0,Gender: "Không được đặt");
+  User userData = User(Id: "", Name: "", Image: "https://firebasestorage.googleapis.com/v0/b/appdoctruyentranhonline.appspot.com/o/No-Image-Placeholder.svg.webp?alt=media&token=319ebc86-9ec0-4a16-a877-b477564b212b", Email: "", Status: false, Points: 0, IsRead: 0,Gender: "Không được đặt", UserCategory: []);
 
   @override
   void initState() {

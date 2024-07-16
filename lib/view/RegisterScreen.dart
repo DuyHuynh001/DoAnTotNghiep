@@ -312,6 +312,7 @@ class FirebaseAuthServiceSignUp {
   void saveUserData(String uid, String username, String email) {
     final DocumentReference userRef = _firestore.collection('User').doc(uid);
     userRef.set({
+      'Category':[],
       'Name': username,
       'Gender': "Không được đặt",
       'Points':0,

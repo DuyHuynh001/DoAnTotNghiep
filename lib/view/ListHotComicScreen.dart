@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:comicz/component/ComicItem.dart';
 import 'package:comicz/model/Comic.dart';
-import 'package:comicz/model/Community.dart';
 
 class ListHotComicScreen extends StatefulWidget {
   final String UserId; // Thay đổi UserId thành userId để tuân thủ conventions

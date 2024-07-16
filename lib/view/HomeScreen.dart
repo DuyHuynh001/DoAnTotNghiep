@@ -1,3 +1,5 @@
+import 'package:comicz/view/ListRecommendComicScreen.dart';
+import 'package:comicz/view/RecommendScreen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_image_slideshow/flutter_image_slideshow.dart';
 import 'package:comicz/component/ActionComic.dart';
@@ -228,6 +230,14 @@ class _MyHomeScreen extends State<HomeScreen> {
             ),
           ), 
           ComicHeader(
+              text: 'Truyện Đề Cử',
+              icon: Icons.batch_prediction_outlined,
+              color: Colors.orange,
+              UserId: widget.UserId,
+              name: "Đề Cử"
+          ),
+         RecommendComic(userId: widget.UserId,shouldResetData: _shouldResetData,),
+          ComicHeader(
               text: 'Truyện Hot',
               icon: Icons.local_fire_department_sharp,
               color: Colors.red,
@@ -334,6 +344,10 @@ class ComicHeader extends StatelessWidget {
       case 'Hoàn':
         destinationWidget = ListFullComicScreen(UserId: UserId);
         break;
+      case 'Đề Cử':
+        destinationWidget = ListRecommendComicScreen(UserId: UserId);
+        break;
+        
       default:
        destinationWidget = CategoryDetailScreen(Name: name, Title: "", UserId: UserId);
         break;

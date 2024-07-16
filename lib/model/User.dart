@@ -9,6 +9,7 @@ class User {
   final int Points;
   final int IsRead;
   final String Gender;
+  List<String> UserCategory;
 
   User({
     required this.Id,
@@ -18,10 +19,13 @@ class User {
     required this.Status,
     required this.Points,
     required this.IsRead,
-    required this.Gender
+    required this.Gender,
+    required this.UserCategory
+
   });
 
   factory User.fromJson(String Id, Map<String, dynamic> json) {
+    List<String> CategoryList = List<String>.from(json['Category']);
     return User(
       Id: Id,
       Name: json['Name'],
@@ -30,7 +34,9 @@ class User {
       Image: json['Image'],
       Points: json['Points'],
       IsRead: json['IsRead'],
-      Gender: json['Gender']
+      Gender: json['Gender'],
+      UserCategory: CategoryList
+
     );
   }
 
